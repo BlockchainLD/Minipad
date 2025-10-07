@@ -6,16 +6,9 @@ import { authClient } from "../lib/auth-client";
 import { ConvexBetterAuthProvider } from "@convex-dev/better-auth/react"; 
 import { sdk } from '@farcaster/miniapp-sdk';
 
-// Create a mock Convex client for development
-const convexUrl = process.env.NEXT_PUBLIC_CONVEX_URL;
-let convex: ConvexReactClient;
-
-if (convexUrl && !convexUrl.includes('placeholder')) {
-  convex = new ConvexReactClient(convexUrl);
-} else {
-  // Create a mock client that won't cause errors
-  convex = new ConvexReactClient('https://mock.convex.dev');
-}
+// Create Convex client with proper URL handling
+const convexUrl = process.env.NEXT_PUBLIC_CONVEX_URL || 'https://standing-egret-76.convex.cloud';
+const convex = new ConvexReactClient(convexUrl);
 
 (async () => {
   try {

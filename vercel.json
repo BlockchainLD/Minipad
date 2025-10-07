@@ -4,4 +4,3 @@
   "installCommand": "bun install",
   "outputDirectory": ".next"
 }
-

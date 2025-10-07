@@ -13,7 +13,11 @@ import type * as betterAuth__generated_api from "../betterAuth/_generated/api.js
 import type * as betterAuth__generated_server from "../betterAuth/_generated/server.js";
 import type * as betterAuth_adapter from "../betterAuth/adapter.js";
 import type * as betterAuth_auth from "../betterAuth/auth.js";
+import type * as claims from "../claims.js";
 import type * as http from "../http.js";
+import type * as ideas from "../ideas.js";
+import type * as remixes from "../remixes.js";
+import type * as upvotes from "../upvotes.js";
 
 import type {
   ApiFromModules,
@@ -35,7 +39,11 @@ declare const fullApi: ApiFromModules<{
   "betterAuth/_generated/server": typeof betterAuth__generated_server;
   "betterAuth/adapter": typeof betterAuth_adapter;
   "betterAuth/auth": typeof betterAuth_auth;
+  claims: typeof claims;
   http: typeof http;
+  ideas: typeof ideas;
+  remixes: typeof remixes;
+  upvotes: typeof upvotes;
 }>;
 declare const fullApiWithMounts: typeof fullApi;
 

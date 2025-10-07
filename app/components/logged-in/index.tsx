@@ -1,11 +1,14 @@
 import { TopBar } from "@worldcoin/mini-apps-ui-kit-react";
-import { PoweredByBase } from "../powered-by-base";
 import { useIsMobile } from "../../hooks/use-is-mobile";
-import { HomeContent } from "./home-content";
 import { SettingsContent } from "./settings-content";
 import { MobileTabs } from "./mobile-tabs";
 import { CopyNotification } from "./copy-notification";
 import { useLoggedIn } from "./use-logged-in";
+import { IdeasBoard } from "../ideas-board";
+import { IdeaSubmissionForm } from "../idea-submission-form";
+import { CompletionForm } from "../completion-form";
+import { useState } from "react";
+import { Id } from "../../../convex/_generated/dataModel";
 
 export const LoggedIn = () => {
   const {
@@ -21,22 +24,51 @@ export const LoggedIn = () => {
   } = useLoggedIn();
   
   const isMobile = useIsMobile();
+  const [currentView, setCurrentView] = useState<"board" | "submit" | "complete">("board");
+  const [selectedIdeaId, setSelectedIdeaId] = useState<Id<"ideas"> | null>(null);
 
   if (isMobile) {
     return (
       <>
         <div className="bg-white min-h-screen mb-20 flex flex-col">
           <TopBar 
-            title="Mini App Template"
+            title="💡 Minipad"
             className="[&_*]:text-black"
           />
-          <div className="px-6 pt-0.5 pb-3">
-            <PoweredByBase />
-          </div>
           
-          <div className="flex-1 flex items-center justify-center px-6 pb-24">
-            <div className="w-full">
-              {activeTab === "home" && <HomeContent />}
+          <div className="flex-1 px-6 pb-24">
+            {activeTab === "home" && (
+              <div className="w-full">
+                {currentView === "board" && (
+                  <IdeasBoard 
+                    onIdeaClick={(ideaId) => {
+                      setSelectedIdeaId(ideaId);
+                      setCurrentView("complete");
+                    }}
+                    onViewChange={setCurrentView}
+                  />
+                )}
+                {currentView === "submit" && (
+                  <IdeaSubmissionForm 
+                    onSuccess={() => setCurrentView("board")}
+                    onCancel={() => setCurrentView("board")}
+                  />
+                )}
+                {currentView === "complete" && selectedIdeaId && (
+                  <CompletionForm 
+                    ideaId={selectedIdeaId}
+                    onSuccess={() => {
+                      setCurrentView("board");
+                      setSelectedIdeaId(null);
+                    }}
+                    onCancel={() => {
+                      setCurrentView("board");
+                      setSelectedIdeaId(null);
+                    }}
+                  />
+                )}
+              </div>
+            )}
             {activeTab === "settings" && (
               <SettingsContent 
                 walletAddress={walletAddress}
@@ -48,11 +80,14 @@ export const LoggedIn = () => {
                 onCopyUserId={handleCopyUserId}
               />
             )}
-            </div>
           </div>
         </div>
 
-        <MobileTabs activeTab={activeTab} onTabChange={setActiveTab} />
+        <MobileTabs 
+          activeTab={activeTab} 
+          onTabChange={setActiveTab} 
+          onViewChange={setCurrentView}
+        />
         <CopyNotification show={copied} isMobile />
       </>
     );
@@ -62,22 +97,38 @@ export const LoggedIn = () => {
     <>
       <div className="bg-white rounded-3xl shadow-2xl overflow-hidden">
         <TopBar 
-          title="Mini App Template"
+          title="💡 Minipad"
           className="[&_*]:text-black"
         />
-        <div className="px-6 pt-0.5 pb-3">
-          <PoweredByBase />
-        </div>
         <div className="p-6 pt-4">
-          <SettingsContent 
-            walletAddress={walletAddress}
-            copied={copied}
-            onCopyAddress={handleCopyAddress}
-            onSignOut={handleSignOut}
-            userId={userId}
-            copiedUserId={copiedUserId}
-            onCopyUserId={handleCopyUserId}
-          />
+          {currentView === "board" && (
+            <IdeasBoard 
+              onIdeaClick={(ideaId) => {
+                setSelectedIdeaId(ideaId);
+                setCurrentView("complete");
+              }}
+              onViewChange={setCurrentView}
+            />
+          )}
+          {currentView === "submit" && (
+            <IdeaSubmissionForm 
+              onSuccess={() => setCurrentView("board")}
+              onCancel={() => setCurrentView("board")}
+            />
+          )}
+          {currentView === "complete" && selectedIdeaId && (
+            <CompletionForm 
+              ideaId={selectedIdeaId}
+              onSuccess={() => {
+                setCurrentView("board");
+                setSelectedIdeaId(null);
+              }}
+              onCancel={() => {
+                setCurrentView("board");
+                setSelectedIdeaId(null);
+              }}
+            />
+          )}
         </div>
       </div>
 

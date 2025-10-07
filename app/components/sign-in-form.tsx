@@ -16,7 +16,9 @@ export function SignInForm() {
     setIsLoading(true);
     
     try {
-      const result = await connectAsync({ connector: connectors[0] });
+      // Prefer Base Smart Wallet connector for web
+      const baseConnector = connectors.find(c => c.name.toLowerCase().includes('base')) || connectors[0];
+      const result = await connectAsync({ connector: baseConnector });
       console.log('Connected to wallet:', result.accounts[0]);
     } catch (error) {
       console.error('Wallet connection error:', error);
@@ -30,7 +32,7 @@ export function SignInForm() {
       <div className="text-center space-y-3">
         <div className="space-y-3">
           <Typography variant="heading" className="text-gray-900">
-            Mini App Template
+            Minipad
           </Typography>
           <Typography variant="body" className="text-gray-600">
             Connect your wallet to continue

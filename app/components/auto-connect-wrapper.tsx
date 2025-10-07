@@ -26,6 +26,7 @@ export function AutoConnectWrapper({ children }: AutoConnectWrapperProps) {
   const [isInMiniApp, setIsInMiniApp] = useState(false);
   const [autoConnectAttempted, setAutoConnectAttempted] = useState(false);
   const [fid, setFid] = useState<number | null>(null);
+  const [connectingTimedOut, setConnectingTimedOut] = useState(false);
 
   useEffect(() => {
     const checkMiniApp = async () => {
@@ -43,6 +44,13 @@ export function AutoConnectWrapper({ children }: AutoConnectWrapperProps) {
           } catch (error) {
             console.log('Error getting Farcaster context:', error);
           }
+
+          // Signal readiness to host before attempting wallet connect
+          try {
+            await sdk.actions.ready({ disableNativeGestures: true });
+          } catch (error) {
+            console.log('Error signaling ready to mini app host:', error);
+          }
         }
         
         // If we're in a mini app and not connected, try to auto-connect
@@ -55,9 +63,14 @@ export function AutoConnectWrapper({ children }: AutoConnectWrapperProps) {
           
           if (farcasterConnector) {
             try {
+              // Add a timeout so we never get stuck on loading
+              setConnectingTimedOut(false);
+              const timeout = setTimeout(() => setConnectingTimedOut(true), 7000);
               await connectAsync({ connector: farcasterConnector });
+              clearTimeout(timeout);
             } catch (error) {
               console.log('Auto-connect failed:', error);
+              setConnectingTimedOut(true);
             }
           }
         }
@@ -71,7 +84,7 @@ export function AutoConnectWrapper({ children }: AutoConnectWrapperProps) {
   }, [isConnected, autoConnectAttempted, connectAsync, connectors]);
 
   // If we're in a mini app and connecting, show loading state
-  if (isInMiniApp && isConnecting) {
+  if (isInMiniApp && isConnecting && !connectingTimedOut) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center p-4">
         <div className="bg-white rounded-3xl shadow-2xl p-7 space-y-7 text-center">
