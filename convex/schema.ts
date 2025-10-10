@@ -7,7 +7,10 @@ const schema = defineSchema({
     title: v.string(),
     description: v.string(),
     author: v.string(), // wallet address
-    authorFid: v.optional(v.string()), // Farcaster ID
+    authorFid: v.optional(v.number()), // Farcaster FID
+    authorAvatar: v.optional(v.string()), // Farcaster avatar URL
+    authorDisplayName: v.optional(v.string()), // Farcaster display name
+    authorUsername: v.optional(v.string()), // Farcaster username
     attestationUid: v.optional(v.string()), // EAS attestation UID
     timestamp: v.number(),
     upvotes: v.number(),
@@ -16,19 +19,22 @@ const schema = defineSchema({
     claimedAt: v.optional(v.number()),
     completedAt: v.optional(v.number()),
     miniappUrl: v.optional(v.string()),
-    completionAttestationUid: v.optional(v.string()),
+    completionAttestationUid: v.optional(v.string()), // EAS attestation UID for completion
+    // Remix-specific fields
+    isRemix: v.optional(v.boolean()), // true if this is a remix
+    originalIdeaId: v.optional(v.id("ideas")), // ID of the original idea being remixed
+    remixAttestationUid: v.optional(v.string()), // EAS attestation UID for remix
   })
     .index("by_author", ["author"])
     .index("by_status", ["status"])
     .index("by_timestamp", ["timestamp"])
-    .index("by_upvotes", ["upvotes"]),
+    .index("by_upvotes", ["upvotes"])
+    .index("by_original_idea", ["originalIdeaId"]),
 
-  // Upvotes/attestations for ideas
+  // Upvotes for ideas (no EAS attestations)
   upvotes: defineTable({
     ideaId: v.id("ideas"),
     voter: v.string(), // wallet address
-    voterFid: v.optional(v.string()), // Farcaster ID
-    attestationUid: v.optional(v.string()), // EAS attestation UID
     timestamp: v.number(),
   })
     .index("by_idea", ["ideaId"])
@@ -39,30 +45,16 @@ const schema = defineSchema({
   claims: defineTable({
     ideaId: v.id("ideas"),
     claimer: v.string(), // wallet address
-    claimerFid: v.optional(v.string()), // Farcaster ID
     attestationUid: v.optional(v.string()), // EAS attestation UID
     timestamp: v.number(),
     status: v.union(v.literal("claimed"), v.literal("completed")),
     completedAt: v.optional(v.number()),
     miniappUrl: v.optional(v.string()),
-    completionAttestationUid: v.optional(v.string()),
   })
     .index("by_idea", ["ideaId"])
     .index("by_claimer", ["claimer"])
     .index("by_status", ["status"]),
 
-  // Remixes/expansions of ideas
-  remixes: defineTable({
-    originalIdeaId: v.id("ideas"),
-    remixIdeaId: v.id("ideas"),
-    remixer: v.string(), // wallet address
-    remixerFid: v.optional(v.string()), // Farcaster ID
-    attestationUid: v.optional(v.string()), // EAS attestation UID
-    timestamp: v.number(),
-  })
-    .index("by_original", ["originalIdeaId"])
-    .index("by_remixer", ["remixer"])
-    .index("by_timestamp", ["timestamp"]),
 });
 
 export default schema;

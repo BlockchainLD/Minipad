@@ -9,7 +9,6 @@ import { useAccount } from "wagmi";
 function AppContent() {
   const { isConnected } = useAccount();
 
-
   // Always show content - don't rely on mobile detection for now
   return (
     <SafeAreaView className="min-h-screen bg-white">

@@ -1,26 +1,61 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useMutation } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { useAccount } from "wagmi";
-import { easService } from "../lib/eas";
+import { useEAS, createIdeaAttestation } from "../lib/eas";
+import { useFarcaster } from "./auto-connect-wrapper";
 import { Button, Input, TextArea } from "@worldcoin/mini-apps-ui-kit-react";
 import { toast } from "sonner";
 
 interface IdeaSubmissionFormProps {
-  onSuccess?: () => void;
+  onSuccess?: (title: string) => void;
   onCancel?: () => void;
+}
+
+interface FarcasterUser {
+  fid: number;
+  displayName: string;
+  username: string;
+  pfp: {
+    url: string;
+    verified: boolean;
+  };
 }
 
 export const IdeaSubmissionForm = ({ onSuccess, onCancel }: IdeaSubmissionFormProps) => {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [farcasterData, setFarcasterData] = useState<FarcasterUser | null>(null);
   
   const { address } = useAccount();
+  const { fid, isInMiniApp } = useFarcaster();
+  const { eas, isInitialized } = useEAS();
   const submitIdea = useMutation(api.ideas.submitIdea);
   const updateIdeaAttestation = useMutation(api.ideas.updateIdeaAttestation);
+
+  // Fetch Farcaster data when component mounts
+  useEffect(() => {
+    const fetchFarcasterData = async () => {
+      if (!fid || !isInMiniApp) return;
+
+      try {
+        const response = await fetch(`/api/farcaster/${fid}`);
+        if (response.ok) {
+          const data = await response.json();
+          setFarcasterData(data.result.user);
+        }
+      } catch (error) {
+        console.error('Error fetching Farcaster data:', error);
+        // Continue without Farcaster data - not critical for submission
+      }
+    };
+
+    fetchFarcasterData();
+  }, [fid, isInMiniApp]);
+
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -43,31 +78,82 @@ export const IdeaSubmissionForm = ({ onSuccess, onCancel }: IdeaSubmissionFormPr
         title: title.trim(),
         description: description.trim(),
         author: address,
+        authorFid: farcasterData?.fid,
+        authorAvatar: farcasterData?.pfp?.url,
+        authorDisplayName: farcasterData?.displayName,
+        authorUsername: farcasterData?.username,
       });
 
-      // Then create the EAS attestation
-      const attestationTx = await easService.createIdeaAttestation(
-        title.trim(),
-        description.trim(),
-        address
-      );
+      // Create the EAS attestation
+      if (!eas || !isInitialized) {
+        toast.error("EAS not initialized. Please ensure you're connected to Base network.");
+        return;
+      }
 
-      // Wait for the transaction to be mined
-      await attestationTx.wait();
+      try {
+        // Show wallet confirmation message
+        toast.info("Please confirm the transaction in your wallet to attest your idea to the blockchain...");
 
-      // Update the idea with the attestation UID
-      await updateIdeaAttestation({
-        ideaId,
-        attestationUid: attestationTx.uid,
-      });
+        const attestationTx = await createIdeaAttestation(
+          eas,
+          title.trim(),
+          description.trim(),
+          address,
+          undefined,
+          ideaId
+        );
 
-      toast.success("Idea submitted successfully!");
+        // Show transaction pending message
+        toast.info("Transaction submitted! Waiting for confirmation...");
+
+        // Wait for the transaction to be mined
+        await attestationTx.wait();
+        
+        const attestationUid = (attestationTx as unknown as { uid: string }).uid;
+        
+        // Update the idea with the attestation UID
+        await updateIdeaAttestation({
+          ideaId,
+          attestationUid,
+        });
+
+        toast.success("🎉 Idea submitted and attested to blockchain successfully! Your idea is now live and ready for votes and claims.");
+      } catch (easError) {
+        console.error("EAS attestation failed:", easError);
+        if (easError instanceof Error && easError.message.includes("EAS schemas not configured")) {
+          toast.error("EAS not properly configured. Please contact support.");
+        } else {
+          toast.error("Blockchain attestation failed. Please check your wallet connection and try again.");
+        }
+        return;
+      }
+      
+      // Store the title before clearing the form
+      const submittedTitle = title.trim();
+      
+      // Clear form
       setTitle("");
       setDescription("");
-      onSuccess?.();
+      
+      // Call onSuccess with the submitted title
+      onSuccess?.(submittedTitle);
     } catch (error) {
       console.error("Error submitting idea:", error);
-      toast.error("Failed to submit idea. Please try again.");
+      
+      // Handle specific error types
+      if (error instanceof Error) {
+        if (error.message.includes("User rejected") || error.message.includes("rejected")) {
+          toast.error("Transaction was rejected. Please try again.");
+        } else if (error.message.includes("insufficient funds")) {
+          toast.error("Insufficient funds for transaction. Please add ETH to your wallet.");
+        } else if (error.message.includes("network")) {
+          toast.error("Network error. Please check your connection and try again.");
+        } else {
+          toast.error(`Failed to submit idea: ${error.message}`);
+        }
+      } else {
+        toast.error("Failed to submit idea. Please try again.");
+      }
     } finally {
       setIsSubmitting(false);
     }

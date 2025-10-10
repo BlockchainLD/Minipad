@@ -18,8 +18,7 @@ export function SignInForm() {
     try {
       // Prefer Base Smart Wallet connector for web
       const baseConnector = connectors.find(c => c.name.toLowerCase().includes('base')) || connectors[0];
-      const result = await connectAsync({ connector: baseConnector });
-      console.log('Connected to wallet:', result.accounts[0]);
+      await connectAsync({ connector: baseConnector });
     } catch (error) {
       console.error('Wallet connection error:', error);
     } finally {

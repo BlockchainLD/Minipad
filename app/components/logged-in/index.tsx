@@ -6,9 +6,8 @@ import { CopyNotification } from "./copy-notification";
 import { useLoggedIn } from "./use-logged-in";
 import { IdeasBoard } from "../ideas-board";
 import { IdeaSubmissionForm } from "../idea-submission-form";
-import { CompletionForm } from "../completion-form";
-import { useState } from "react";
-import { Id } from "../../../convex/_generated/dataModel";
+import { IdeaSubmissionConfirmation } from "../idea-submission-confirmation";
+import { useState, useEffect } from "react";
 
 export const LoggedIn = () => {
   const {
@@ -24,47 +23,41 @@ export const LoggedIn = () => {
   } = useLoggedIn();
   
   const isMobile = useIsMobile();
-  const [currentView, setCurrentView] = useState<"board" | "submit" | "complete">("board");
-  const [selectedIdeaId, setSelectedIdeaId] = useState<Id<"ideas"> | null>(null);
+  const [currentView, setCurrentView] = useState<"board" | "submit" | "complete" | "confirmation">("board");
+  const [submittedIdeaTitle, setSubmittedIdeaTitle] = useState("");
+
+
 
   if (isMobile) {
     return (
-      <>
-        <div className="bg-white min-h-screen mb-20 flex flex-col">
-          <TopBar 
-            title="💡 Minipad"
-            className="[&_*]:text-black"
-          />
+        <>
+          <div className="bg-white min-h-screen mb-20 flex flex-col">
+            <TopBar 
+              title="💡 Minipad"
+              className="[&_*]:text-black"
+            />
           
           <div className="flex-1 px-6 pb-24">
             {activeTab === "home" && (
               <div className="w-full">
                 {currentView === "board" && (
                   <IdeasBoard 
-                    onIdeaClick={(ideaId) => {
-                      setSelectedIdeaId(ideaId);
-                      setCurrentView("complete");
-                    }}
                     onViewChange={setCurrentView}
                   />
                 )}
                 {currentView === "submit" && (
                   <IdeaSubmissionForm 
-                    onSuccess={() => setCurrentView("board")}
+                    onSuccess={(title: string) => {
+                      setSubmittedIdeaTitle(title);
+                      setCurrentView("confirmation");
+                    }}
                     onCancel={() => setCurrentView("board")}
                   />
                 )}
-                {currentView === "complete" && selectedIdeaId && (
-                  <CompletionForm 
-                    ideaId={selectedIdeaId}
-                    onSuccess={() => {
-                      setCurrentView("board");
-                      setSelectedIdeaId(null);
-                    }}
-                    onCancel={() => {
-                      setCurrentView("board");
-                      setSelectedIdeaId(null);
-                    }}
+                {currentView === "confirmation" && (
+                  <IdeaSubmissionConfirmation 
+                    onReturnHome={() => setCurrentView("board")}
+                    ideaTitle={submittedIdeaTitle}
                   />
                 )}
               </div>
@@ -94,39 +87,31 @@ export const LoggedIn = () => {
   }
 
   return (
-    <>
-      <div className="bg-white rounded-3xl shadow-2xl overflow-hidden">
-        <TopBar 
-          title="💡 Minipad"
-          className="[&_*]:text-black"
-        />
+        <>
+          <div className="bg-white rounded-3xl shadow-2xl overflow-hidden">
+            <TopBar 
+              title="💡 Minipad"
+              className="[&_*]:text-black"
+            />
         <div className="p-6 pt-4">
           {currentView === "board" && (
             <IdeasBoard 
-              onIdeaClick={(ideaId) => {
-                setSelectedIdeaId(ideaId);
-                setCurrentView("complete");
-              }}
               onViewChange={setCurrentView}
             />
           )}
           {currentView === "submit" && (
             <IdeaSubmissionForm 
-              onSuccess={() => setCurrentView("board")}
+              onSuccess={(title: string) => {
+                setSubmittedIdeaTitle(title);
+                setCurrentView("confirmation");
+              }}
               onCancel={() => setCurrentView("board")}
             />
           )}
-          {currentView === "complete" && selectedIdeaId && (
-            <CompletionForm 
-              ideaId={selectedIdeaId}
-              onSuccess={() => {
-                setCurrentView("board");
-                setSelectedIdeaId(null);
-              }}
-              onCancel={() => {
-                setCurrentView("board");
-                setSelectedIdeaId(null);
-              }}
+          {currentView === "confirmation" && (
+            <IdeaSubmissionConfirmation 
+              onReturnHome={() => setCurrentView("board")}
+              ideaTitle={submittedIdeaTitle}
             />
           )}
         </div>

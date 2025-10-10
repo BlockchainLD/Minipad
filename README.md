@@ -1,82 +1,141 @@
-# mini-app-template
+# Minipad
 
-[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/dylsteck/mini-app-template)
+A **Base mini app** for submitting, remixing, and building miniapp ideas with comprehensive EAS (Ethereum Attestation Service) integration.
 
-An opinionated mini app template that makes it as simple as possible to build and launch a mini app on [Base](http://base.org). Built by [dylsteck](https://github.com/dylsteck)
+## 🚀 Features
 
-## Key Features
-- [Convex](https://www.convex.dev) integration that gives you an all-in-one backend to add anything to your app, plus authentication with [Better Auth](https://www.better-auth.com) and [Sign In With Base](https://docs.base.org/base-account/reference/ui-elements/sign-in-with-base-button)
-- [Farcaster Mini App SDK](https://miniapps.farcaster.xyz/docs/getting-started#manual-setup) support for compatibility across the [Base App](https://base.app) and [Farcaster](https://farcaster.xyz)
-- **Auto-connect functionality** - Automatically connects wallet when opened in Base App or Farcaster
-- **Farcaster profile integration** - Displays user profile data from Farcaster
-- Built-in support for Base products like [Base Pay](https://docs.base.org/base-account/guides/accept-payments)
+- **Idea Submission** with EAS attestations
+- **Remix Creation** with EAS attestations  
+- **Builder Claiming** with EAS attestations
+- **Completion Tracking** with EAS attestations
+- **Attestation Revocation** for deletions/unclaiming
+- **Gasless Transactions** via Base Account
+- **Mobile Optimized** responsive design
+- **Farcaster Integration** for profile data
 
-## Tech Stack
+## 🏗️ Tech Stack
 
-- **[Next.js](https://nextjs.org) + [Tailwind](https://tailwindcss.com)** app
-- **[Base Account SDK](https://docs.base.org/base-account/overview/what-is-base-account)** - easy access to Base Account, Base Pay, and other tools for building on Base
-- **[Convex + Better Auth](https://convex-better-auth.netlify.app)**
-  - [Convex](https://www.convex.dev) is an all-in-one backend platform that handles everything from APIs to database management to file storage to realtime sync. Especially as you're trying to get a quality mini app off the ground quickly, Convex lets you add every piece you need without thinking about extra integrations. They also have a super generous free tier, which paired with Vercel deployments makes it easy for you to go from idea to production.
-  - [Better Auth](https://www.better-auth.com) is a comprehensive authentication framework for TypeScript. Paired with Convex and Sign In with Base, we get a secure auth system from Sign In with Base. This template also makes use of the [Better Auth SIWE plugin](https://www.better-auth.com/docs/plugins/siwe).
-- **[Farcaster Mini App SDK](https://miniapps.farcaster.xyz/docs/getting-started#manual-setup)** - using the lightweight Farcaster mini app SDK makes your mini app compatible both on the Base App and on Farcaster
-- **[Worldcoin Mini Apps UI Kit](https://github.com/worldcoin/mini-apps-ui-kit)** - a sleek UI Kit from Worldcoin for building mini apps that elevates the quality of this template
+- **Frontend**: Next.js 15, React 19, TypeScript, Tailwind CSS
+- **Backend**: Convex (database, real-time sync, serverless functions)
+- **Authentication**: Better Auth with SIWE (Sign-In with Ethereum)
+- **Blockchain**: Base Network, EAS (Ethereum Attestation Service)
+- **UI**: Worldcoin Mini Apps UI Kit
+- **Wallet**: Wagmi, Base Account integration
 
-## Getting Started
+## ⚡ Quick Start
 
-1. **Install dependencies**: `bun install`
+### Prerequisites
+- Node.js 18+ or Bun
+- Base wallet (Coinbase Wallet, MetaMask, etc.)
+- Vercel account (for deployment)
+- Convex account (for backend)
 
-2. **Set up Convex backend**: Run `bunx convex dev` to create your Convex deployment and get environment variables
+### Installation
+```bash
+git clone <repository-url>
+cd Minipad
+bun install
+bun run dev
+```
 
-3. **Create environment file**: Create `.env.local` with the following variables:
+### Environment Variables
+Create `.env.local` with:
+```bash
+# Authentication
+BETTER_AUTH_SECRET=your_secret_here
+
+# Site Configuration
+SITE_URL=http://localhost:3000
+
+# Convex Configuration
+CONVEX_DEPLOYMENT=your_deployment_name
+NEXT_PUBLIC_CONVEX_URL=https://your-deployment.convex.cloud
+CONVEX_SITE_URL=https://your-deployment.convex.cloud
+
+# EAS Configuration (Base Mainnet)
+EAS_CONTRACT_ADDRESS=0x4200000000000000000000000000000000000021
+SCHEMA_REGISTRY_ADDRESS=0x4200000000000000000000000000000000000020
+
+# EAS Schema UIDs (auto-register if empty)
+NEXT_PUBLIC_IDEA_SCHEMA_UID=
+NEXT_PUBLIC_REMIX_SCHEMA_UID=
+NEXT_PUBLIC_CLAIM_SCHEMA_UID=
+NEXT_PUBLIC_COMPLETION_SCHEMA_UID=
+```
+
+## 🔗 EAS Integration
+
+**📖 For detailed EAS setup instructions, see [EAS_SETUP_GUIDE.md](./EAS_SETUP_GUIDE.md)**
+
+### Quick EAS Setup
+```bash
+# Set your private key (needs ETH on Base mainnet)
+export PRIVATE_KEY=0x_your_private_key_here
+
+# Run the setup script
+npm run setup-eas
+```
+
+### Attestation Types
+1. **Idea Attestation**: Created when submitting ideas
+2. **Remix Attestation**: Created when creating remixes
+3. **Claim Attestation**: Created when claiming ideas
+4. **Completion Attestation**: Created when marking ideas complete
+
+### Key Features
+- **Gasless Transactions**: All EAS operations are gasless via Base Account
+- **Blockchain Attestations**: All actions are attested to Base mainnet
+- **Attestation Revocation**: Full support for revoking attestations
+- **Schema Management**: Pre-configured schemas for all operations
+- **Base Network**: Optimized for Base mainnet
+
+## 🚀 Deployment
+
+### Production Deployment
+1. **Deploy to Convex**:
    ```bash
-   # Better Auth Secret - Generate with: bunx @better-auth/cli@latest secret
-   BETTER_AUTH_SECRET=your_secret_here
-   
-   # Site URL - Use http://localhost:3000 for local development
-   SITE_URL=http://localhost:3000
-   
-   # Convex Environment Variables - Get these from step 2
-   CONVEX_DEPLOYMENT=your_convex_deployment
-   NEXT_PUBLIC_CONVEX_URL=https://your-convex-deployment.convex.cloud
-   CONVEX_SITE_URL=https://your-convex-deployment.convex.cloud
-   
-   # Optional: World App ID for Worldcoin integration
-   NEXT_PUBLIC_WORLD_APP_ID=app_123456789
+   bunx convex deploy -y
    ```
 
-4. **Configure app metadata**: Update `APP_METADATA` in `app/lib/utils.ts`:
-   - `title`: Your app name
-   - `description`: Your app description  
-   - `imageUrl`: Your app icon URL
-   - `splash.imageUrl`: Your splash screen image URL
-   - `url`: Your production URL (update when deploying)
-   - `baseBuilder.allowedAddresses`: Replace with your Base Account address for analytics
+2. **Deploy to Vercel**:
+   ```bash
+   vercel --prod
+   ```
 
-5. **Run locally**: `bun run dev` (starts both Next.js and Convex)
+3. **Set Environment Variables** in Vercel dashboard
 
-6. **Deploy to production**: Deploy to Vercel and update `SITE_URL` in your environment variables
+4. **Update SITE_URL** with actual domain
 
-## Features
+## 🧪 Testing
 
-### Auto-Connect Functionality
-- **Base App**: Automatically connects wallet when opened in Base App
-- **Farcaster**: Automatically connects wallet when opened in Farcaster  
-- **Web**: Manual wallet connection for web browsers
+### Manual Testing Checklist
+- [ ] **Idea Submission**: Submit ideas and verify EAS attestations
+- [ ] **Idea Deletion**: Delete ideas and verify attestation revocation
+- [ ] **Remix Creation**: Create remixes and verify EAS attestations
+- [ ] **Claim/Unclaim**: Test claiming and unclaiming with attestations
+- [ ] **Completion**: Mark ideas as complete with EAS attestations
+- [ ] **Mobile Testing**: Test on mobile devices
+- [ ] **Wallet Integration**: Test Base App and Farcaster auto-connect
 
-### Farcaster Integration
-- **Profile Data**: Displays user profile information from Farcaster
-- **Avatar**: Shows user profile picture with proper image optimization
-- **Social Stats**: Displays follower/following counts
-- **Connected Accounts**: Shows linked social accounts
+## 📚 Documentation
 
-### Base Pay Integration
-- **Payment Processing**: Built-in Base Pay for accepting payments
-- **Wallet Integration**: Seamless wallet connection and management
+For comprehensive documentation including:
+- Detailed architecture overview
+- API reference
+- Troubleshooting guide
+- Development setup
+- Contributing guidelines
 
-## Deploy on Vercel
+See [DOCUMENTATION.md](./DOCUMENTATION.md)
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fdylsteck%2Fmini-app-template)
+## 📄 License
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+MIT License - see LICENSE.md for details.
 
-Check out the [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Test thoroughly
+5. Submit a pull request

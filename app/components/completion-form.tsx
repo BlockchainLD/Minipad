@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useMutation } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { useAccount } from "wagmi";
-import { easService } from "../lib/eas";
+import { useEAS, createCompletionAttestation } from "../lib/eas";
 import { Button, Input } from "@worldcoin/mini-apps-ui-kit-react";
 import { toast } from "sonner";
 import { Id } from "../../convex/_generated/dataModel";
@@ -20,6 +20,7 @@ export const CompletionForm = ({ ideaId, onSuccess, onCancel }: CompletionFormPr
   const [isSubmitting, setIsSubmitting] = useState(false);
   
   const { address } = useAccount();
+  const { eas, isInitialized } = useEAS();
   const completeIdea = useMutation(api.claims.completeIdea);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -43,11 +44,16 @@ export const CompletionForm = ({ ideaId, onSuccess, onCancel }: CompletionFormPr
       return;
     }
 
+    if (!eas || !isInitialized) {
+      toast.error("EAS not initialized. Please ensure you're connected to Base network.");
+      return;
+    }
+
     setIsSubmitting(true);
-    
+
     try {
-      // Create EAS attestation for completion
-      const attestationTx = await easService.createCompletionAttestation(
+      const attestationTx = await createCompletionAttestation(
+        eas,
         ideaId,
         address,
         miniappUrl.trim()
@@ -55,21 +61,26 @@ export const CompletionForm = ({ ideaId, onSuccess, onCancel }: CompletionFormPr
 
       // Wait for the transaction to be mined
       await attestationTx.wait();
+      const attestationUid = (attestationTx as unknown as { uid: string }).uid;
 
       // Mark the idea as completed
       await completeIdea({
         ideaId,
         claimer: address,
         miniappUrl: miniappUrl.trim(),
-        completionAttestationUid: attestationTx.uid,
+        attestationUid,
       });
 
-      toast.success("Idea marked as completed!");
+      toast.success("Idea marked as completed and attested to blockchain! (Gasless transaction)");
       setMiniappUrl("");
       onSuccess?.();
     } catch (error) {
       console.error("Error completing idea:", error);
-      toast.error("Failed to complete idea. Please try again.");
+      if (error instanceof Error && error.message.includes("EAS schemas not configured")) {
+        toast.error("EAS not properly configured. Please contact support.");
+      } else {
+        toast.error("Failed to complete idea. Please try again.");
+      }
     } finally {
       setIsSubmitting(false);
     }

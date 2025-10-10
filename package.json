@@ -13,7 +13,10 @@
     "convex:dev": "bunx convex dev",
     "build": "next build --turbopack",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "register-schemas": "node scripts/register-eas-schemas.js",
+    "setup-eas": "./scripts/setup-eas-schemas.sh",
+    "test-eas": "node scripts/test-eas-connection.js"
   },
   "dependencies": {
     "@base-org/account": "^2.2.0",

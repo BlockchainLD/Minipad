@@ -4,7 +4,7 @@ import { Home, Plus, UserCircle } from "iconoir-react";
 interface MobileTabsProps {
   activeTab: string;
   onTabChange: (tab: string) => void;
-  onViewChange?: (view: "board" | "submit" | "complete") => void;
+  onViewChange?: (view: "board" | "submit" | "complete" | "confirmation") => void;
 }
 
 export const MobileTabs = ({ activeTab, onTabChange, onViewChange }: MobileTabsProps) => {

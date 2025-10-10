@@ -7,7 +7,8 @@ const getBaseURL = () => {
     return window.location.origin;
   }
   
-  return process.env.NEXT_PUBLIC_SITE_URL || process.env.SITE_URL || 'http://localhost:3000';
+  // For server-side rendering, use a default URL
+  return 'http://localhost:3000';
 };
 
 export const authClient = createAuthClient({
