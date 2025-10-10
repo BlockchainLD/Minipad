@@ -8,7 +8,7 @@ import { useEAS, createClaimAttestation, createRemixAttestation, revokeAttestati
 import { Button } from "@worldcoin/mini-apps-ui-kit-react";
 import { toast } from "sonner";
 import { Id } from "../../convex/_generated/dataModel";
-import { Heart, Hammer, Flash, Xmark, Trash } from "iconoir-react";
+import { Heart, Hammer, Flash, Xmark, Trash, User } from "iconoir-react";
 import { IdeaFilter, FilterOption } from "./idea-filter";
 
 // Idea Detail Modal Component
@@ -35,6 +35,10 @@ const IdeaDetailModal = ({
   onDelete: (ideaId: Id<"ideas">) => void;
   address: string | undefined;
 }) => {
+  // Fetch remixes for this idea
+  const remixes = useQuery(api.remixes.getRemixesForIdea, 
+    idea ? { originalIdeaId: idea._id } : "skip"
+  );
   // Handle ESC key and click outside to close
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
@@ -67,9 +71,9 @@ const IdeaDetailModal = ({
         }
       }}
     >
-      <div className="relative w-full max-w-2xl max-h-[90vh] bg-white rounded-2xl shadow-2xl overflow-hidden animate-in fade-in-0 zoom-in-95 duration-300">
-        {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-gray-200">
+      <div className="relative w-full max-w-2xl max-h-[90vh] bg-white rounded-2xl shadow-2xl overflow-hidden animate-in fade-in-0 zoom-in-95 duration-300 flex flex-col">
+        {/* Fixed Header */}
+        <div className="flex items-center justify-between p-6 border-b border-gray-200 flex-shrink-0">
           <h2 className="text-2xl font-bold text-gray-900">Idea Details</h2>
           <button
             onClick={onClose}
@@ -79,41 +83,100 @@ const IdeaDetailModal = ({
           </button>
         </div>
 
-        {/* Content */}
-        <div className="p-6 overflow-y-auto max-h-[calc(90vh-140px)]">
-          {/* Title */}
-          <h1 className="text-3xl font-bold text-gray-900 mb-4">{idea.title}</h1>
-          
-          {/* Meta Info */}
-          <div className="flex flex-wrap gap-4 mb-6 text-sm text-gray-600">
-            <div className="flex items-center gap-2">
-              <Heart width={16} height={16} />
-              <span>{idea.upvotes} upvotes</span>
+        {/* Scrollable Content */}
+        <div className="flex-1 overflow-y-auto">
+          <div className="p-6">
+            {/* Title */}
+            <h1 className="text-3xl font-bold text-gray-900 mb-4">{idea.title}</h1>
+            
+            {/* Meta Info */}
+            <div className="flex flex-wrap gap-4 mb-6 text-sm text-gray-600">
+              <div className="flex items-center gap-2">
+                <Heart width={16} height={16} />
+                <span>{idea.upvotes} upvotes</span>
+              </div>
+            </div>
+
+            {/* Status Badge */}
+            <div className="mb-6">
+              <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
+                idea.status === "open" ? "bg-green-100 text-green-800" :
+                idea.status === "claimed" ? "bg-yellow-100 text-yellow-800" :
+                "bg-blue-100 text-blue-800"
+              }`}>
+                {idea.status === "open" ? "Open" : 
+                 idea.status === "claimed" ? "In Progress" : "Completed"}
+              </span>
+            </div>
+
+            {/* Description */}
+            <div className="mb-8">
+              <h3 className="text-lg font-semibold text-gray-900 mb-3">Description</h3>
+              <div className="prose prose-gray max-w-none">
+                <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">{idea.description}</p>
+              </div>
+            </div>
+
+            {/* Remixes Section */}
+            <div className="mb-8">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                <Flash width={20} height={20} className="text-yellow-500" />
+                Remixes ({remixes?.length || 0})
+              </h3>
+              
+              {remixes && remixes.length > 0 ? (
+                <div className="space-y-4">
+                  {remixes.map((remix) => (
+                    <div key={remix._id} className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                      <div className="flex items-start gap-3">
+                        <div className="flex-shrink-0">
+                          <div className="w-8 h-8 bg-yellow-100 rounded-full flex items-center justify-center">
+                            <User width={16} height={16} className="text-yellow-600" />
+                          </div>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-2">
+                            <h4 className="font-semibold text-gray-900 truncate">{remix.title}</h4>
+                            <span className="text-xs text-gray-500">
+                              {new Date(remix.timestamp).toLocaleDateString()}
+                            </span>
+                          </div>
+                          <p className="text-gray-700 text-sm leading-relaxed whitespace-pre-wrap">
+                            {remix.description}
+                          </p>
+                          <div className="flex items-center gap-4 mt-3 text-xs text-gray-500">
+                            <div className="flex items-center gap-1">
+                              <Heart width={12} height={12} />
+                              <span>{remix.upvotes} upvotes</span>
+                            </div>
+                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                              remix.status === "open" ? "bg-green-100 text-green-800" :
+                              remix.status === "claimed" ? "bg-yellow-100 text-yellow-800" :
+                              "bg-blue-100 text-blue-800"
+                            }`}>
+                              {remix.status === "open" ? "Open" : 
+                               remix.status === "claimed" ? "In Progress" : "Completed"}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-8 text-gray-500">
+                  <Flash width={32} height={32} className="mx-auto mb-2 text-gray-300" />
+                  <p>No remixes yet</p>
+                  <p className="text-sm">Be the first to remix this idea!</p>
+                </div>
+              )}
             </div>
           </div>
+        </div>
 
-          {/* Status Badge */}
-          <div className="mb-6">
-            <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
-              idea.status === "open" ? "bg-green-100 text-green-800" :
-              idea.status === "claimed" ? "bg-yellow-100 text-yellow-800" :
-              "bg-blue-100 text-blue-800"
-            }`}>
-              {idea.status === "open" ? "Open" : 
-               idea.status === "claimed" ? "In Progress" : "Completed"}
-            </span>
-          </div>
-
-          {/* Description */}
-          <div className="mb-8">
-            <h3 className="text-lg font-semibold text-gray-900 mb-3">Description</h3>
-            <div className="prose prose-gray max-w-none">
-              <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">{idea.description}</p>
-            </div>
-          </div>
-
-          {/* Actions */}
-          <div className="flex flex-wrap gap-3 pt-6 border-t border-gray-200">
+        {/* Fixed Bottom Action Bar */}
+        <div className="flex-shrink-0 border-t border-gray-200 bg-white p-6">
+          <div className="flex flex-wrap gap-3">
             <UpvoteButton
               ideaId={idea._id}
               upvotes={idea.upvotes}
@@ -178,7 +241,6 @@ const IdeaDetailModal = ({
                 <Trash width={20} height={20} />
               </button>
             )}
-            
           </div>
         </div>
       </div>
