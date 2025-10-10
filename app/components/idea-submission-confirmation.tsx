@@ -51,14 +51,14 @@ export const IdeaSubmissionConfirmation = ({
         
         <p className="text-lg text-gray-600 mb-6 leading-relaxed">
           Your idea has been submitted and attested to the blockchain. 
-          It's now live and ready for the community to vote on and claim!
+          It&apos;s now live and ready for the community to vote on and claim!
         </p>
 
         {/* Idea Title Display */}
         {ideaTitle && (
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
             <p className="text-sm text-blue-800 font-medium mb-1">Your submitted idea:</p>
-            <p className="text-blue-900 font-semibold">"{ideaTitle}"</p>
+            <p className="text-blue-900 font-semibold">&ldquo;{ideaTitle}&rdquo;</p>
           </div>
         )}
 

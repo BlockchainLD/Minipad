@@ -7,7 +7,7 @@ import { useLoggedIn } from "./use-logged-in";
 import { IdeasBoard } from "../ideas-board";
 import { IdeaSubmissionForm } from "../idea-submission-form";
 import { IdeaSubmissionConfirmation } from "../idea-submission-confirmation";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 
 export const LoggedIn = () => {
   const {
