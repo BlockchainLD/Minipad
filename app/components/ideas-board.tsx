@@ -4,12 +4,48 @@ import React, { useState, useEffect } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { useAccount } from "wagmi";
-import { useEAS, createClaimAttestation, createRemixAttestation, revokeAttestation, SCHEMAS } from "../lib/eas";
+import { useEAS, createClaimAttestation, revokeAttestation, SCHEMAS } from "../lib/eas";
 import { Button } from "@worldcoin/mini-apps-ui-kit-react";
 import { toast } from "sonner";
 import { Id } from "../../convex/_generated/dataModel";
 import { Heart, Hammer, Flash, Xmark, Trash, User } from "iconoir-react";
 import { IdeaFilter, FilterOption } from "./idea-filter";
+
+// Types
+type Idea = {
+  _id: Id<"ideas">;
+  title: string;
+  description: string;
+  author: string;
+  timestamp: number;
+  upvotes: number;
+  status: "open" | "claimed" | "completed";
+  claimedBy?: string;
+  isRemix?: boolean;
+  originalIdeaId?: Id<"ideas">;
+  attestationUid?: string;
+};
+
+// Helper function to handle button clicks with event prevention
+const handleButtonClick = (e: React.MouseEvent, callback: () => void) => {
+  e.preventDefault();
+  e.stopPropagation();
+  callback();
+};
+
+// Status configuration
+const STATUS_CONFIG = {
+  open: { color: "bg-green-100 text-green-800", text: "Open" },
+  claimed: { color: "bg-yellow-100 text-yellow-800", text: "In Progress" },
+  completed: { color: "bg-blue-100 text-blue-800", text: "Completed" },
+} as const;
+
+const getStatusConfig = (status: string) => {
+  return STATUS_CONFIG[status as keyof typeof STATUS_CONFIG] || { 
+    color: "bg-gray-100 text-gray-800", 
+    text: status 
+  };
+};
 
 // Idea Detail Modal Component
 const IdeaDetailModal = ({ 
@@ -27,7 +63,7 @@ const IdeaDetailModal = ({
   onRemixDelete,
   address 
 }: {
-  idea: any; // eslint-disable-line @typescript-eslint/no-explicit-any
+  idea: Idea;
   isOpen: boolean;
   onClose: () => void;
   onUpvote: (ideaId: Id<"ideas">) => void;
@@ -120,14 +156,9 @@ const IdeaDetailModal = ({
 
             {/* Status Badge */}
             <div className="mb-6">
-              <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
-                idea.status === "open" ? "bg-green-100 text-green-800" :
-                idea.status === "claimed" ? "bg-yellow-100 text-yellow-800" :
-                "bg-blue-100 text-blue-800"
-              }`}>
-                {idea.status === "open" ? "Open" : 
-                 idea.status === "claimed" ? "In Progress" : "Completed"}
-              </span>
+            <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${getStatusConfig(idea.status).color}`}>
+              {getStatusConfig(idea.status).text}
+            </span>
             </div>
 
             {/* Description */}
@@ -171,24 +202,15 @@ const IdeaDetailModal = ({
                                 <Heart width={12} height={12} />
                                 <span>{remix.upvotes} upvotes</span>
                               </div>
-                              <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                                remix.status === "open" ? "bg-green-100 text-green-800" :
-                                remix.status === "claimed" ? "bg-yellow-100 text-yellow-800" :
-                                "bg-blue-100 text-blue-800"
-                              }`}>
-                                {remix.status === "open" ? "Open" : 
-                                 remix.status === "claimed" ? "In Progress" : "Completed"}
-                              </span>
+                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusConfig(remix.status).color}`}>
+                              {getStatusConfig(remix.status).text}
+                            </span>
                             </div>
                             
                             <div className="flex items-center gap-2">
                               {/* Upvote button for remix */}
                               <button
-                                onClick={(e) => {
-                                  e.preventDefault();
-                                  e.stopPropagation();
-                                  onRemixUpvote(remix._id);
-                                }}
+                                onClick={(e) => handleButtonClick(e, () => onRemixUpvote(remix._id))}
                                 className="flex items-center justify-center p-1 text-red-500 hover:text-red-600 transition-all duration-200 hover:scale-105"
                                 title="Upvote this remix"
                               >
@@ -198,11 +220,7 @@ const IdeaDetailModal = ({
                               {/* Delete button - only show for the remix author */}
                               {address && remix.author === address && (
                                 <button
-                                  onClick={(e) => {
-                                    e.preventDefault();
-                                    e.stopPropagation();
-                                    onRemixDelete(remix._id);
-                                  }}
+                                  onClick={(e) => handleButtonClick(e, () => onRemixDelete(remix._id))}
                                   className="flex items-center justify-center p-1 text-red-500 hover:text-red-600 transition-all duration-200 hover:scale-105"
                                   title="Delete this remix (only you can see this)"
                                 >
@@ -241,11 +259,7 @@ const IdeaDetailModal = ({
             />
             
             <button
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                onRemix(idea._id);
-              }}
+              onClick={(e) => handleButtonClick(e, () => onRemix(idea._id))}
               className="flex items-center justify-center p-2 text-yellow-500 hover:text-yellow-600 transition-all duration-200 hover:scale-105"
               title="Remix this idea"
             >
@@ -254,11 +268,7 @@ const IdeaDetailModal = ({
             
             {idea.status === "open" && (
               <button
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  onClaim(idea._id);
-                }}
+                onClick={(e) => handleButtonClick(e, () => onClaim(idea._id))}
                 className="flex items-center gap-2 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-all duration-200 hover:scale-105"
                 title="Claim this idea to build it"
               >
@@ -269,11 +279,7 @@ const IdeaDetailModal = ({
             
             {idea.status === "claimed" && address && idea.claimedBy === address && (
               <button
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  onUnclaim(idea._id);
-                }}
+                onClick={(e) => handleButtonClick(e, () => onUnclaim(idea._id))}
                 className="flex items-center gap-2 px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-lg transition-all duration-200 hover:scale-105"
                 title="Unclaim this idea"
               >
@@ -285,11 +291,7 @@ const IdeaDetailModal = ({
             {/* Delete button - only show for the author */}
             {address && idea.author === address && (
               <button
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  onDelete(idea._id);
-                }}
+                onClick={(e) => handleButtonClick(e, () => onDelete(idea._id))}
                 className="flex items-center justify-center p-2 text-red-500 hover:text-red-600 transition-all duration-200 hover:scale-105"
                 title="Delete this idea (only you can see this)"
               >
@@ -436,13 +438,12 @@ export const IdeasBoard = ({ onViewChange }: IdeasBoardProps) => {
   const { eas, isInitialized } = useEAS();
   
   // Modal state
-  const [selectedIdea, setSelectedIdea] = useState<any>(null); // eslint-disable-line @typescript-eslint/no-explicit-any
+  const [selectedIdea, setSelectedIdea] = useState<Idea | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   
   // Filter state
   const [currentFilter, setCurrentFilter] = useState<FilterOption>("newest");
   
-  // MINIMAL: Only use the most basic query
   const ideas = useQuery(api.ideas.getIdeas, { limit: 50 });
   const upvoteIdea = useMutation(api.upvotes.upvoteIdea);
   const removeUpvote = useMutation(api.upvotes.removeUpvote);
@@ -451,7 +452,6 @@ export const IdeasBoard = ({ onViewChange }: IdeasBoardProps) => {
   const createRemix = useMutation(api.remixes.createRemix);
   const deleteRemix = useMutation(api.remixes.deleteRemix);
   const deleteIdea = useMutation(api.ideas.deleteIdea);
-  const updateIdeaAttestation = useMutation(api.ideas.updateIdeaAttestation);
 
   const handleUpvote = async (ideaId: Id<"ideas">) => {
     if (!address) {
@@ -815,7 +815,7 @@ export const IdeasBoard = ({ onViewChange }: IdeasBoardProps) => {
   };
 
   // Modal handlers
-  const openModal = (idea: any) => { // eslint-disable-line @typescript-eslint/no-explicit-any
+  const openModal = (idea: Idea) => {
     setSelectedIdea(idea);
     setIsModalOpen(true);
   };
@@ -852,31 +852,6 @@ export const IdeasBoard = ({ onViewChange }: IdeasBoardProps) => {
     return filtered;
   }, [ideas, currentFilter]);
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "open":
-        return "bg-green-100 text-green-800";
-      case "claimed":
-        return "bg-yellow-100 text-yellow-800";
-      case "completed":
-        return "bg-blue-100 text-blue-800";
-      default:
-        return "bg-gray-100 text-gray-800";
-    }
-  };
-
-  const getStatusText = (status: string) => {
-    switch (status) {
-      case "open":
-        return "Open";
-      case "claimed":
-        return "In Progress";
-      case "completed":
-        return "Completed";
-      default:
-        return status;
-    }
-  };
 
   if (!ideas) {
     return (
@@ -936,8 +911,8 @@ export const IdeasBoard = ({ onViewChange }: IdeasBoardProps) => {
                   {idea.description}
                 </p>
               </div>
-              <span className={`px-2 py-1 rounded-full text-xs font-medium whitespace-nowrap ${getStatusColor(idea.status)}`}>
-                {getStatusText(idea.status)}
+              <span className={`px-2 py-1 rounded-full text-xs font-medium whitespace-nowrap ${getStatusConfig(idea.status).color}`}>
+                {getStatusConfig(idea.status).text}
               </span>
             </div>
 
@@ -954,11 +929,7 @@ export const IdeasBoard = ({ onViewChange }: IdeasBoardProps) => {
                 
                 {/* Remix button */}
                 <button
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    handleRemix(idea._id);
-                  }}
+                  onClick={(e) => handleButtonClick(e, () => handleRemix(idea._id))}
                   className="flex items-center justify-center p-1 text-yellow-500 hover:text-yellow-600 transition-all duration-200 hover:scale-105"
                   title="Remix this idea"
                 >
@@ -968,11 +939,7 @@ export const IdeasBoard = ({ onViewChange }: IdeasBoardProps) => {
                 
                 {idea.status === "open" && (
                   <button
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      handleClaim(idea._id);
-                    }}
+                    onClick={(e) => handleButtonClick(e, () => handleClaim(idea._id))}
                     className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-blue-500 hover:bg-blue-600 text-white transition-all duration-200 hover:scale-105"
                   >
                     <Hammer width={16} height={16} />
@@ -1002,21 +969,23 @@ export const IdeasBoard = ({ onViewChange }: IdeasBoardProps) => {
       </div>
 
       {/* Idea Detail Modal */}
-      <IdeaDetailModal
-        idea={selectedIdea}
-        isOpen={isModalOpen}
-        onClose={closeModal}
-        onUpvote={handleUpvote}
-        onRemoveUpvote={handleRemoveUpvote}
-        onRemix={handleRemix}
-        onClaim={handleClaim}
-        onUnclaim={handleUnclaim}
-        onDelete={handleDelete}
-        onRemixUpvote={handleRemixUpvote}
-        onRemixRemoveUpvote={handleRemixRemoveUpvote}
-        onRemixDelete={handleRemixDelete}
-        address={address}
-      />
+      {selectedIdea && (
+        <IdeaDetailModal
+          idea={selectedIdea}
+          isOpen={isModalOpen}
+          onClose={closeModal}
+          onUpvote={handleUpvote}
+          onRemoveUpvote={handleRemoveUpvote}
+          onRemix={handleRemix}
+          onClaim={handleClaim}
+          onUnclaim={handleUnclaim}
+          onDelete={handleDelete}
+          onRemixUpvote={handleRemixUpvote}
+          onRemixRemoveUpvote={handleRemixRemoveUpvote}
+          onRemixDelete={handleRemixDelete}
+          address={address}
+        />
+      )}
         </div>
       );
     };
