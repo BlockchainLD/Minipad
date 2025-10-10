@@ -95,6 +95,10 @@ const IdeaDetailModal = ({
                 <Heart width={16} height={16} />
                 <span>{idea.upvotes} upvotes</span>
               </div>
+              <div className="flex items-center gap-2">
+                <Flash width={16} height={16} />
+                <span>{remixes?.length || 0} remixes</span>
+              </div>
             </div>
 
             {/* Status Badge */}
@@ -447,11 +451,6 @@ export const IdeasBoard = ({ onViewChange }: IdeasBoardProps) => {
       return;
     }
 
-    if (!eas || !isInitialized) {
-      toast.error("EAS not initialized. Please ensure you're connected to Base network.");
-      return;
-    }
-
     // Get the original idea for context
     const originalIdea = ideas?.find(idea => idea._id === ideaId);
     if (!originalIdea) {
@@ -471,36 +470,16 @@ export const IdeasBoard = ({ onViewChange }: IdeasBoardProps) => {
     }
 
     try {
-      // First create the remix in Convex
-      const remixId = await createRemix({
+      // Create the remix in Convex (without EAS for now)
+      await createRemix({
         originalIdeaId: ideaId,
         remixer: address,
         title: title.trim(),
         description: description.trim(),
-        attestationUid: undefined, // Will be updated after attestation
+        attestationUid: undefined, // No EAS attestation for now
       });
 
-      // Create EAS attestation for the remix
-      const attestationTx = await createRemixAttestation(
-        eas,
-        title.trim(),
-        description.trim(),
-        address,
-        ideaId,
-        remixId
-      );
-
-      // Wait for the transaction to be mined
-      await attestationTx.wait();
-      const attestationUid = (attestationTx as unknown as { uid: string }).uid;
-
-      // Update the remix with the attestation UID
-      await updateIdeaAttestation({
-        ideaId: remixId,
-        attestationUid,
-      });
-
-      toast.success("Remix created and attested successfully! (Gasless transaction)");
+      toast.success("Remix created successfully!");
     } catch (error) {
       console.error("Error creating remix:", error);
       if (error instanceof Error) {
