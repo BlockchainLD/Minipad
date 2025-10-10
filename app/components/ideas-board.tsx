@@ -189,11 +189,10 @@ const IdeaDetailModal = ({
                                   e.stopPropagation();
                                   onRemixUpvote(remix._id);
                                 }}
-                                className="flex items-center gap-1 px-2 py-1 text-red-500 hover:text-red-600 transition-all duration-200 hover:scale-105"
+                                className="flex items-center justify-center p-1 text-red-500 hover:text-red-600 transition-all duration-200 hover:scale-105"
                                 title="Upvote this remix"
                               >
                                 <Heart width={14} height={14} />
-                                <span className="text-xs">Upvote</span>
                               </button>
                               
                               {/* Delete button - only show for the remix author */}
