@@ -22,6 +22,9 @@ const IdeaDetailModal = ({
   onClaim, 
   onUnclaim,
   onDelete,
+  onRemixUpvote,
+  onRemixRemoveUpvote,
+  onRemixDelete,
   address 
 }: {
   idea: any; // eslint-disable-line @typescript-eslint/no-explicit-any
@@ -33,6 +36,9 @@ const IdeaDetailModal = ({
   onClaim: (ideaId: Id<"ideas">) => void;
   onUnclaim: (ideaId: Id<"ideas">) => void;
   onDelete: (ideaId: Id<"ideas">) => void;
+  onRemixUpvote: (remixId: Id<"ideas">) => void;
+  onRemixRemoveUpvote: (remixId: Id<"ideas">) => void;
+  onRemixDelete: (remixId: Id<"ideas">) => void;
   address: string | undefined;
 }) => {
   // Fetch remixes for this idea
@@ -159,19 +165,52 @@ const IdeaDetailModal = ({
                           <p className="text-gray-700 text-sm leading-relaxed whitespace-pre-wrap">
                             {remix.description}
                           </p>
-                          <div className="flex items-center gap-4 mt-3 text-xs text-gray-500">
-                            <div className="flex items-center gap-1">
-                              <Heart width={12} height={12} />
-                              <span>{remix.upvotes} upvotes</span>
+                          <div className="flex items-center justify-between mt-3">
+                            <div className="flex items-center gap-4 text-xs text-gray-500">
+                              <div className="flex items-center gap-1">
+                                <Heart width={12} height={12} />
+                                <span>{remix.upvotes} upvotes</span>
+                              </div>
+                              <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                                remix.status === "open" ? "bg-green-100 text-green-800" :
+                                remix.status === "claimed" ? "bg-yellow-100 text-yellow-800" :
+                                "bg-blue-100 text-blue-800"
+                              }`}>
+                                {remix.status === "open" ? "Open" : 
+                                 remix.status === "claimed" ? "In Progress" : "Completed"}
+                              </span>
                             </div>
-                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                              remix.status === "open" ? "bg-green-100 text-green-800" :
-                              remix.status === "claimed" ? "bg-yellow-100 text-yellow-800" :
-                              "bg-blue-100 text-blue-800"
-                            }`}>
-                              {remix.status === "open" ? "Open" : 
-                               remix.status === "claimed" ? "In Progress" : "Completed"}
-                            </span>
+                            
+                            <div className="flex items-center gap-2">
+                              {/* Upvote button for remix */}
+                              <button
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  e.stopPropagation();
+                                  onRemixUpvote(remix._id);
+                                }}
+                                className="flex items-center gap-1 px-2 py-1 text-red-500 hover:text-red-600 transition-all duration-200 hover:scale-105"
+                                title="Upvote this remix"
+                              >
+                                <Heart width={14} height={14} />
+                                <span className="text-xs">Upvote</span>
+                              </button>
+                              
+                              {/* Delete button - only show for the remix author */}
+                              {address && remix.author === address && (
+                                <button
+                                  onClick={(e) => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    onRemixDelete(remix._id);
+                                  }}
+                                  className="flex items-center justify-center p-1 text-red-500 hover:text-red-600 transition-all duration-200 hover:scale-105"
+                                  title="Delete this remix (only you can see this)"
+                                >
+                                  <Trash width={14} height={14} />
+                                </button>
+                              )}
+                            </div>
                           </div>
                         </div>
                       </div>
@@ -411,6 +450,7 @@ export const IdeasBoard = ({ onViewChange }: IdeasBoardProps) => {
   const claimIdea = useMutation(api.claims.claimIdea);
   const unclaimIdea = useMutation(api.claims.unclaimIdea);
   const createRemix = useMutation(api.remixes.createRemix);
+  const deleteRemix = useMutation(api.remixes.deleteRemix);
   const deleteIdea = useMutation(api.ideas.deleteIdea);
   const updateIdeaAttestation = useMutation(api.ideas.updateIdeaAttestation);
 
@@ -684,6 +724,97 @@ export const IdeasBoard = ({ onViewChange }: IdeasBoardProps) => {
     }
   };
 
+  const handleRemixUpvote = async (remixId: Id<"ideas">) => {
+    if (!address) {
+      toast.error("Please connect your wallet");
+      return;
+    }
+
+    try {
+      await upvoteIdea({
+        ideaId: remixId,
+        voter: address,
+      });
+      toast.success("Remix upvoted successfully!");
+    } catch (error) {
+      console.error("Error upvoting remix:", error);
+      if (error instanceof Error) {
+        if (error.message === "Cannot upvote your own idea") {
+          toast.error("You cannot upvote your own remix");
+        } else if (error.message === "Idea not found") {
+          toast.error("Remix not found");
+        } else {
+          toast.error(`Failed to upvote remix: ${error.message}`);
+        }
+      } else {
+        toast.error("Failed to upvote remix. Please try again.");
+      }
+    }
+  };
+
+  const handleRemixRemoveUpvote = async (remixId: Id<"ideas">) => {
+    if (!address) {
+      toast.error("Please connect your wallet");
+      return;
+    }
+
+    try {
+      await removeUpvote({
+        ideaId: remixId,
+        voter: address,
+      });
+      toast.success("Remix upvote removed successfully!");
+    } catch (error) {
+      console.error("Error removing remix upvote:", error);
+      if (error instanceof Error) {
+        if (error.message === "Idea not found") {
+          toast.error("Remix not found");
+        } else {
+          toast.error(`Failed to remove remix upvote: ${error.message}`);
+        }
+      } else {
+        toast.error("Failed to remove remix upvote. Please try again.");
+      }
+    }
+  };
+
+  const handleRemixDelete = async (remixId: Id<"ideas">) => {
+    if (!address) {
+      toast.error("Please connect your wallet");
+      return;
+    }
+
+    // Show confirmation dialog
+    const confirmed = window.confirm(
+      "Are you sure you want to delete this remix? This action cannot be undone."
+    );
+    
+    if (!confirmed) {
+      return;
+    }
+
+    try {
+      await deleteRemix({
+        remixId,
+        author: address,
+      });
+      toast.success("Remix deleted successfully!");
+    } catch (error) {
+      console.error("Error deleting remix:", error);
+      if (error instanceof Error) {
+        if (error.message === "Only the author can delete their remix") {
+          toast.error("You can only delete your own remixes");
+        } else if (error.message === "Remix not found") {
+          toast.error("Remix not found");
+        } else {
+          toast.error(`Failed to delete remix: ${error.message}`);
+        }
+      } else {
+        toast.error("Failed to delete remix. Please try again.");
+      }
+    }
+  };
+
   // Modal handlers
   const openModal = (idea: any) => { // eslint-disable-line @typescript-eslint/no-explicit-any
     setSelectedIdea(idea);
@@ -882,6 +1013,9 @@ export const IdeasBoard = ({ onViewChange }: IdeasBoardProps) => {
         onClaim={handleClaim}
         onUnclaim={handleUnclaim}
         onDelete={handleDelete}
+        onRemixUpvote={handleRemixUpvote}
+        onRemixRemoveUpvote={handleRemixRemoveUpvote}
+        onRemixDelete={handleRemixDelete}
         address={address}
       />
         </div>
