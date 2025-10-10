@@ -39,6 +39,17 @@ const IdeaDetailModal = ({
   const remixes = useQuery(api.remixes.getRemixesForIdea, 
     idea ? { originalIdeaId: idea._id } : "skip"
   );
+  
+  // Optimistic upvote count state
+  const [optimisticUpvotes, setOptimisticUpvotes] = useState<number | null>(null);
+  
+  // Reset optimistic upvote count when idea changes
+  useEffect(() => {
+    if (idea) {
+      setOptimisticUpvotes(null);
+    }
+  }, [idea?._id]);
+  
   // Handle ESC key and click outside to close
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
@@ -93,7 +104,7 @@ const IdeaDetailModal = ({
             <div className="flex flex-wrap gap-4 mb-6 text-sm text-gray-600">
               <div className="flex items-center gap-2">
                 <Heart width={16} height={16} />
-                <span>{idea.upvotes} upvotes</span>
+                <span>{optimisticUpvotes ?? idea.upvotes} upvotes</span>
               </div>
               <div className="flex items-center gap-2">
                 <Flash width={16} height={16} />
@@ -187,6 +198,8 @@ const IdeaDetailModal = ({
               onUpvote={onUpvote}
               onRemoveUpvote={onRemoveUpvote}
               address={address}
+              optimisticUpvotes={optimisticUpvotes}
+              onOptimisticUpvoteChange={setOptimisticUpvotes}
             />
             
             <button
@@ -258,13 +271,17 @@ const UpvoteButton = ({
   upvotes, 
   onUpvote, 
   onRemoveUpvote,
-  address 
+  address,
+  optimisticUpvotes,
+  onOptimisticUpvoteChange
 }: { 
   ideaId: Id<"ideas">; 
   upvotes: number; 
   onUpvote: (ideaId: Id<"ideas">) => void; 
   onRemoveUpvote: (ideaId: Id<"ideas">) => void;
   address: string | undefined;
+  optimisticUpvotes?: number | null;
+  onOptimisticUpvoteChange?: (count: number | null) => void;
 }) => {
   const [optimisticUpvoted, setOptimisticUpvoted] = useState<boolean | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -316,15 +333,26 @@ const UpvoteButton = ({
       // Handle the upvote toggle with optimistic updates
       if (currentUpvotedState === true) {
         setOptimisticUpvoted(false); // Optimistic update
+        // Optimistically decrease upvote count
+        if (onOptimisticUpvoteChange) {
+          onOptimisticUpvoteChange((optimisticUpvotes ?? upvotes) - 1);
+        }
         await onRemoveUpvote(ideaId);
       } else {
         setOptimisticUpvoted(true); // Optimistic update
+        // Optimistically increase upvote count
+        if (onOptimisticUpvoteChange) {
+          onOptimisticUpvoteChange((optimisticUpvotes ?? upvotes) + 1);
+        }
         await onUpvote(ideaId);
       }
     } catch (error) {
       console.error('Error in handleClick:', error);
-      // Revert optimistic update on error
+      // Revert optimistic updates on error
       setOptimisticUpvoted(null);
+      if (onOptimisticUpvoteChange) {
+        onOptimisticUpvoteChange(upvotes); // Revert to original count
+      }
     } finally {
       setIsProcessing(false);
     }
@@ -355,7 +383,7 @@ const UpvoteButton = ({
         stroke="currentColor"
         className={isUpvoted ? "text-red-500" : "text-gray-500"}
       />
-      <span className="text-sm font-medium">{upvotes}</span>
+      <span className="text-sm font-medium">{optimisticUpvotes ?? upvotes}</span>
       {isLoading && <span className="text-xs text-gray-400">...</span>}
     </button>
   );
