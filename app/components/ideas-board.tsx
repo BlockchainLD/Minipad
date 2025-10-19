@@ -631,8 +631,33 @@ export const IdeasBoard = ({ onViewChange }: IdeasBoardProps) => {
       return;
     }
 
+    // Temporary workaround: Allow claiming without EAS for testing
     if (!eas || !isInitialized) {
-      toast.error("EAS not initialized. Please ensure you're connected to Base network.");
+      toast.warning("EAS not configured - claiming without blockchain attestation (for testing)");
+      
+      try {
+        // Update Convex without EAS attestation
+        await claimIdea({
+          ideaId,
+          claimer: address,
+          attestationUid: undefined, // No attestation for testing
+        });
+
+        toast.success("Idea claimed successfully! (Testing mode - no blockchain attestation)");
+      } catch (error) {
+        console.error("Error claiming idea:", error);
+        if (error instanceof Error) {
+          if (error.message === "Idea is not available for claiming") {
+            toast.error("This idea has already been claimed");
+          } else if (error.message === "Idea not found") {
+            toast.error("Idea not found");
+          } else {
+            toast.error(`Failed to claim idea: ${error.message}`);
+          }
+        } else {
+          toast.error("Failed to claim idea. Please try again.");
+        }
+      }
       return;
     }
 

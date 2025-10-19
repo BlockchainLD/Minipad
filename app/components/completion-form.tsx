@@ -46,8 +46,28 @@ export const CompletionForm = ({ ideaId, onSuccess, onCancel }: CompletionFormPr
       return;
     }
 
+    // Temporary workaround: Allow completion without EAS for testing
     if (!eas || !isInitialized) {
-      toast.error("EAS not initialized. Please ensure you're connected to Base network.");
+      toast.warning("EAS not configured - submitting build without blockchain attestation (for testing)");
+      
+      try {
+        // Mark the idea as completed without EAS attestation
+        await completeIdea({
+          ideaId,
+          claimer: address,
+          githubUrl: githubUrl.trim(),
+          deploymentUrl: deploymentUrl.trim(),
+          attestationUid: undefined, // No attestation for testing
+        });
+
+        toast.success("🎉 Build submitted successfully! (Testing mode - no blockchain attestation)");
+        setGithubUrl("");
+        setDeploymentUrl("");
+        onSuccess?.();
+      } catch (error) {
+        console.error("Error completing idea:", error);
+        toast.error("Failed to submit build. Please try again.");
+      }
       return;
     }
 
