@@ -1050,10 +1050,10 @@ export const IdeasBoard = ({ onViewChange }: IdeasBoardProps) => {
                 {idea.status === "open" && (
                   <button
                     onClick={(e) => handleButtonClick(e, () => handleClaim(idea._id))}
-                    className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-medium shadow-md hover:shadow-lg transition-all duration-200 hover:scale-105 group"
+                    className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-medium shadow-md hover:shadow-lg transition-all duration-200 hover:scale-105 group active:scale-95 cursor-pointer min-h-[44px] min-w-[100px] justify-center"
                   >
-                    <Hammer width={16} height={16} className="group-hover:scale-110 transition-transform" />
-                    <span className="text-sm font-semibold">Claim</span>
+                    <Hammer width={16} height={16} className="group-hover:scale-110 transition-transform pointer-events-none" />
+                    <span className="text-sm font-semibold pointer-events-none">Claim</span>
                   </button>
                 )}
                 
@@ -1064,7 +1064,7 @@ export const IdeasBoard = ({ onViewChange }: IdeasBoardProps) => {
                       e.stopPropagation();
                       setShowCompletionForm(true);
                     }}
-                    className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-medium shadow-md hover:shadow-lg transition-all duration-200 hover:scale-105 group active:scale-95 cursor-pointer min-h-[44px] w-full justify-center"
+                    className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-medium shadow-md hover:shadow-lg transition-all duration-200 hover:scale-105 group active:scale-95 cursor-pointer min-h-[44px] min-w-[120px] justify-center"
                   >
                     <Tools width={16} height={16} className="group-hover:scale-110 transition-transform pointer-events-none" />
                     <span className="text-sm font-semibold pointer-events-none">Submit Build</span>
