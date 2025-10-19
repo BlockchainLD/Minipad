@@ -8,7 +8,7 @@ import { useEAS, createClaimAttestation, revokeAttestation, SCHEMAS } from "../l
 import { Button } from "@worldcoin/mini-apps-ui-kit-react";
 import { toast } from "sonner";
 import { Id } from "../../convex/_generated/dataModel";
-import { Heart, Hammer, Flash, Xmark, Trash, User, Lamp } from "iconoir-react";
+import { Heart, Hammer, Flash, Xmark, Trash, User, LightBulb } from "iconoir-react";
 import { IdeaFilter, FilterOption } from "./idea-filter";
 
 // Types
@@ -939,7 +939,7 @@ export const IdeasBoard = ({ onViewChange }: IdeasBoardProps) => {
               ) : (
                 <>
                   <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <Lamp width={32} height={32} className="text-blue-600" />
+                    <LightBulb width={32} height={32} className="text-blue-600" />
                   </div>
                   <p className="text-gray-600 text-lg font-medium mb-2">No ideas submitted yet</p>
                   <p className="text-gray-500">Be the first to submit a miniapp idea!</p>
