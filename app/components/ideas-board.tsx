@@ -352,7 +352,7 @@ const IdeaDetailModal = ({
                     e.stopPropagation();
                     onOpenCompletionForm();
                   }}
-                  className="flex items-center gap-2 px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg transition-all duration-200 hover:scale-105 active:scale-95 cursor-pointer min-h-[44px]"
+                  className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white rounded-xl font-medium shadow-md hover:shadow-lg transition-all duration-200 hover:scale-105 active:scale-95 cursor-pointer min-h-[44px] w-full justify-center"
                   title="Submit your build for this idea"
                 >
                   <Tools width={16} height={16} className="pointer-events-none" />
