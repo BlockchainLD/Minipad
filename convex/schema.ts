@@ -18,7 +18,8 @@ const schema = defineSchema({
     claimedBy: v.optional(v.string()), // wallet address of claimer
     claimedAt: v.optional(v.number()),
     completedAt: v.optional(v.number()),
-    miniappUrl: v.optional(v.string()),
+    githubUrl: v.optional(v.string()),
+    deploymentUrl: v.optional(v.string()),
     completionAttestationUid: v.optional(v.string()), // EAS attestation UID for completion
     // Remix-specific fields
     isRemix: v.optional(v.boolean()), // true if this is a remix

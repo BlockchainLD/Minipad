@@ -47,7 +47,8 @@ export const completeIdea = mutation({
   args: {
     ideaId: v.id("ideas"),
     claimer: v.string(),
-    miniappUrl: v.string(),
+    githubUrl: v.string(),
+    deploymentUrl: v.string(),
     attestationUid: v.optional(v.string()),
   },
   returns: v.null(),
@@ -65,7 +66,8 @@ export const completeIdea = mutation({
       // Update idea status
       await ctx.db.patch(args.ideaId, {
         status: "completed",
-        miniappUrl: args.miniappUrl,
+        githubUrl: args.githubUrl,
+        deploymentUrl: args.deploymentUrl,
         completedAt: Date.now(),
         completionAttestationUid: args.attestationUid,
       });
@@ -118,6 +120,29 @@ export const unclaimIdea = mutation({
     } catch (error) {
       console.error("Error in unclaimIdea:", error);
       throw error;
+    }
+  },
+});
+
+// Get claim for a specific idea and claimer
+export const getClaimForIdea = query({
+  args: {
+    ideaId: v.id("ideas"),
+    claimer: v.string(),
+  },
+  returns: v.union(v.any(), v.null()),
+  handler: async (ctx, args) => {
+    try {
+      const claim = await ctx.db
+        .query("claims")
+        .withIndex("by_idea", (q) => q.eq("ideaId", args.ideaId))
+        .filter((q) => q.eq(q.field("claimer"), args.claimer))
+        .first();
+      
+      return claim;
+    } catch (error) {
+      console.error("Error in getClaimForIdea:", error);
+      return null;
     }
   },
 });
