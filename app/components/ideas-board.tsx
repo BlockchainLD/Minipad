@@ -8,7 +8,7 @@ import { useEAS, createClaimAttestation, revokeAttestation, SCHEMAS } from "../l
 import { Button } from "@worldcoin/mini-apps-ui-kit-react";
 import { toast } from "sonner";
 import { Id } from "../../convex/_generated/dataModel";
-import { Heart, Hammer, Flash, Xmark, Trash, User } from "iconoir-react";
+import { Heart, Hammer, Flash, Xmark, Trash, User, Lamp } from "iconoir-react";
 import { IdeaFilter, FilterOption } from "./idea-filter";
 
 // Types
@@ -59,7 +59,6 @@ const IdeaDetailModal = ({
   onUnclaim,
   onDelete,
   onRemixUpvote,
-  onRemixRemoveUpvote,
   onRemixDelete,
   address 
 }: {
@@ -73,7 +72,6 @@ const IdeaDetailModal = ({
   onUnclaim: (ideaId: Id<"ideas">) => void;
   onDelete: (ideaId: Id<"ideas">) => void;
   onRemixUpvote: (remixId: Id<"ideas">) => void;
-  onRemixRemoveUpvote: (remixId: Id<"ideas">) => void;
   onRemixDelete: (remixId: Id<"ideas">) => void;
   address: string | undefined;
 }) => {
@@ -90,7 +88,7 @@ const IdeaDetailModal = ({
     if (idea) {
       setOptimisticUpvotes(null);
     }
-  }, [idea?._id]);
+  }, [idea]);
   
   // Handle ESC key and click outside to close
   useEffect(() => {
@@ -124,21 +122,21 @@ const IdeaDetailModal = ({
         }
       }}
     >
-      <div className="relative w-full max-w-2xl max-h-[90vh] bg-white rounded-2xl shadow-2xl overflow-hidden animate-in fade-in-0 zoom-in-95 duration-300 flex flex-col">
+      <div className="relative w-full max-w-3xl max-h-[90vh] bg-white rounded-3xl shadow-2xl overflow-hidden animate-in fade-in-0 zoom-in-95 duration-300 flex flex-col border border-gray-100">
         {/* Fixed Header */}
-        <div className="flex items-center justify-between p-6 border-b border-gray-200 flex-shrink-0">
+        <div className="flex items-center justify-between p-8 border-b border-gray-100 flex-shrink-0 bg-gradient-to-r from-gray-50 to-white">
           <h2 className="text-2xl font-bold text-gray-900">Idea Details</h2>
           <button
             onClick={onClose}
-            className="text-gray-300 hover:text-gray-500 transition-colors"
+            className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-xl transition-all duration-200 group"
           >
-            <Xmark width={14} height={14} />
+            <Xmark width={18} height={18} className="group-hover:scale-110 transition-transform" />
           </button>
         </div>
 
         {/* Scrollable Content */}
         <div className="flex-1 overflow-y-auto">
-          <div className="p-6">
+          <div className="p-8">
             {/* Title */}
             <h1 className="text-3xl font-bold text-gray-900 mb-4">{idea.title}</h1>
             
@@ -155,8 +153,8 @@ const IdeaDetailModal = ({
             </div>
 
             {/* Status Badge */}
-            <div className="mb-6">
-            <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${getStatusConfig(idea.status).color}`}>
+            <div className="mb-8">
+            <span className={`inline-flex items-center px-4 py-2 rounded-full text-sm font-semibold shadow-sm ${getStatusConfig(idea.status).color}`}>
               {getStatusConfig(idea.status).text}
             </span>
             </div>
@@ -246,7 +244,7 @@ const IdeaDetailModal = ({
         </div>
 
         {/* Fixed Bottom Action Bar */}
-        <div className="flex-shrink-0 border-t border-gray-200 bg-white p-6">
+        <div className="flex-shrink-0 border-t border-gray-100 bg-gradient-to-r from-white to-gray-50 p-8">
           <div className="flex flex-wrap gap-3">
             <UpvoteButton
               ideaId={idea._id}
@@ -406,10 +404,10 @@ const UpvoteButton = ({
     <button
       onClick={handleClick}
       disabled={!canInteract || isLoading}
-      className={`relative flex items-center gap-1.5 px-2 py-1 transition-all duration-200 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed ${
+      className={`relative flex items-center gap-2 px-3 py-2 rounded-xl transition-all duration-200 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed group ${
         isUpvoted 
-          ? "text-red-500 hover:text-red-600" 
-          : "text-gray-500 hover:text-gray-700"
+          ? "text-red-500 hover:text-red-600 hover:bg-red-50" 
+          : "text-gray-500 hover:text-gray-700 hover:bg-gray-50"
       }`}
       title={
         !isConnected ? "Connect wallet to upvote" :
@@ -417,13 +415,13 @@ const UpvoteButton = ({
       }
     >
       <Heart 
-        width={20} 
-        height={20} 
+        width={18} 
+        height={18} 
         fill={isUpvoted ? "currentColor" : "none"}
         stroke="currentColor"
-        className={isUpvoted ? "text-red-500" : "text-gray-500"}
+        className={`group-hover:scale-110 transition-transform ${isUpvoted ? "text-red-500" : "text-gray-500"}`}
       />
-      <span className="text-sm font-medium">{optimisticUpvotes ?? upvotes}</span>
+      <span className="text-sm font-semibold">{optimisticUpvotes ?? upvotes}</span>
       {isLoading && <span className="text-xs text-gray-400">...</span>}
     </button>
   );
@@ -751,31 +749,6 @@ export const IdeasBoard = ({ onViewChange }: IdeasBoardProps) => {
     }
   };
 
-  const handleRemixRemoveUpvote = async (remixId: Id<"ideas">) => {
-    if (!address) {
-      toast.error("Please connect your wallet");
-      return;
-    }
-
-    try {
-      await removeUpvote({
-        ideaId: remixId,
-        voter: address,
-      });
-      toast.success("Remix upvote removed successfully!");
-    } catch (error) {
-      console.error("Error removing remix upvote:", error);
-      if (error instanceof Error) {
-        if (error.message === "Idea not found") {
-          toast.error("Remix not found");
-        } else {
-          toast.error(`Failed to remove remix upvote: ${error.message}`);
-        }
-      } else {
-        toast.error("Failed to remove remix upvote. Please try again.");
-      }
-    }
-  };
 
   const handleRemixDelete = async (remixId: Id<"ideas">) => {
     if (!address) {
@@ -866,7 +839,7 @@ export const IdeasBoard = ({ onViewChange }: IdeasBoardProps) => {
   }
 
   return (
-    <div className="w-full max-w-4xl mx-auto p-6">
+    <div className="w-full max-w-4xl mx-auto p-6 sm:p-8">
       <div className="mb-6">
         <div className="flex justify-between items-center mb-4">
           <h1 className="text-2xl font-bold text-gray-900">
@@ -884,6 +857,7 @@ export const IdeasBoard = ({ onViewChange }: IdeasBoardProps) => {
               }
             }}
             size="sm"
+            className="rounded-xl hover:shadow-lg transition-all duration-200 hover:scale-105"
           >
             Submit Idea
           </Button>
@@ -900,7 +874,7 @@ export const IdeasBoard = ({ onViewChange }: IdeasBoardProps) => {
           <div 
             key={idea._id} 
             onClick={() => openModal(idea)}
-            className="bg-white border border-gray-200 rounded-lg p-4 sm:p-6 hover:shadow-lg transition-all duration-200 cursor-pointer hover:scale-[1.02]"
+            className="bg-white border border-gray-200 rounded-2xl p-6 sm:p-8 hover:shadow-xl hover:border-gray-300 transition-all duration-300 cursor-pointer hover:scale-[1.02] hover:-translate-y-1 group"
           >
             <div className="flex flex-col sm:flex-row justify-between items-start mb-4 gap-3">
               <div className="flex-1 min-w-0">
@@ -911,7 +885,7 @@ export const IdeasBoard = ({ onViewChange }: IdeasBoardProps) => {
                   {idea.description}
                 </p>
               </div>
-              <span className={`px-2 py-1 rounded-full text-xs font-medium whitespace-nowrap ${getStatusConfig(idea.status).color}`}>
+              <span className={`px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap shadow-sm ${getStatusConfig(idea.status).color}`}>
                 {getStatusConfig(idea.status).text}
               </span>
             </div>
@@ -930,20 +904,20 @@ export const IdeasBoard = ({ onViewChange }: IdeasBoardProps) => {
                 {/* Remix button */}
                 <button
                   onClick={(e) => handleButtonClick(e, () => handleRemix(idea._id))}
-                  className="flex items-center justify-center p-1 text-yellow-500 hover:text-yellow-600 transition-all duration-200 hover:scale-105"
+                  className="flex items-center justify-center p-2 text-yellow-500 hover:text-yellow-600 hover:bg-yellow-50 rounded-xl transition-all duration-200 hover:scale-105 group"
                   title="Remix this idea"
                 >
-                  <Flash width={20} height={20} />
+                  <Flash width={18} height={18} className="group-hover:scale-110 transition-transform" />
                 </button>
                 
                 
                 {idea.status === "open" && (
                   <button
                     onClick={(e) => handleButtonClick(e, () => handleClaim(idea._id))}
-                    className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-blue-500 hover:bg-blue-600 text-white transition-all duration-200 hover:scale-105"
+                    className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-medium shadow-md hover:shadow-lg transition-all duration-200 hover:scale-105 group"
                   >
-                    <Hammer width={16} height={16} />
-                    <span className="text-sm font-medium">Claim</span>
+                    <Hammer width={16} height={16} className="group-hover:scale-110 transition-transform" />
+                    <span className="text-sm font-semibold">Claim</span>
                   </button>
                 )}
               </div>
@@ -952,18 +926,26 @@ export const IdeasBoard = ({ onViewChange }: IdeasBoardProps) => {
         ))}
 
         {filteredAndSortedIdeas?.length === 0 && (
-          <div className="text-center py-12">
-            {currentFilter === "claimed" ? (
-              <>
-                <p className="text-gray-500 text-lg">No claimed ideas found.</p>
-                <p className="text-gray-400">Try a different filter or submit a new idea!</p>
-              </>
-            ) : (
-              <>
-                <p className="text-gray-500 text-lg">No ideas submitted yet.</p>
-                <p className="text-gray-400">Be the first to submit a miniapp idea!</p>
-              </>
-            )}
+          <div className="text-center py-16">
+            <div className="bg-gray-50 rounded-3xl p-12 border border-gray-100">
+              {currentFilter === "claimed" ? (
+                <>
+                  <div className="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <Hammer width={32} height={32} className="text-yellow-600" />
+                  </div>
+                  <p className="text-gray-600 text-lg font-medium mb-2">No claimed ideas found</p>
+                  <p className="text-gray-500">Try a different filter or submit a new idea!</p>
+                </>
+              ) : (
+                <>
+                  <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <Lamp width={32} height={32} className="text-blue-600" />
+                  </div>
+                  <p className="text-gray-600 text-lg font-medium mb-2">No ideas submitted yet</p>
+                  <p className="text-gray-500">Be the first to submit a miniapp idea!</p>
+                </>
+              )}
+            </div>
           </div>
         )}
       </div>
@@ -981,7 +963,6 @@ export const IdeasBoard = ({ onViewChange }: IdeasBoardProps) => {
           onUnclaim={handleUnclaim}
           onDelete={handleDelete}
           onRemixUpvote={handleRemixUpvote}
-          onRemixRemoveUpvote={handleRemixRemoveUpvote}
           onRemixDelete={handleRemixDelete}
           address={address}
         />

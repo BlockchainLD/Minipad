@@ -27,7 +27,7 @@ export function SignInForm() {
   };
 
   return (
-    <div className="bg-white rounded-3xl shadow-2xl p-7 space-y-7">
+    <div className="bg-white rounded-3xl shadow-2xl p-8 space-y-8 border border-gray-100">
       <div className="text-center space-y-3">
         <div className="space-y-3">
           <Typography variant="heading" className="text-gray-900">

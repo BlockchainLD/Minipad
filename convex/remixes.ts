@@ -41,46 +41,6 @@ export const createRemix = mutation({
   },
 });
 
-// Edit a remix (creates a new attestation)
-export const editRemix = mutation({
-  args: {
-    remixId: v.id("ideas"),
-    editor: v.string(), // wallet address
-    title: v.string(),
-    description: v.string(),
-    attestationUid: v.optional(v.string()),
-  },
-  returns: v.null(),
-  handler: async (ctx, args) => {
-    try {
-      // Get the remix
-      const remix = await ctx.db.get(args.remixId);
-      if (!remix) {
-        throw new Error("Remix not found");
-      }
-      
-      if (remix.author !== args.editor) {
-        throw new Error("Only the author can edit their remix");
-      }
-      
-      if (!remix.isRemix) {
-        throw new Error("This is not a remix");
-      }
-
-      // Update the remix
-      await ctx.db.patch(args.remixId, {
-        title: args.title,
-        description: args.description,
-        attestationUid: args.attestationUid,
-        remixAttestationUid: args.attestationUid,
-        timestamp: Date.now(), // Update timestamp for edit
-      });
-    } catch (error) {
-      console.error("Error in editRemix:", error);
-      throw error;
-    }
-  },
-});
 
 // Delete a remix (only by the author)
 export const deleteRemix = mutation({

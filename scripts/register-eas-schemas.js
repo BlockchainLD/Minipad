@@ -88,7 +88,7 @@ async function registerSchemas() {
       console.log(`NEXT_PUBLIC_${schemaName}_SCHEMA_UID=${schemaUid}`);
     }
 
-    console.log("\n💡 Copy the above environment variables to your .env.local file");
+    console.log("\n📋 Copy the above environment variables to your .env.local file");
     console.log("🚀 Restart your development server to use the new schemas");
 
   } catch (error) {

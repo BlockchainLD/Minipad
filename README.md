@@ -65,15 +65,20 @@ NEXT_PUBLIC_COMPLETION_SCHEMA_UID=
 
 ## 🔗 EAS Integration
 
-**📖 For detailed EAS setup instructions, see [EAS_SETUP_GUIDE.md](./EAS_SETUP_GUIDE.md)**
+### EAS Setup
+The app uses Ethereum Attestation Service (EAS) on Base mainnet for blockchain attestations. Schemas are automatically registered on first use.
 
-### Quick EAS Setup
+**Required Environment Variables:**
 ```bash
-# Set your private key (needs ETH on Base mainnet)
-export PRIVATE_KEY=0x_your_private_key_here
+# EAS Configuration (Base Mainnet)
+EAS_CONTRACT_ADDRESS=0x4200000000000000000000000000000000000021
+SCHEMA_REGISTRY_ADDRESS=0x4200000000000000000000000000000000000020
 
-# Run the setup script
-npm run setup-eas
+# EAS Schema UIDs (auto-register if empty)
+NEXT_PUBLIC_IDEA_SCHEMA_UID=
+NEXT_PUBLIC_REMIX_SCHEMA_UID=
+NEXT_PUBLIC_CLAIM_SCHEMA_UID=
+NEXT_PUBLIC_COMPLETION_SCHEMA_UID=
 ```
 
 ### Attestation Types

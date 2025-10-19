@@ -12,20 +12,3 @@ export const APP_METADATA = {
         allowedAddresses: ['0x8342A48694A74044116F330db5050a267b28dD85']
     }
 };
-
-export const fcMiniAppEmbed = (title = 'Launch', imageUrl = APP_METADATA.imageUrl, url = APP_METADATA.url) => {
-    return {
-        version: "next",
-        imageUrl: imageUrl,
-        button: {
-          title: title,
-          action: {
-            type: "launch_frame",
-            name: APP_METADATA.title,
-            url: url,
-            splashImageUrl: APP_METADATA.splash.imageUrl,
-            splashBackgroundColor: APP_METADATA.splash.backgroundColor,
-          },
-        },
-    };
-}

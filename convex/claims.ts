@@ -122,25 +122,3 @@ export const unclaimIdea = mutation({
   },
 });
 
-// Get claim for a specific idea and claimer
-export const getClaimForIdea = query({
-  args: {
-    ideaId: v.id("ideas"),
-    claimer: v.string(),
-  },
-  returns: v.union(v.any(), v.null()),
-  handler: async (ctx, args) => {
-    try {
-      const claim = await ctx.db
-        .query("claims")
-        .withIndex("by_idea", (q) => q.eq("ideaId", args.ideaId))
-        .filter((q) => q.eq(q.field("claimer"), args.claimer))
-        .first();
-      
-      return claim;
-    } catch (error) {
-      console.error("Error in getClaimForIdea:", error);
-      return null;
-    }
-  },
-});

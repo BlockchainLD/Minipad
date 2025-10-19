@@ -31,7 +31,7 @@ export const IdeaFilter = ({ currentFilter, onFilterChange }: IdeaFilterProps) =
         variant="secondary"
         size="sm"
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-2 min-w-[120px] justify-between"
+        className="flex items-center gap-2 min-w-[140px] justify-between rounded-xl hover:shadow-md transition-all duration-200"
       >
         <span>{filterLabels[currentFilter]}</span>
         <ArrowDown 
@@ -50,16 +50,16 @@ export const IdeaFilter = ({ currentFilter, onFilterChange }: IdeaFilterProps) =
           />
           
           {/* Dropdown */}
-          <div className="absolute right-0 top-full mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-20">
+          <div className="absolute right-0 top-full mt-3 w-52 bg-white border border-gray-200 rounded-2xl shadow-xl z-20 overflow-hidden">
             <div className="py-1">
               {Object.entries(filterLabels).map(([value, label]) => (
                 <button
                   key={value}
                   onClick={() => handleFilterSelect(value as FilterOption)}
-                  className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-50 transition-colors ${
+                  className={`w-full text-left px-4 py-3 text-sm hover:bg-gray-50 transition-all duration-200 ${
                     currentFilter === value 
-                      ? 'bg-blue-50 text-blue-600 font-medium' 
-                      : 'text-gray-700'
+                      ? 'bg-blue-50 text-blue-600 font-semibold' 
+                      : 'text-gray-700 hover:text-gray-900'
                   }`}
                 >
                   {label}

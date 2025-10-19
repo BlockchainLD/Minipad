@@ -160,14 +160,14 @@ export const IdeaSubmissionForm = ({ onSuccess, onCancel }: IdeaSubmissionFormPr
   };
 
   return (
-    <div className="w-full max-w-2xl mx-auto p-6 relative">
+    <div className="w-full max-w-2xl mx-auto p-8 relative">
       {onCancel && (
         <button
           aria-label="Close"
           onClick={onCancel}
-          className="absolute right-4 top-4 text-gray-400 hover:text-gray-600 transition-colors"
+          className="absolute right-6 top-6 p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-xl transition-all duration-200 group"
         >
-          ✕
+          <span className="text-lg group-hover:scale-110 transition-transform">✕</span>
         </button>
       )}
       <div className="mb-6">
@@ -207,13 +207,25 @@ export const IdeaSubmissionForm = ({ onSuccess, onCancel }: IdeaSubmissionFormPr
           />
         </div>
 
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-          <h3 className="font-medium text-blue-900 mb-2">How it works:</h3>
-          <ul className="text-sm text-blue-800 space-y-1">
-            <li>• Your idea will be attested to the blockchain</li>
-            <li>• Other users can vote on your idea</li>
-            <li>• Developers can claim ideas to build them</li>
-            <li>• You can remix and expand on existing ideas</li>
+        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-2xl p-6 shadow-sm">
+          <h3 className="font-semibold text-blue-900 mb-3">How it works:</h3>
+          <ul className="text-sm text-blue-800 space-y-2">
+            <li className="flex items-start gap-2">
+              <span className="text-blue-500 mt-0.5">•</span>
+              <span>Your idea will be attested to the blockchain</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="text-blue-500 mt-0.5">•</span>
+              <span>Other users can vote on your idea</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="text-blue-500 mt-0.5">•</span>
+              <span>Developers can claim ideas to build them</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="text-blue-500 mt-0.5">•</span>
+              <span>You can remix and expand on existing ideas</span>
+            </li>
           </ul>
         </div>
 

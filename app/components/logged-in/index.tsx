@@ -1,4 +1,3 @@
-import { TopBar } from "@worldcoin/mini-apps-ui-kit-react";
 import { useIsMobile } from "../../hooks/use-is-mobile";
 import { SettingsContent } from "./settings-content";
 import { MobileTabs } from "./mobile-tabs";
@@ -8,6 +7,7 @@ import { IdeasBoard } from "../ideas-board";
 import { IdeaSubmissionForm } from "../idea-submission-form";
 import { IdeaSubmissionConfirmation } from "../idea-submission-confirmation";
 import { useState } from "react";
+import { Lamp } from "iconoir-react";
 
 export const LoggedIn = () => {
   const {
@@ -32,10 +32,12 @@ export const LoggedIn = () => {
     return (
         <>
           <div className="bg-white min-h-screen mb-20 flex flex-col">
-            <TopBar 
-              title="💡 Minipad"
-              className="[&_*]:text-black"
-            />
+            <div className="flex items-center justify-center p-6 border-b border-gray-100 bg-gradient-to-r from-gray-50 to-white">
+              <div className="flex items-center gap-3">
+                <Lamp width={24} height={24} className="text-yellow-500" />
+                <span className="text-xl font-bold text-gray-900">Minipad</span>
+              </div>
+            </div>
           
           <div className="flex-1 px-6 pb-24">
             {activeTab === "home" && (
@@ -88,11 +90,13 @@ export const LoggedIn = () => {
 
   return (
         <>
-          <div className="bg-white rounded-3xl shadow-2xl overflow-hidden">
-            <TopBar 
-              title="💡 Minipad"
-              className="[&_*]:text-black"
-            />
+          <div className="bg-white rounded-3xl shadow-2xl overflow-hidden border border-gray-100">
+            <div className="flex items-center justify-center p-6 border-b border-gray-100 bg-gradient-to-r from-gray-50 to-white">
+              <div className="flex items-center gap-3">
+                <Lamp width={24} height={24} className="text-yellow-500" />
+                <span className="text-xl font-bold text-gray-900">Minipad</span>
+              </div>
+            </div>
         <div className="p-6 pt-4">
           {currentView === "board" && (
             <IdeasBoard 
