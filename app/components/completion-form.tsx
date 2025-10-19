@@ -8,6 +8,7 @@ import { useEAS, createCompletionAttestation } from "../lib/eas";
 import { Button, Input } from "@worldcoin/mini-apps-ui-kit-react";
 import { toast } from "sonner";
 import { Id } from "../../convex/_generated/dataModel";
+import { Tools } from "iconoir-react";
 
 interface CompletionFormProps {
   ideaId: Id<"ideas">;
@@ -183,15 +184,25 @@ export const CompletionForm = ({ ideaId, onSuccess, onCancel }: CompletionFormPr
           <Button
             type="submit"
             disabled={isSubmitting}
-            className="flex-1 rounded-xl hover:shadow-lg transition-all duration-200 hover:scale-105"
+            className="flex-1 rounded-xl hover:shadow-lg transition-all duration-200 hover:scale-105 active:scale-95 flex items-center justify-center gap-2"
           >
-            {isSubmitting ? "Submitting..." : "Submit Build"}
+            {isSubmitting ? (
+              <>
+                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                Submitting...
+              </>
+            ) : (
+              <>
+                <Tools width={16} height={16} />
+                Submit Build
+              </>
+            )}
           </Button>
           <Button
             type="button"
             variant="secondary"
             onClick={onCancel}
-            className="flex-1 rounded-xl"
+            className="flex-1 rounded-xl hover:scale-105 active:scale-95 transition-all duration-200"
           >
             Cancel
           </Button>

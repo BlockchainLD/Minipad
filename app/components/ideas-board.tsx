@@ -8,7 +8,7 @@ import { useEAS, createClaimAttestation, revokeAttestation, SCHEMAS } from "../l
 import { Button } from "@worldcoin/mini-apps-ui-kit-react";
 import { toast } from "sonner";
 import { Id } from "../../convex/_generated/dataModel";
-import { Heart, Hammer, Flash, Xmark, Trash, User, LightBulb } from "iconoir-react";
+import { Heart, Hammer, Flash, Xmark, Trash, User, LightBulb, Tools } from "iconoir-react";
 import { IdeaFilter, FilterOption } from "./idea-filter";
 import { CompletionForm } from "./completion-form";
 
@@ -1018,10 +1018,14 @@ export const IdeasBoard = ({ onViewChange }: IdeasBoardProps) => {
                 
                 {idea.status === "claimed" && idea.claimedBy === address && (
                   <button
-                    onClick={(e) => handleButtonClick(e, () => setShowCompletionForm(true))}
-                    className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-medium shadow-md hover:shadow-lg transition-all duration-200 hover:scale-105 group"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      setShowCompletionForm(true);
+                    }}
+                    className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-medium shadow-md hover:shadow-lg transition-all duration-200 hover:scale-105 group active:scale-95"
                   >
-                    <Flash width={16} height={16} className="group-hover:scale-110 transition-transform" />
+                    <Tools width={16} height={16} className="group-hover:scale-110 transition-transform" />
                     <span className="text-sm font-semibold">Submit Build</span>
                   </button>
                 )}
