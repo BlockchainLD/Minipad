@@ -63,6 +63,7 @@ const IdeaDetailModal = ({
   onDelete,
   onRemixUpvote,
   onRemixDelete,
+  onOpenCompletionForm,
   address 
 }: {
   idea: Idea;
@@ -76,6 +77,7 @@ const IdeaDetailModal = ({
   onDelete: (ideaId: Id<"ideas">) => void;
   onRemixUpvote: (remixId: Id<"ideas">) => void;
   onRemixDelete: (remixId: Id<"ideas">) => void;
+  onOpenCompletionForm: () => void;
   address: string | undefined;
 }) => {
   // Fetch remixes for this idea
@@ -343,14 +345,29 @@ const IdeaDetailModal = ({
             )}
             
             {idea.status === "claimed" && address && idea.claimedBy === address && (
-              <button
-                onClick={(e) => handleButtonClick(e, () => onUnclaim(idea._id))}
-                className="flex items-center gap-2 px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-lg transition-all duration-200 hover:scale-105"
-                title="Unclaim this idea"
-              >
-                <Hammer width={16} height={16} />
-                <span className="text-sm font-medium">Unclaim</span>
-              </button>
+              <>
+                <button
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    onOpenCompletionForm();
+                  }}
+                  className="flex items-center gap-2 px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg transition-all duration-200 hover:scale-105 active:scale-95 cursor-pointer min-h-[44px]"
+                  title="Submit your build for this idea"
+                >
+                  <Tools width={16} height={16} className="pointer-events-none" />
+                  <span className="text-sm font-medium pointer-events-none">Submit Build</span>
+                </button>
+                
+                <button
+                  onClick={(e) => handleButtonClick(e, () => onUnclaim(idea._id))}
+                  className="flex items-center gap-2 px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-lg transition-all duration-200 hover:scale-105 active:scale-95 cursor-pointer min-h-[44px]"
+                  title="Unclaim this idea"
+                >
+                  <Hammer width={16} height={16} className="pointer-events-none" />
+                  <span className="text-sm font-medium pointer-events-none">Unclaim</span>
+                </button>
+              </>
             )}
             
             {/* Delete button - only show for the author */}
@@ -707,17 +724,41 @@ export const IdeasBoard = ({ onViewChange }: IdeasBoardProps) => {
       return;
     }
 
-    if (!eas || !isInitialized) {
-      toast.error("EAS not initialized. Please ensure you're connected to Base network.");
-      return;
-    }
-
     // Show confirmation dialog
     const confirmed = window.confirm(
-      "Are you sure you want to unclaim this idea? This will revoke your claim attestation."
+      "Are you sure you want to unclaim this idea? This will make it available for others to claim."
     );
     
     if (!confirmed) {
+      return;
+    }
+
+    // Temporary workaround: Allow unclaiming without EAS for testing
+    if (!eas || !isInitialized) {
+      toast.warning("EAS not configured - unclaiming without blockchain attestation (for testing)");
+      
+      try {
+        // Unclaim the idea from Convex without EAS
+        await unclaimIdea({
+          ideaId,
+          claimer: address,
+        });
+        
+        toast.success("Idea unclaimed successfully! (Testing mode - no blockchain attestation)");
+      } catch (error) {
+        console.error("Error unclaiming idea:", error);
+        if (error instanceof Error) {
+          if (error.message === "Idea is not claimed by this user") {
+            toast.error("You can only unclaim ideas you have claimed");
+          } else if (error.message === "Idea not found") {
+            toast.error("Idea not found");
+          } else {
+            toast.error(`Failed to unclaim idea: ${error.message}`);
+          }
+        } else {
+          toast.error("Failed to unclaim idea. Please try again.");
+        }
+      }
       return;
     }
 
@@ -1023,10 +1064,10 @@ export const IdeasBoard = ({ onViewChange }: IdeasBoardProps) => {
                       e.stopPropagation();
                       setShowCompletionForm(true);
                     }}
-                    className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-medium shadow-md hover:shadow-lg transition-all duration-200 hover:scale-105 group active:scale-95"
+                    className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-medium shadow-md hover:shadow-lg transition-all duration-200 hover:scale-105 group active:scale-95 cursor-pointer min-h-[44px] w-full justify-center"
                   >
-                    <Tools width={16} height={16} className="group-hover:scale-110 transition-transform" />
-                    <span className="text-sm font-semibold">Submit Build</span>
+                    <Tools width={16} height={16} className="group-hover:scale-110 transition-transform pointer-events-none" />
+                    <span className="text-sm font-semibold pointer-events-none">Submit Build</span>
                   </button>
                 )}
               </div>
@@ -1091,6 +1132,7 @@ export const IdeasBoard = ({ onViewChange }: IdeasBoardProps) => {
           onDelete={handleDelete}
           onRemixUpvote={handleRemixUpvote}
           onRemixDelete={handleRemixDelete}
+          onOpenCompletionForm={() => setShowCompletionForm(true)}
           address={address}
         />
       )}
