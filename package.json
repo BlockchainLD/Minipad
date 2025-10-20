@@ -11,7 +11,7 @@
     "dev": "concurrently \"bun run next:dev\" \"bun run convex:dev\"",
     "next:dev": "next dev --turbopack",
     "convex:dev": "bunx convex dev",
-    "build": "next build --turbopack",
+    "build": "next build",
     "start": "next start",
     "lint": "eslint",
     "register-schemas": "node scripts/register-eas-schemas.js",

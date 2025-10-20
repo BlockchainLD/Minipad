@@ -5,10 +5,12 @@ import { useMutation } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { useAccount } from "wagmi";
 import { useEAS, createCompletionAttestation } from "../lib/eas";
-import { Button, Input } from "@worldcoin/mini-apps-ui-kit-react";
+import { Input } from "@worldcoin/mini-apps-ui-kit-react";
 import { toast } from "sonner";
+import { handleError, handleSuccess, handleWarning } from "../lib/error-handler";
 import { Id } from "../../convex/_generated/dataModel";
 import { Tools } from "iconoir-react";
+import { StandardButton } from "./ui/standard-button";
 
 interface CompletionFormProps {
   ideaId: Id<"ideas">;
@@ -49,7 +51,7 @@ export const CompletionForm = ({ ideaId, onSuccess, onCancel }: CompletionFormPr
 
     // Temporary workaround: Allow completion without EAS for testing
     if (!eas || !isInitialized) {
-      toast.warning("EAS not configured - submitting build without blockchain attestation (for testing)");
+      handleWarning("EAS not configured - submitting build without blockchain attestation (for testing)");
       
       try {
         // Mark the idea as completed without EAS attestation
@@ -61,13 +63,12 @@ export const CompletionForm = ({ ideaId, onSuccess, onCancel }: CompletionFormPr
           attestationUid: undefined, // No attestation for testing
         });
 
-        toast.success("🎉 Build submitted successfully! (Testing mode - no blockchain attestation)");
+        handleSuccess("🎉 Build submitted successfully! (Testing mode - no blockchain attestation)");
         setGithubUrl("");
         setDeploymentUrl("");
         onSuccess?.();
       } catch (error) {
-        console.error("Error completing idea:", error);
-        toast.error("Failed to submit build. Please try again.");
+        handleError(error, { operation: "complete idea", component: "CompletionForm" });
       }
       return;
     }
@@ -95,17 +96,12 @@ export const CompletionForm = ({ ideaId, onSuccess, onCancel }: CompletionFormPr
         attestationUid,
       });
 
-      toast.success("🎉 Build submitted successfully! Your idea is now marked as complete.");
+      handleSuccess("🎉 Build submitted successfully! Your idea is now marked as complete.");
       setGithubUrl("");
       setDeploymentUrl("");
       onSuccess?.();
     } catch (error) {
-      console.error("Error completing idea:", error);
-      if (error instanceof Error && error.message.includes("EAS schemas not configured")) {
-        toast.error("EAS not properly configured. Please contact support.");
-      } else {
-        toast.error("Failed to submit build. Please try again.");
-      }
+      handleError(error, { operation: "complete idea", component: "CompletionForm" });
     } finally {
       setIsSubmitting(false);
     }
@@ -181,31 +177,26 @@ export const CompletionForm = ({ ideaId, onSuccess, onCancel }: CompletionFormPr
         </div>
 
         <div className="flex gap-3">
-          <Button
+          <StandardButton
             type="submit"
             disabled={isSubmitting}
-            className="flex-1 rounded-xl hover:shadow-lg transition-all duration-200 hover:scale-105 active:scale-95 flex items-center justify-center gap-2"
+            loading={isSubmitting}
+            variant="success"
+            size="md"
+            fullWidth={true}
+            icon={<Tools width={16} height={16} />}
           >
-            {isSubmitting ? (
-              <>
-                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                Submitting...
-              </>
-            ) : (
-              <>
-                <Tools width={16} height={16} />
-                Submit Build
-              </>
-            )}
-          </Button>
-          <Button
+            Submit Build
+          </StandardButton>
+          <StandardButton
             type="button"
             variant="secondary"
             onClick={onCancel}
-            className="flex-1 rounded-xl hover:scale-105 active:scale-95 transition-all duration-200"
+            size="md"
+            fullWidth={true}
           >
             Cancel
-          </Button>
+          </StandardButton>
         </div>
       </form>
     </div>

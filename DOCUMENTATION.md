@@ -24,9 +24,10 @@ BETTER_AUTH_SECRET=your_secret_here
 
 # Site Configuration
 SITE_URL=http://localhost:3000
+NEXT_PUBLIC_SITE_URL=http://localhost:3000
 
 # Convex Configuration
-CONVEX_DEPLOYMENT=your_deployment_name
+CONVEX_DEPLOYMENT=dev:your-deployment
 NEXT_PUBLIC_CONVEX_URL=https://your-deployment.convex.cloud
 CONVEX_SITE_URL=https://your-deployment.convex.cloud
 
@@ -34,7 +35,7 @@ CONVEX_SITE_URL=https://your-deployment.convex.cloud
 EAS_CONTRACT_ADDRESS=0x4200000000000000000000000000000000000021
 SCHEMA_REGISTRY_ADDRESS=0x4200000000000000000000000000000000000020
 
-# EAS Schema UIDs (auto-register if empty)
+# EAS Schema UIDs (optional - will auto-register if empty)
 NEXT_PUBLIC_IDEA_SCHEMA_UID=
 NEXT_PUBLIC_REMIX_SCHEMA_UID=
 NEXT_PUBLIC_CLAIM_SCHEMA_UID=
@@ -52,10 +53,10 @@ NEXT_PUBLIC_COMPLETION_SCHEMA_UID=
 - **Wallet**: Wagmi, Base Account integration
 
 ### Key Features
-- ✅ **Idea Submission** with EAS attestations
-- ✅ **Remix Creation** with EAS attestations
-- ✅ **Builder Claiming** with EAS attestations
-- ✅ **Completion Tracking** with EAS attestations
+- ✅ **Idea Submission** with blockchain attestations
+- ✅ **Remix Creation** with blockchain attestations
+- ✅ **Builder Claiming** with blockchain attestations
+- ✅ **Completion Tracking** with blockchain attestations
 - ✅ **Attestation Revocation** for deletions/unclaiming
 - ✅ **Gasless Transactions** via Base Account
 - ✅ **Mobile Optimized** responsive design
@@ -88,7 +89,7 @@ COMPLETION: "string ideaId, string claimer, string miniappUrl, string claimerFid
 
 ### Tables
 - **ideas**: Main ideas and remixes
-- **upvotes**: User upvotes (no EAS attestations)
+- **upvotes**: User upvotes (no blockchain attestations)
 - **claims**: Builder claims with attestations
 
 ### Key Fields
@@ -102,6 +103,12 @@ ideas: {
   originalIdeaId?: string
   remixAttestationUid?: string
   completionAttestationUid?: string
+  githubUrl?: string
+  deploymentUrl?: string
+  status: "open" | "claimed" | "completed"
+  claimedBy?: string
+  claimedAt?: number
+  completedAt?: number
   // ... other fields
 }
 ```
@@ -130,6 +137,7 @@ BETTER_AUTH_SECRET=your_production_secret
 
 # Site Configuration
 SITE_URL=https://your-app.vercel.app
+NEXT_PUBLIC_SITE_URL=https://your-app.vercel.app
 
 # Convex Configuration
 CONVEX_DEPLOYMENT=prod:your-deployment
@@ -140,7 +148,7 @@ CONVEX_SITE_URL=https://your-deployment.convex.cloud
 EAS_CONTRACT_ADDRESS=0x4200000000000000000000000000000000000021
 SCHEMA_REGISTRY_ADDRESS=0x4200000000000000000000000000000000000020
 
-# EAS Schema UIDs (auto-register if empty)
+# EAS Schema UIDs (optional - will auto-register if empty)
 NEXT_PUBLIC_IDEA_SCHEMA_UID=
 NEXT_PUBLIC_REMIX_SCHEMA_UID=
 NEXT_PUBLIC_CLAIM_SCHEMA_UID=
@@ -150,11 +158,11 @@ NEXT_PUBLIC_COMPLETION_SCHEMA_UID=
 ## 🧪 Testing
 
 ### Manual Testing Checklist
-- [ ] **Idea Submission**: Submit ideas and verify EAS attestations
+- [ ] **Idea Submission**: Submit ideas and verify blockchain attestations
 - [ ] **Idea Deletion**: Delete ideas and verify attestation revocation
-- [ ] **Remix Creation**: Create remixes and verify EAS attestations
+- [ ] **Remix Creation**: Create remixes and verify blockchain attestations
 - [ ] **Claim/Unclaim**: Test claiming and unclaiming with attestations
-- [ ] **Completion**: Mark ideas as complete with EAS attestations
+- [ ] **Completion**: Mark ideas as complete with blockchain attestations
 - [ ] **Mobile Testing**: Test on mobile devices
 - [ ] **Wallet Integration**: Test Base App and Farcaster auto-connect
 
@@ -176,6 +184,8 @@ bunx tsc --noEmit
 ```
 app/
 ├── components/          # React components
+│   ├── ui/             # Reusable UI components
+│   └── logged-in/      # Logged-in specific components
 ├── lib/                # Utility libraries (EAS, auth, utils)
 ├── providers/          # React context providers
 └── api/               # API routes

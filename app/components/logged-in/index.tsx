@@ -6,8 +6,10 @@ import { useLoggedIn } from "./use-logged-in";
 import { IdeasBoard } from "../ideas-board";
 import { IdeaSubmissionForm } from "../idea-submission-form";
 import { IdeaSubmissionConfirmation } from "../idea-submission-confirmation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { LightBulb } from "iconoir-react";
+import Image from "next/image";
+import { useFarcaster } from "../auto-connect-wrapper";
 
 export const LoggedIn = () => {
   const {
@@ -25,6 +27,24 @@ export const LoggedIn = () => {
   const isMobile = useIsMobile();
   const [currentView, setCurrentView] = useState<"board" | "submit" | "complete" | "confirmation">("board");
   const [submittedIdeaTitle, setSubmittedIdeaTitle] = useState("");
+  const { fid, isInMiniApp } = useFarcaster();
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchAvatar = async () => {
+      if (!fid || !isInMiniApp) return;
+      try {
+        const response = await fetch(`/api/farcaster/${fid}`);
+        if (!response.ok) return;
+        const data = await response.json();
+        const url: string | undefined = data?.result?.user?.pfp?.url;
+        if (url) setAvatarUrl(url);
+      } catch {
+        // ignore avatar load failures in header
+      }
+    };
+    fetchAvatar();
+  }, [fid, isInMiniApp]);
 
 
 
@@ -36,6 +56,21 @@ export const LoggedIn = () => {
               <div className="flex items-center gap-3">
                 <LightBulb width={24} height={24} className="text-black" />
                 <span className="text-xl font-bold text-gray-900">Minipad</span>
+                {avatarUrl && (
+                  <button
+                    onClick={() => setActiveTab("settings")}
+                    className="ml-2 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-300"
+                    aria-label="Open profile"
+                  >
+                    <Image
+                      src={avatarUrl}
+                      alt="Profile avatar"
+                      width={28}
+                      height={28}
+                      className="w-7 h-7 rounded-full"
+                    />
+                  </button>
+                )}
               </div>
             </div>
           
@@ -95,6 +130,21 @@ export const LoggedIn = () => {
               <div className="flex items-center gap-3">
                 <LightBulb width={24} height={24} className="text-black" />
                 <span className="text-xl font-bold text-gray-900">Minipad</span>
+                {avatarUrl && (
+                  <button
+                    onClick={() => setActiveTab("settings")}
+                    className="ml-2 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-300"
+                    aria-label="Open profile"
+                  >
+                    <Image
+                      src={avatarUrl}
+                      alt="Profile avatar"
+                      width={28}
+                      height={28}
+                      className="w-7 h-7 rounded-full"
+                    />
+                  </button>
+                )}
               </div>
             </div>
         <div className="p-6 pt-4">

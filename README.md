@@ -1,14 +1,13 @@
 # Minipad
 
-A **Base mini app** for submitting, remixing, and building miniapp ideas with comprehensive EAS (Ethereum Attestation Service) integration.
+A **Base mini app** for submitting, remixing, and building miniapp ideas with EAS (Ethereum Attestation Service) integration.
 
 ## 🚀 Features
 
-- **Idea Submission** with EAS attestations
-- **Remix Creation** with EAS attestations  
-- **Builder Claiming** with EAS attestations
-- **Completion Tracking** with EAS attestations
-- **Attestation Revocation** for deletions/unclaiming
+- **Idea Submission** with blockchain attestations
+- **Remix Creation** with blockchain attestations  
+- **Builder Claiming** with blockchain attestations
+- **Completion Tracking** with blockchain attestations
 - **Gasless Transactions** via Base Account
 - **Mobile Optimized** responsive design
 - **Farcaster Integration** for profile data
@@ -46,9 +45,10 @@ BETTER_AUTH_SECRET=your_secret_here
 
 # Site Configuration
 SITE_URL=http://localhost:3000
+NEXT_PUBLIC_SITE_URL=http://localhost:3000
 
 # Convex Configuration
-CONVEX_DEPLOYMENT=your_deployment_name
+CONVEX_DEPLOYMENT=dev:your-deployment
 NEXT_PUBLIC_CONVEX_URL=https://your-deployment.convex.cloud
 CONVEX_SITE_URL=https://your-deployment.convex.cloud
 
@@ -56,7 +56,7 @@ CONVEX_SITE_URL=https://your-deployment.convex.cloud
 EAS_CONTRACT_ADDRESS=0x4200000000000000000000000000000000000021
 SCHEMA_REGISTRY_ADDRESS=0x4200000000000000000000000000000000000020
 
-# EAS Schema UIDs (auto-register if empty)
+# EAS Schema UIDs (optional - will auto-register if empty)
 NEXT_PUBLIC_IDEA_SCHEMA_UID=
 NEXT_PUBLIC_REMIX_SCHEMA_UID=
 NEXT_PUBLIC_CLAIM_SCHEMA_UID=
@@ -65,21 +65,7 @@ NEXT_PUBLIC_COMPLETION_SCHEMA_UID=
 
 ## 🔗 EAS Integration
 
-### EAS Setup
 The app uses Ethereum Attestation Service (EAS) on Base mainnet for blockchain attestations. Schemas are automatically registered on first use.
-
-**Required Environment Variables:**
-```bash
-# EAS Configuration (Base Mainnet)
-EAS_CONTRACT_ADDRESS=0x4200000000000000000000000000000000000021
-SCHEMA_REGISTRY_ADDRESS=0x4200000000000000000000000000000000000020
-
-# EAS Schema UIDs (auto-register if empty)
-NEXT_PUBLIC_IDEA_SCHEMA_UID=
-NEXT_PUBLIC_REMIX_SCHEMA_UID=
-NEXT_PUBLIC_CLAIM_SCHEMA_UID=
-NEXT_PUBLIC_COMPLETION_SCHEMA_UID=
-```
 
 ### Attestation Types
 1. **Idea Attestation**: Created when submitting ideas
@@ -92,7 +78,6 @@ NEXT_PUBLIC_COMPLETION_SCHEMA_UID=
 - **Blockchain Attestations**: All actions are attested to Base mainnet
 - **Attestation Revocation**: Full support for revoking attestations
 - **Schema Management**: Pre-configured schemas for all operations
-- **Base Network**: Optimized for Base mainnet
 
 ## 🚀 Deployment
 
@@ -114,11 +99,11 @@ NEXT_PUBLIC_COMPLETION_SCHEMA_UID=
 ## 🧪 Testing
 
 ### Manual Testing Checklist
-- [ ] **Idea Submission**: Submit ideas and verify EAS attestations
+- [ ] **Idea Submission**: Submit ideas and verify blockchain attestations
 - [ ] **Idea Deletion**: Delete ideas and verify attestation revocation
-- [ ] **Remix Creation**: Create remixes and verify EAS attestations
+- [ ] **Remix Creation**: Create remixes and verify blockchain attestations
 - [ ] **Claim/Unclaim**: Test claiming and unclaiming with attestations
-- [ ] **Completion**: Mark ideas as complete with EAS attestations
+- [ ] **Completion**: Mark ideas as complete with blockchain attestations
 - [ ] **Mobile Testing**: Test on mobile devices
 - [ ] **Wallet Integration**: Test Base App and Farcaster auto-connect
 

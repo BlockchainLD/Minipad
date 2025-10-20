@@ -9,6 +9,13 @@ const nextConfig: NextConfig = {
         port: '',
         pathname: '/**',
       },
+      // Farcaster CDN avatars
+      {
+        protocol: 'https',
+        hostname: 'cdn.farcaster.xyz',
+        port: '',
+        pathname: '/**',
+      },
       // Allow Imgur images used in APP_METADATA
       {
         protocol: 'https',
