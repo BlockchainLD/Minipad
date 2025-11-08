@@ -26,7 +26,7 @@ export const LoggedIn = () => {
   
   const isMobile = useIsMobile();
   const [currentView, setCurrentView] = useState<"board" | "submit" | "complete" | "confirmation">("board");
-  const { fid, isInMiniApp } = useFarcaster();
+  useFarcaster(); // Hook for Farcaster context
   const farcasterData = useFarcasterData();
   const avatarUrl = farcasterData?.pfp?.url || null;
 

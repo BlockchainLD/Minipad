@@ -6,6 +6,17 @@ import { useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { useAccount } from "wagmi";
 import { StatusBadge } from "../ui/status-badge";
+import { Id } from "../../../convex/_generated/dataModel";
+
+// Type for idea in user ideas section
+type UserIdea = {
+  _id: Id<"ideas">;
+  title: string;
+  description: string;
+  status: "open" | "claimed" | "completed";
+  timestamp: number;
+  deploymentUrl?: string;
+};
 
 interface SettingsContentProps {
   walletAddress: string;
@@ -51,7 +62,7 @@ export const SettingsContent = ({ walletAddress, copied, onCopyAddress, onSignOu
           </div>
           {submittedIdeas && submittedIdeas.length > 0 ? (
             <div className="space-y-2">
-              {submittedIdeas.slice(0, 3).map((idea: any) => (
+              {submittedIdeas.slice(0, 3).map((idea: UserIdea) => (
                 <div key={idea._id} className="bg-white rounded-lg p-3 border border-gray-200">
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex-1 min-w-0">
@@ -83,7 +94,7 @@ export const SettingsContent = ({ walletAddress, copied, onCopyAddress, onSignOu
           </div>
           {claimedIdeas && claimedIdeas.length > 0 ? (
             <div className="space-y-2">
-              {claimedIdeas.slice(0, 3).map((idea: any) => (
+              {claimedIdeas.slice(0, 3).map((idea: UserIdea) => (
                 <div key={idea._id} className="bg-white rounded-lg p-3 border border-gray-200">
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex-1 min-w-0">
@@ -115,7 +126,7 @@ export const SettingsContent = ({ walletAddress, copied, onCopyAddress, onSignOu
           </div>
           {completedIdeas && completedIdeas.length > 0 ? (
             <div className="space-y-2">
-              {completedIdeas.slice(0, 3).map((idea: any) => (
+              {completedIdeas.slice(0, 3).map((idea: UserIdea) => (
                 <div key={idea._id} className="bg-white rounded-lg p-3 border border-gray-200">
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex-1 min-w-0">

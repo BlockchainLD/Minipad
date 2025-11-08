@@ -8,7 +8,7 @@ import { useEAS, createCompletionAttestation } from "../lib/eas";
 import { extractAttestationUid } from "../lib/eas-utils";
 import { Input } from "@worldcoin/mini-apps-ui-kit-react";
 import { toast } from "sonner";
-import { handleError, handleSuccess, handleWarning } from "../lib/error-handler";
+import { handleError, handleSuccess } from "../lib/error-handler";
 import { Id } from "../../convex/_generated/dataModel";
 import { Tools } from "iconoir-react";
 import { StandardButton } from "./ui/standard-button";

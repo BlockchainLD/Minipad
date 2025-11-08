@@ -8,7 +8,7 @@ import { useEAS, createClaimAttestation, createRemixAttestation, revokeAttestati
 import { Button } from "@worldcoin/mini-apps-ui-kit-react";
 import { toast } from "sonner";
 import { Id } from "../../convex/_generated/dataModel";
-import { Heart, Hammer, Flash, Xmark, Trash, LightBulb, Tools } from "iconoir-react";
+import { Heart, Hammer, Flash, Xmark, Trash, LightBulb } from "iconoir-react";
 import { IdeaFilter, FilterOption } from "./idea-filter";
 import { CompletionForm } from "./completion-form";
 import { RemixForm } from "./remix-form";
