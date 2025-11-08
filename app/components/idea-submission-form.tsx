@@ -55,63 +55,55 @@ export const IdeaSubmissionForm = ({ onSuccess, onCancel }: IdeaSubmissionFormPr
         authorUsername: farcasterData?.username,
       });
 
-      // Create the EAS attestation
-      if (!eas || !isInitialized) {
-        toast.error("EAS not initialized. Please ensure you're connected to Base network.");
-        return;
-      }
+      // Create the EAS attestation if available (optional for now)
+      if (eas && isInitialized) {
+        try {
+          // Show wallet confirmation message
+          toast.info("Please confirm the transaction in your wallet to attest your idea to the blockchain...");
 
-      try {
-        // Show wallet confirmation message
-        toast.info("Please confirm the transaction in your wallet to attest your idea to the blockchain...");
+          const attestationTx = await createIdeaAttestation(
+            eas,
+            title.trim(),
+            description.trim(),
+            address,
+            undefined,
+            ideaId
+          );
 
-        const attestationTx = await createIdeaAttestation(
-          eas,
-          title.trim(),
-          description.trim(),
-          address,
-          undefined,
-          ideaId
-        );
+          // Show transaction pending message
+          toast.info("Transaction submitted! Waiting for confirmation...");
 
-        // Show transaction pending message
-        toast.info("Transaction submitted! Waiting for confirmation...");
+          // Wait for the transaction to be mined
+          await attestationTx.wait();
+          
+          const attestationUid = extractAttestationUid(attestationTx);
+          
+          // Update the idea with the attestation UID
+          await updateIdeaAttestation({
+            ideaId,
+            attestationUid,
+          });
 
-        // Wait for the transaction to be mined
-        await attestationTx.wait();
-        
-        const attestationUid = extractAttestationUid(attestationTx);
-        
-        // Update the idea with the attestation UID
-        await updateIdeaAttestation({
-          ideaId,
-          attestationUid,
-        });
-
-        toast.success("🎉 Idea submitted and attested to blockchain successfully! Your idea is now live and ready for votes and claims.");
-        
-        // Store the title before clearing the form
-        const submittedTitle = title.trim();
-        
-        // Clear form
-        setTitle("");
-        setDescription("");
-        
-        // Call onSuccess to close form and return to board
-        onSuccess?.(submittedTitle);
-      } catch (easError) {
-        console.error("EAS attestation failed:", easError);
-        if (easError instanceof Error && easError.message.includes("EAS schemas not configured")) {
-          toast.error("EAS not properly configured. Please contact support.");
-        } else {
-          toast.error("Blockchain attestation failed. Please check your wallet connection and try again.");
+          toast.success("🎉 Idea submitted and attested to blockchain successfully! Your idea is now live and ready for votes and claims.");
+        } catch (easError) {
+          console.error("EAS attestation failed:", easError);
+          // Continue without attestation - idea is still submitted
+          toast.warning("Idea submitted successfully, but blockchain attestation failed. Your idea is still live.");
         }
-        // Don't return here - still clear form and close on error
-        setTitle("");
-        setDescription("");
-        onSuccess?.("");
-        return;
+      } else {
+        // EAS not configured - submit without attestation
+        toast.success("🎉 Idea submitted successfully! (Blockchain attestation will be available after EAS setup)");
       }
+      
+      // Store the title before clearing the form
+      const submittedTitle = title.trim();
+      
+      // Clear form
+      setTitle("");
+      setDescription("");
+      
+      // Call onSuccess to close form and return to board
+      onSuccess?.(submittedTitle);
     } catch (error) {
       handleError(error, { operation: "submit idea", component: "IdeaSubmissionForm" });
     } finally {

@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { Xmark } from "iconoir-react";
 import { useFarcasterData } from "../hooks/use-farcaster-data";
+import { toast } from "sonner";
 
 interface RemixFormProps {
   originalTitle: string;
@@ -31,7 +32,7 @@ export const RemixForm = ({ originalTitle, originalDescription, onSubmit, onCanc
     const trimmedDescription = description.trim();
     
     if (!trimmedTitle || !trimmedDescription) {
-      alert("Please fill in both title and description");
+      toast.error("Please fill in both title and description");
       return;
     }
 

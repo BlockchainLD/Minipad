@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { useAccount } from "wagmi";
-import { useEAS, createClaimAttestation, revokeAttestation, SCHEMAS } from "../lib/eas";
+import { useEAS, createClaimAttestation, createRemixAttestation, revokeAttestation, SCHEMAS } from "../lib/eas";
 import { Button } from "@worldcoin/mini-apps-ui-kit-react";
 import { toast } from "sonner";
 import { Id } from "../../convex/_generated/dataModel";
@@ -14,6 +14,7 @@ import { CompletionForm } from "./completion-form";
 import { RemixForm } from "./remix-form";
 import { UserAvatar } from "./ui/user-avatar";
 import { StatusBadge } from "./ui/status-badge";
+import { ClaimButton, UnclaimButton, SubmitBuildButton } from "./ui/standard-button";
 import { handleError } from "../lib/error-handler";
 import { extractAttestationUid } from "../lib/eas-utils";
 
@@ -349,39 +350,25 @@ const IdeaDetailModal = ({
             </button>
             
             {idea.status === "open" && (
-              <button
+              <ClaimButton
                 onClick={(e) => handleButtonClick(e, () => onClaim(idea._id))}
-                className="flex items-center gap-2 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-all duration-200 hover:scale-105"
-                title="Claim this idea to build it"
-              >
-                <Hammer width={16} height={16} />
-                <span className="text-sm font-medium">Claim</span>
-              </button>
+              />
             )}
             
             {idea.status === "claimed" && address && idea.claimedBy === address && (
               <>
-                <button
+                <SubmitBuildButton
                   onClick={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
                     onOpenCompletionForm();
                   }}
-                  className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white rounded-xl font-medium shadow-md hover:shadow-lg transition-all duration-200 hover:scale-105 active:scale-95 cursor-pointer min-h-[44px] w-full justify-center"
-                  title="Submit your build for this idea"
-                >
-                  <Tools width={16} height={16} className="pointer-events-none" />
-                  <span className="text-sm font-medium pointer-events-none">Submit Build</span>
-                </button>
+                  fullWidth={true}
+                />
                 
-                <button
+                <UnclaimButton
                   onClick={(e) => handleButtonClick(e, () => onUnclaim(idea._id))}
-                  className="flex items-center gap-2 px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-lg transition-all duration-200 hover:scale-105 active:scale-95 cursor-pointer min-h-[44px]"
-                  title="Unclaim this idea"
-                >
-                  <Hammer width={16} height={16} className="pointer-events-none" />
-                  <span className="text-sm font-medium pointer-events-none">Unclaim</span>
-                </button>
+                />
               </>
             )}
             
@@ -656,8 +643,19 @@ export const IdeasBoard = ({ onViewChange }: IdeasBoardProps) => {
   const claimIdea = useMutation(api.claims.claimIdea);
   const unclaimIdea = useMutation(api.claims.unclaimIdea);
   const createRemix = useMutation(api.remixes.createRemix);
+  const updateRemixAttestation = useMutation(api.remixes.updateRemixAttestation);
   const deleteRemix = useMutation(api.remixes.deleteRemix);
   const deleteIdea = useMutation(api.ideas.deleteIdea);
+
+  // Keep selectedIdea in sync with the latest data from the query
+  useEffect(() => {
+    if (selectedIdea && ideas) {
+      const updatedIdea = ideas.find(i => i._id === selectedIdea._id);
+      if (updatedIdea) {
+        setSelectedIdea(updatedIdea as Idea);
+      }
+    }
+  }, [ideas, selectedIdea?._id]);
 
   const handleUpvote = async (ideaId: Id<"ideas">) => {
     if (!address) {
@@ -734,23 +732,61 @@ export const IdeasBoard = ({ onViewChange }: IdeasBoardProps) => {
     }
     
     try {
-      await createRemix({
+      // Try to create EAS attestation if available (optional for now)
+      let attestationUid: string | undefined;
+      
+      // First create the remix in Convex to get the remixId
+      const remixId = await createRemix({
         originalIdeaId: selectedIdea._id,
         remixer: address,
         title,
         description,
-        attestationUid: undefined,
+        attestationUid: undefined, // Will update after attestation if available
         authorFid,
         authorAvatar,
         authorDisplayName,
         authorUsername,
       });
+
+      // Try to create EAS attestation if available (optional for now)
+      if (eas && isInitialized) {
+        try {
+          // Create EAS attestation
+          const attestationTx = await createRemixAttestation(
+            eas,
+            title,
+            description,
+            address,
+            selectedIdea._id, // This is Id<"ideas">, will be converted to string in the function
+            remixId, // This is Id<"ideas">, will be converted to string in the function
+            authorFid?.toString()
+          );
+
+          await attestationTx.wait();
+          attestationUid = extractAttestationUid(attestationTx);
+
+          // Update remix with attestation UID
+          await updateRemixAttestation({
+            remixId,
+            attestationUid,
+          });
+
+          toast.success("Remix created and attested to blockchain successfully! It will appear below the original idea.");
+        } catch (easError) {
+          console.error("EAS attestation failed:", easError);
+          // Remix is already created, just continue without attestation
+          toast.warning("Remix created successfully, but blockchain attestation failed. It will appear below the original idea.");
+        }
+      } else {
+        // EAS not configured - remix already created without attestation
+        toast.success("Remix created successfully! (Blockchain attestation will be available after EAS setup) It will appear below the original idea.");
+      }
       
-      // Close both the remix form and the main idea detail modal
+      // Close only the remix form, keep the original idea modal open to show the new remix
       setShowRemixForm(false);
-      setIsModalOpen(false);
-      setSelectedIdea(null);
-      toast.success("Remix created successfully!");
+      
+      // Note: We keep isModalOpen true and selectedIdea set so the modal stays open
+      // The remixes query will automatically update and show the new remix
       
     } catch (error) {
       handleError(error, { operation: "create remix", component: "IdeasBoard" });
@@ -763,64 +799,45 @@ export const IdeasBoard = ({ onViewChange }: IdeasBoardProps) => {
       return;
     }
 
-    // Temporary workaround: Allow claiming without EAS for testing
-    if (!eas || !isInitialized) {
-      toast.warning("EAS not configured - claiming without blockchain attestation (for testing)");
-      
-      try {
-        // Update Convex without EAS attestation
-        await claimIdea({
-          ideaId,
-          claimer: address,
-          attestationUid: undefined, // No attestation for testing
-        });
-
-        toast.success("Idea claimed successfully! (Testing mode - no blockchain attestation)");
-      } catch (error) {
-        console.error("Error claiming idea:", error);
-        if (error instanceof Error) {
-          if (error.message === "Idea is not available for claiming") {
-            toast.error("This idea has already been claimed");
-          } else if (error.message === "Idea not found") {
-            toast.error("Idea not found");
-          } else {
-            toast.error(`Failed to claim idea: ${error.message}`);
-          }
-        } else {
-          toast.error("Failed to claim idea. Please try again.");
-        }
-      }
-      return;
-    }
-
     try {
-      // Create EAS attestation first
-      const attestationTx = await createClaimAttestation(
-        eas,
-        ideaId,
-        address
-      );
-
+      // Try to create EAS attestation if available (optional for now)
       let attestationUid: string | undefined;
-      if (attestationTx) {
-        await attestationTx.wait();
-        attestationUid = extractAttestationUid(attestationTx);
+      
+      if (eas && isInitialized) {
+        try {
+          // Create EAS attestation first
+          const attestationTx = await createClaimAttestation(
+            eas,
+            ideaId.toString(), // Convert Id to string
+            address
+          );
+
+          if (attestationTx) {
+            await attestationTx.wait();
+            attestationUid = extractAttestationUid(attestationTx);
+          }
+        } catch (easError) {
+          console.error("EAS attestation failed:", easError);
+          // Continue without attestation - claim will still work
+          toast.warning("Claiming idea without blockchain attestation (EAS not available)");
+        }
+      } else {
+        // EAS not configured - claim without attestation
+        toast.info("Claiming idea (blockchain attestation will be available after EAS setup)");
       }
 
-      // Update Convex with the attestation
+      // Update Convex with the claim (with or without attestation)
       await claimIdea({
         ideaId,
         claimer: address,
         attestationUid,
       });
 
-      toast.success("Idea claimed successfully! (Attested to blockchain)");
+      toast.success("✅ Idea claimed successfully! You can now work on building it.");
       
-      // Close modal if open
-      if (isModalOpen && selectedIdea?._id === ideaId) {
-        setIsModalOpen(false);
-        setSelectedIdea(null);
-      }
+      // Keep modal open to show updated status, but refresh the idea data
+      // The query will automatically update via Convex reactivity
+      
     } catch (error) {
       handleError(error, { operation: "claim idea", component: "IdeasBoard" });
     }
@@ -841,30 +858,6 @@ export const IdeasBoard = ({ onViewChange }: IdeasBoardProps) => {
       return;
     }
 
-    // Temporary workaround: Allow unclaiming without EAS for testing
-    if (!eas || !isInitialized) {
-      toast.warning("EAS not configured - unclaiming without blockchain attestation (for testing)");
-      
-      try {
-        // Unclaim the idea from Convex without EAS
-        await unclaimIdea({
-          ideaId,
-          claimer: address,
-        });
-        
-        toast.success("Idea unclaimed successfully! (Testing mode - no blockchain attestation)");
-        
-        // Close modal if open and refresh ideas list
-        if (isModalOpen && selectedIdea?._id === ideaId) {
-          setIsModalOpen(false);
-          setSelectedIdea(null);
-        }
-      } catch (error) {
-        handleError(error, { operation: "unclaim idea", component: "IdeasBoard" });
-      }
-      return;
-    }
-
     try {
       // Unclaim the idea from Convex and get the attestation UID
       const attestationUid = await unclaimIdea({
@@ -872,25 +865,22 @@ export const IdeasBoard = ({ onViewChange }: IdeasBoardProps) => {
         claimer: address,
       });
       
-      // Revoke the claim attestation if it exists
-      if (attestationUid) {
+      // Try to revoke the claim attestation if it exists and EAS is available
+      if (attestationUid && eas && isInitialized) {
         try {
           const revokeTx = await revokeAttestation(eas, attestationUid, SCHEMAS.CLAIM);
           await revokeTx.wait();
-          toast.success("Idea unclaimed and attestation revoked successfully!");
+          toast.success("✅ Idea unclaimed and attestation revoked successfully!");
         } catch (revokeError) {
           console.error("Error revoking claim attestation:", revokeError);
-          toast.error("Failed to revoke claim attestation, but idea was unclaimed successfully");
+          toast.warning("Idea unclaimed successfully, but attestation revocation failed");
         }
       } else {
-        toast.success("Idea unclaimed successfully!");
+        toast.success("✅ Idea unclaimed successfully! It's now available for others to claim.");
       }
       
-      // Close modal if open and refresh ideas list
-      if (isModalOpen && selectedIdea?._id === ideaId) {
-        setIsModalOpen(false);
-        setSelectedIdea(null);
-      }
+      // Keep modal open to show updated status - the query will automatically update
+      
     } catch (error) {
       handleError(error, { operation: "unclaim idea", component: "IdeasBoard" });
     }
@@ -1144,27 +1134,19 @@ export const IdeasBoard = ({ onViewChange }: IdeasBoardProps) => {
                 
                 
                 {idea.status === "open" && (
-                  <button
+                  <ClaimButton
                     onClick={(e) => handleButtonClick(e, () => handleClaim(idea._id))}
-                    className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-medium shadow-md hover:shadow-lg transition-all duration-200 hover:scale-105 group active:scale-95 cursor-pointer min-h-[44px] min-w-[100px] justify-center"
-                  >
-                    <Hammer width={16} height={16} className="group-hover:scale-110 transition-transform pointer-events-none" />
-                    <span className="text-sm font-semibold pointer-events-none">Claim</span>
-                  </button>
+                  />
                 )}
                 
                 {idea.status === "claimed" && idea.claimedBy === address && (
-                  <button
+                  <SubmitBuildButton
                     onClick={(e) => {
                       e.preventDefault();
                       e.stopPropagation();
                       setShowCompletionForm(true);
                     }}
-                    className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-medium shadow-md hover:shadow-lg transition-all duration-200 hover:scale-105 group active:scale-95 cursor-pointer min-h-[44px] min-w-[120px] justify-center"
-                  >
-                    <Tools width={16} height={16} className="group-hover:scale-110 transition-transform pointer-events-none" />
-                    <span className="text-sm font-semibold pointer-events-none">Submit Build</span>
-                  </button>
+                  />
                 )}
               </div>
             </div>

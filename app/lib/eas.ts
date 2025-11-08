@@ -138,11 +138,15 @@ export async function createRemixAttestation(
   title: string,
   description: string,
   remixer: string,
-  originalIdeaId: string,
-  remixId: string,
+  originalIdeaId: string | { toString(): string },
+  remixId: string | { toString(): string },
   remixerFid?: string
 ) {
-  if (!title || !description || !remixer || !originalIdeaId || !remixId) {
+  // Convert IDs to strings if needed
+  const originalIdeaIdStr = typeof originalIdeaId === 'string' ? originalIdeaId : originalIdeaId.toString();
+  const remixIdStr = typeof remixId === 'string' ? remixId : remixId.toString();
+  
+  if (!title || !description || !remixer || !originalIdeaIdStr || !remixIdStr) {
     throw new Error("Missing required fields for remix attestation");
   }
 
@@ -156,8 +160,8 @@ export async function createRemixAttestation(
     { name: "description", value: description, type: "string" },
     { name: "remixer", value: remixer, type: "string" },
     { name: "remixerFid", value: remixerFid || "", type: "string" },
-    { name: "originalIdeaId", value: originalIdeaId, type: "string" },
-    { name: "remixId", value: remixId, type: "string" },
+    { name: "originalIdeaId", value: originalIdeaIdStr, type: "string" },
+    { name: "remixId", value: remixIdStr, type: "string" },
     { name: "timestamp", value: BigInt(Math.floor(Date.now() / 1000)), type: "uint256" },
   ]);
 
@@ -177,11 +181,14 @@ export async function createRemixAttestation(
 // Create a claim attestation
 export async function createClaimAttestation(
   eas: EAS,
-  ideaId: string,
+  ideaId: string | { toString(): string },
   claimer: string,
   claimerFid?: string
 ) {
-  if (!ideaId || !claimer) {
+  // Convert ID to string if needed
+  const ideaIdStr = typeof ideaId === 'string' ? ideaId : ideaId.toString();
+  
+  if (!ideaIdStr || !claimer) {
     throw new Error("Missing required fields for claim attestation");
   }
 
@@ -191,7 +198,7 @@ export async function createClaimAttestation(
 
   const schemaEncoder = new SchemaEncoder(SCHEMA_DEFINITIONS.CLAIM);
   const encodedData = schemaEncoder.encodeData([
-    { name: "ideaId", value: ideaId, type: "string" },
+    { name: "ideaId", value: ideaIdStr, type: "string" },
     { name: "claimer", value: claimer, type: "string" },
     { name: "claimerFid", value: claimerFid || "", type: "string" },
     { name: "timestamp", value: BigInt(Math.floor(Date.now() / 1000)), type: "uint256" },
@@ -213,12 +220,15 @@ export async function createClaimAttestation(
 // Create a completion attestation
 export async function createCompletionAttestation(
   eas: EAS,
-  ideaId: string,
+  ideaId: string | { toString(): string },
   claimer: string,
   miniappUrl: string,
   claimerFid?: string
 ) {
-  if (!ideaId || !claimer || !miniappUrl) {
+  // Convert ID to string if needed
+  const ideaIdStr = typeof ideaId === 'string' ? ideaId : ideaId.toString();
+  
+  if (!ideaIdStr || !claimer || !miniappUrl) {
     throw new Error("Missing required fields for completion attestation");
   }
 
@@ -235,7 +245,7 @@ export async function createCompletionAttestation(
 
   const schemaEncoder = new SchemaEncoder(SCHEMA_DEFINITIONS.COMPLETION);
   const encodedData = schemaEncoder.encodeData([
-    { name: "ideaId", value: ideaId, type: "string" },
+    { name: "ideaId", value: ideaIdStr, type: "string" },
     { name: "claimer", value: claimer, type: "string" },
     { name: "miniappUrl", value: miniappUrl, type: "string" },
     { name: "claimerFid", value: claimerFid || "", type: "string" },

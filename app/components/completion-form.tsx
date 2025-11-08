@@ -50,45 +50,35 @@ export const CompletionForm = ({ ideaId, onSuccess, onCancel }: CompletionFormPr
       return;
     }
 
-    // Temporary workaround: Allow completion without EAS for testing
-    if (!eas || !isInitialized) {
-      handleWarning("EAS not configured - submitting build without blockchain attestation (for testing)");
-      
-      try {
-        // Mark the idea as completed without EAS attestation
-        await completeIdea({
-          ideaId,
-          claimer: address,
-          githubUrl: githubUrl.trim(),
-          deploymentUrl: deploymentUrl.trim(),
-          attestationUid: undefined, // No attestation for testing
-        });
-
-        handleSuccess("🎉 Build submitted successfully! (Testing mode - no blockchain attestation)");
-        setGithubUrl("");
-        setDeploymentUrl("");
-        onSuccess?.();
-      } catch (error) {
-        handleError(error, { operation: "complete idea", component: "CompletionForm" });
-      }
-      return;
-    }
-
     setIsSubmitting(true);
 
     try {
-      const attestationTx = await createCompletionAttestation(
-        eas,
-        ideaId,
-        address,
-        deploymentUrl.trim()
-      );
+      // Try to create EAS attestation if available (optional for now)
+      let attestationUid: string | undefined;
+      
+      if (eas && isInitialized) {
+        try {
+          const attestationTx = await createCompletionAttestation(
+            eas,
+            ideaId.toString(), // Convert Id to string
+            address,
+            deploymentUrl.trim()
+          );
 
-      // Wait for the transaction to be mined
-      await attestationTx.wait();
-      const attestationUid = extractAttestationUid(attestationTx);
+          // Wait for the transaction to be mined
+          await attestationTx.wait();
+          attestationUid = extractAttestationUid(attestationTx);
+        } catch (easError) {
+          console.error("EAS attestation failed:", easError);
+          // Continue without attestation - completion will still work
+          toast.warning("Submitting build without blockchain attestation (EAS not available)");
+        }
+      } else {
+        // EAS not configured - submit without attestation
+        toast.info("Submitting build (blockchain attestation will be available after EAS setup)");
+      }
 
-      // Mark the idea as completed
+      // Mark the idea as completed (with or without attestation)
       await completeIdea({
         ideaId,
         claimer: address,

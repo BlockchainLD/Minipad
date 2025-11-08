@@ -50,6 +50,30 @@ export const createRemix = mutation({
   },
 });
 
+// Update remix with attestation UID
+export const updateRemixAttestation = mutation({
+  args: {
+    remixId: v.id("ideas"),
+    attestationUid: v.string(),
+  },
+  returns: v.null(),
+  handler: async (ctx, args) => {
+    try {
+      const remix = await ctx.db.get(args.remixId);
+      if (!remix || !remix.isRemix) {
+        throw new Error("Remix not found");
+      }
+      
+      await ctx.db.patch(args.remixId, {
+        attestationUid: args.attestationUid,
+        remixAttestationUid: args.attestationUid,
+      });
+    } catch (error) {
+      console.error("Error in updateRemixAttestation:", error);
+      throw error;
+    }
+  },
+});
 
 // Delete a remix (only by the author)
 export const deleteRemix = mutation({
