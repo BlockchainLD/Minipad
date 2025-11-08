@@ -144,17 +144,31 @@ const IdeaDetailModal = ({
             
             {/* Author Info */}
             <div className="flex items-center gap-3 mb-6">
-              <UserAvatar
-                author={idea.author}
-                authorAvatar={idea.authorAvatar}
-                authorDisplayName={idea.authorDisplayName}
-                authorUsername={idea.authorUsername}
-                size={48}
-              />
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onProfileClick?.(idea.author);
+                }}
+                className="hover:opacity-80 transition-opacity"
+              >
+                <UserAvatar
+                  author={idea.author}
+                  authorAvatar={idea.authorAvatar}
+                  authorDisplayName={idea.authorDisplayName}
+                  authorUsername={idea.authorUsername}
+                  size={48}
+                />
+              </button>
               <div className="min-w-0">
-                <div className="text-lg font-medium text-gray-900">
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onProfileClick?.(idea.author);
+                  }}
+                  className="text-lg font-medium text-gray-900 hover:opacity-80 transition-opacity"
+                >
                   {idea.authorDisplayName || idea.authorUsername || "Anonymous"}
-                </div>
+                </button>
               </div>
             </div>
             
@@ -257,7 +271,7 @@ const IdeaDetailModal = ({
               {remixes && remixes.length > 0 ? (
                 <div className="space-y-4">
                   {remixes.map((remix) => (
-                      <div key={remix._id} className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                      <div key={remix._id} className="bg-gray-50 border border-gray-200 rounded-lg p-4" onClick={(e) => e.stopPropagation()}>
                         <div className="flex items-start gap-3">
                           <div className="flex-shrink-0">
                             <UserAvatar
@@ -329,8 +343,8 @@ const IdeaDetailModal = ({
         </div>
 
         {/* Fixed Bottom Action Bar */}
-        <div className="flex-shrink-0 border-t border-gray-100 bg-gradient-to-r from-white to-gray-50 p-8">
-          <div className="flex flex-wrap gap-3">
+        <div className="flex-shrink-0 border-t border-gray-100 bg-gradient-to-r from-white to-gray-50 p-6">
+          <div className="flex items-center justify-center gap-2 flex-wrap">
             <UpvoteButton
               ideaId={idea._id}
               upvotes={idea.upvotes}
@@ -363,7 +377,6 @@ const IdeaDetailModal = ({
                     e.stopPropagation();
                     onOpenCompletionForm();
                   }}
-                  fullWidth={true}
                 />
                 
                 <UnclaimButton
@@ -619,9 +632,10 @@ const RemixUpvoteButton = ({
 
 interface IdeasBoardProps {
   onViewChange?: (view: "board" | "submit" | "complete" | "confirmation") => void;
+  onProfileClick?: (authorAddress: string) => void;
 }
 
-export const IdeasBoard = ({ onViewChange }: IdeasBoardProps) => {
+export const IdeasBoard = ({ onViewChange, onProfileClick }: IdeasBoardProps) => {
   const { address } = useAccount();
   const { eas, isInitialized } = useEAS();
   
@@ -1009,6 +1023,9 @@ export const IdeasBoard = ({ onViewChange }: IdeasBoardProps) => {
     
     let filtered = [...ideas];
     
+    // Always filter out remixes - they should only appear in the remixes section
+    filtered = filtered.filter(idea => !idea.isRemix);
+    
     // Apply filter
     switch (currentFilter) {
       case "newest":
@@ -1094,16 +1111,24 @@ export const IdeasBoard = ({ onViewChange }: IdeasBoardProps) => {
                   )}
                 </div>
                 <div className="flex items-center gap-2 mb-3">
-                  <UserAvatar
-                    author={idea.author}
-                    authorAvatar={idea.authorAvatar}
-                    authorDisplayName={idea.authorDisplayName}
-                    authorUsername={idea.authorUsername}
-                    size={24}
-                  />
-                  <span className="text-sm text-gray-600">
-                    {idea.authorDisplayName || idea.authorUsername || "Anonymous"}
-                  </span>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onProfileClick?.(idea.author);
+                    }}
+                    className="flex items-center gap-2 hover:opacity-80 transition-opacity"
+                  >
+                    <UserAvatar
+                      author={idea.author}
+                      authorAvatar={idea.authorAvatar}
+                      authorDisplayName={idea.authorDisplayName}
+                      authorUsername={idea.authorUsername}
+                      size={24}
+                    />
+                    <span className="text-sm text-gray-600">
+                      {idea.authorDisplayName || idea.authorUsername || "Anonymous"}
+                    </span>
+                  </button>
                 </div>
                 <p className="text-gray-600 mb-4 line-clamp-3 break-words">
                   {idea.description}

@@ -140,7 +140,8 @@ export const getRemixesForIdea = query({
         .filter((q) => q.eq(q.field("isRemix"), true))
         .collect();
       
-      return remixes;
+      // Sort remixes by timestamp (newest first)
+      return remixes.sort((a, b) => b.timestamp - a.timestamp);
     } catch (error) {
       console.error("Error in getRemixesForIdea:", error);
       return [];

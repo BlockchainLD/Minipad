@@ -46,9 +46,9 @@ export const getIdeas = query({
         .order("desc")
         .take(limit);
       
-      // Simple filter: only show valid ideas
+      // Filter out remixes - remixes should only appear in the remixes section of the original idea
       const filteredIdeas = ideas.filter(idea => {
-        return idea;
+        return !idea.isRemix; // Exclude remixes from main ideas list
       });
       
       return filteredIdeas;

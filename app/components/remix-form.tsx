@@ -50,6 +50,11 @@ export const RemixForm = ({ originalTitle, originalDescription, onSubmit, onCanc
       };
       
       await onSubmit(submissionData);
+      
+      // Clear form on success
+      setTitle("");
+      setDescription("");
+      
       // Success handling is done in the parent component
     } catch (error) {
       // Error handling is done in the parent component

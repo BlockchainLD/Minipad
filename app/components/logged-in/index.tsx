@@ -1,6 +1,5 @@
 import { useIsMobile } from "../../hooks/use-is-mobile";
 import { SettingsContent } from "./settings-content";
-import { MobileTabs } from "./mobile-tabs";
 import { CopyNotification } from "./copy-notification";
 import { useLoggedIn } from "./use-logged-in";
 import { IdeasBoard } from "../ideas-board";
@@ -38,13 +37,21 @@ export const LoggedIn = () => {
         <>
           <div className="bg-white min-h-screen mb-20 flex flex-col">
             <div className="flex items-center justify-center p-6 border-b border-gray-100 bg-gradient-to-r from-gray-50 to-white">
-              <div className="flex items-center gap-3">
-                <LightBulb width={24} height={24} className="text-black" />
-                <span className="text-xl font-bold text-gray-900">Minipad</span>
+              <div className="flex items-center gap-3 w-full justify-between">
+                <button
+                  onClick={() => {
+                    setActiveTab("home");
+                    setCurrentView("board");
+                  }}
+                  className="flex items-center gap-3 hover:opacity-80 transition-opacity cursor-pointer"
+                >
+                  <LightBulb width={24} height={24} className="text-black" />
+                  <span className="text-xl font-bold text-gray-900">Minipad</span>
+                </button>
                 {avatarUrl && (
                   <button
                     onClick={() => setActiveTab("settings")}
-                    className="ml-2 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-300"
+                    className="rounded-full focus:outline-none focus:ring-2 focus:ring-blue-300 hover:ring-2 hover:ring-blue-200 transition-all"
                     aria-label="Open profile"
                   >
                     <Image
@@ -59,12 +66,17 @@ export const LoggedIn = () => {
               </div>
             </div>
           
-          <div className="flex-1 px-6 pb-24">
+          <div className="flex-1 px-6 pb-6">
             {activeTab === "home" && (
               <div className="w-full">
                 {currentView === "board" && (
                   <IdeasBoard 
                     onViewChange={setCurrentView}
+                    onProfileClick={(authorAddress) => {
+                      if (authorAddress === walletAddress) {
+                        setActiveTab("settings");
+                      }
+                    }}
                   />
                 )}
                 {currentView === "submit" && (
@@ -97,11 +109,6 @@ export const LoggedIn = () => {
           </div>
         </div>
 
-        <MobileTabs 
-          activeTab={activeTab} 
-          onTabChange={setActiveTab} 
-          onViewChange={setCurrentView}
-        />
         <CopyNotification show={copied} isMobile />
       </>
     );
@@ -111,13 +118,21 @@ export const LoggedIn = () => {
         <>
           <div className="bg-white rounded-3xl shadow-2xl overflow-hidden border border-gray-100">
             <div className="flex items-center justify-center p-6 border-b border-gray-100 bg-gradient-to-r from-gray-50 to-white">
-              <div className="flex items-center gap-3">
-                <LightBulb width={24} height={24} className="text-black" />
-                <span className="text-xl font-bold text-gray-900">Minipad</span>
+              <div className="flex items-center gap-3 w-full justify-between">
+                <button
+                  onClick={() => {
+                    setActiveTab("home");
+                    setCurrentView("board");
+                  }}
+                  className="flex items-center gap-3 hover:opacity-80 transition-opacity cursor-pointer"
+                >
+                  <LightBulb width={24} height={24} className="text-black" />
+                  <span className="text-xl font-bold text-gray-900">Minipad</span>
+                </button>
                 {avatarUrl && (
                   <button
                     onClick={() => setActiveTab("settings")}
-                    className="ml-2 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-300"
+                    className="rounded-full focus:outline-none focus:ring-2 focus:ring-blue-300 hover:ring-2 hover:ring-blue-200 transition-all"
                     aria-label="Open profile"
                   >
                     <Image
@@ -135,6 +150,11 @@ export const LoggedIn = () => {
           {currentView === "board" && (
             <IdeasBoard 
               onViewChange={setCurrentView}
+              onProfileClick={(authorAddress) => {
+                if (authorAddress === walletAddress) {
+                  setActiveTab("settings");
+                }
+              }}
             />
           )}
           {currentView === "submit" && (

@@ -1,7 +1,11 @@
 import { Button, Typography, Chip } from "@worldcoin/mini-apps-ui-kit-react";
-import { Copy, LogOut, CheckCircle, Wallet, Network, CreditCard, User } from "iconoir-react";
+import { Copy, LogOut, CheckCircle, Wallet, Network, CreditCard, User, LightBulb, Hammer, Tools } from "iconoir-react";
 import { BasePay } from "../base-pay";
 import { FarcasterProfile } from "../farcaster-profile";
+import { useQuery } from "convex/react";
+import { api } from "../../../convex/_generated/api";
+import { useAccount } from "wagmi";
+import { StatusBadge } from "../ui/status-badge";
 
 interface SettingsContentProps {
   walletAddress: string;
@@ -14,9 +18,135 @@ interface SettingsContentProps {
 }
 
 export const SettingsContent = ({ walletAddress, copied, onCopyAddress, onSignOut, userId, copiedUserId, onCopyUserId }: SettingsContentProps) => {
+  const { address } = useAccount();
+  
+  // Fetch user's ideas
+  const submittedIdeas = useQuery(api.userIdeas.getUserSubmittedIdeas, 
+    address ? { author: address } : "skip"
+  );
+  const claimedIdeas = useQuery(api.userIdeas.getUserClaimedIdeas, 
+    address ? { claimer: address } : "skip"
+  );
+  const completedIdeas = useQuery(api.userIdeas.getUserCompletedIdeas, 
+    address ? { claimer: address } : "skip"
+  );
+  
   return (
     <div className="space-y-6">
       <FarcasterProfile />
+      
+      {/* User's Ideas Section */}
+      <div className="space-y-4">
+        <Typography variant="subtitle" className="text-black">
+          Your Ideas
+        </Typography>
+        
+        {/* Submitted Ideas */}
+        <div className="bg-gray-50 rounded-lg p-4">
+          <div className="flex items-center gap-2 mb-3">
+            <LightBulb width={20} height={20} className="text-blue-600" />
+            <Typography variant="label" className="text-black font-semibold">
+              Submitted ({submittedIdeas?.length || 0})
+            </Typography>
+          </div>
+          {submittedIdeas && submittedIdeas.length > 0 ? (
+            <div className="space-y-2">
+              {submittedIdeas.slice(0, 3).map((idea: any) => (
+                <div key={idea._id} className="bg-white rounded-lg p-3 border border-gray-200">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex-1 min-w-0">
+                      <h4 className="font-medium text-gray-900 text-sm truncate">{idea.title}</h4>
+                      <p className="text-xs text-gray-600 mt-1 line-clamp-2">{idea.description}</p>
+                    </div>
+                    <StatusBadge status={idea.status} className="px-2 py-0.5 text-xs flex-shrink-0" />
+                  </div>
+                </div>
+              ))}
+              {submittedIdeas.length > 3 && (
+                <p className="text-xs text-gray-500 text-center mt-2">
+                  +{submittedIdeas.length - 3} more
+                </p>
+              )}
+            </div>
+          ) : (
+            <p className="text-sm text-gray-500">No ideas submitted yet</p>
+          )}
+        </div>
+        
+        {/* Claimed Ideas */}
+        <div className="bg-gray-50 rounded-lg p-4">
+          <div className="flex items-center gap-2 mb-3">
+            <Hammer width={20} height={20} className="text-yellow-600" />
+            <Typography variant="label" className="text-black font-semibold">
+              Claimed ({claimedIdeas?.length || 0})
+            </Typography>
+          </div>
+          {claimedIdeas && claimedIdeas.length > 0 ? (
+            <div className="space-y-2">
+              {claimedIdeas.slice(0, 3).map((idea: any) => (
+                <div key={idea._id} className="bg-white rounded-lg p-3 border border-gray-200">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex-1 min-w-0">
+                      <h4 className="font-medium text-gray-900 text-sm truncate">{idea.title}</h4>
+                      <p className="text-xs text-gray-600 mt-1 line-clamp-2">{idea.description}</p>
+                    </div>
+                    <StatusBadge status={idea.status} className="px-2 py-0.5 text-xs flex-shrink-0" />
+                  </div>
+                </div>
+              ))}
+              {claimedIdeas.length > 3 && (
+                <p className="text-xs text-gray-500 text-center mt-2">
+                  +{claimedIdeas.length - 3} more
+                </p>
+              )}
+            </div>
+          ) : (
+            <p className="text-sm text-gray-500">No ideas claimed yet</p>
+          )}
+        </div>
+        
+        {/* Completed/Deployed Ideas */}
+        <div className="bg-gray-50 rounded-lg p-4">
+          <div className="flex items-center gap-2 mb-3">
+            <Tools width={20} height={20} className="text-green-600" />
+            <Typography variant="label" className="text-black font-semibold">
+              Deployed ({completedIdeas?.length || 0})
+            </Typography>
+          </div>
+          {completedIdeas && completedIdeas.length > 0 ? (
+            <div className="space-y-2">
+              {completedIdeas.slice(0, 3).map((idea: any) => (
+                <div key={idea._id} className="bg-white rounded-lg p-3 border border-gray-200">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex-1 min-w-0">
+                      <h4 className="font-medium text-gray-900 text-sm truncate">{idea.title}</h4>
+                      <p className="text-xs text-gray-600 mt-1 line-clamp-2">{idea.description}</p>
+                      {idea.deploymentUrl && (
+                        <a 
+                          href={idea.deploymentUrl} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="text-xs text-blue-600 hover:underline mt-1 block"
+                        >
+                          View Deployment →
+                        </a>
+                      )}
+                    </div>
+                    <StatusBadge status={idea.status} className="px-2 py-0.5 text-xs flex-shrink-0" />
+                  </div>
+                </div>
+              ))}
+              {completedIdeas.length > 3 && (
+                <p className="text-xs text-gray-500 text-center mt-2">
+                  +{completedIdeas.length - 3} more
+                </p>
+              )}
+            </div>
+          ) : (
+            <p className="text-sm text-gray-500">No ideas deployed yet</p>
+          )}
+        </div>
+      </div>
       
       <div className="space-y-2">
         <div className="space-y-1">
