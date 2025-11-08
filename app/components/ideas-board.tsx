@@ -61,6 +61,7 @@ const IdeaDetailModal = ({
   onRemixUpvote,
   onRemixDelete,
   onOpenCompletionForm,
+  onProfileClick,
   address 
 }: {
   idea: Idea;
@@ -75,6 +76,7 @@ const IdeaDetailModal = ({
   onRemixUpvote: (remixId: Id<"ideas">) => void;
   onRemixDelete: (remixId: Id<"ideas">) => void;
   onOpenCompletionForm: () => void;
+  onProfileClick?: (authorAddress: string) => void;
   address: string | undefined;
 }) => {
   // Fetch remixes for this idea
@@ -1236,6 +1238,7 @@ export const IdeasBoard = ({ onViewChange, onProfileClick }: IdeasBoardProps) =>
             onRemixUpvote={handleRemixUpvote}
             onRemixDelete={handleRemixDelete}
             onOpenCompletionForm={() => setShowCompletionForm(true)}
+            onProfileClick={onProfileClick}
             address={address}
           />
         )}
