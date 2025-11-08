@@ -9,7 +9,7 @@ interface MobileTabsProps {
 
 export const MobileTabs = ({ activeTab, onTabChange, onViewChange }: MobileTabsProps) => {
   return (
-    <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 pb-safe">
+    <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 pb-safe z-50 shadow-lg">
       <div className="flex px-2 pt-2 pb-3">
         <button
           onClick={() => { onTabChange("home"); onViewChange?.("board"); }}

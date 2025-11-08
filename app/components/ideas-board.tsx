@@ -815,6 +815,12 @@ export const IdeasBoard = ({ onViewChange }: IdeasBoardProps) => {
       });
 
       toast.success("Idea claimed successfully! (Attested to blockchain)");
+      
+      // Close modal if open
+      if (isModalOpen && selectedIdea?._id === ideaId) {
+        setIsModalOpen(false);
+        setSelectedIdea(null);
+      }
     } catch (error) {
       handleError(error, { operation: "claim idea", component: "IdeasBoard" });
     }
@@ -847,6 +853,12 @@ export const IdeasBoard = ({ onViewChange }: IdeasBoardProps) => {
         });
         
         toast.success("Idea unclaimed successfully! (Testing mode - no blockchain attestation)");
+        
+        // Close modal if open and refresh ideas list
+        if (isModalOpen && selectedIdea?._id === ideaId) {
+          setIsModalOpen(false);
+          setSelectedIdea(null);
+        }
       } catch (error) {
         handleError(error, { operation: "unclaim idea", component: "IdeasBoard" });
       }
@@ -872,6 +884,12 @@ export const IdeasBoard = ({ onViewChange }: IdeasBoardProps) => {
         }
       } else {
         toast.success("Idea unclaimed successfully!");
+      }
+      
+      // Close modal if open and refresh ideas list
+      if (isModalOpen && selectedIdea?._id === ideaId) {
+        setIsModalOpen(false);
+        setSelectedIdea(null);
       }
     } catch (error) {
       handleError(error, { operation: "unclaim idea", component: "IdeasBoard" });

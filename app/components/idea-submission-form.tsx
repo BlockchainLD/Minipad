@@ -89,6 +89,16 @@ export const IdeaSubmissionForm = ({ onSuccess, onCancel }: IdeaSubmissionFormPr
         });
 
         toast.success("🎉 Idea submitted and attested to blockchain successfully! Your idea is now live and ready for votes and claims.");
+        
+        // Store the title before clearing the form
+        const submittedTitle = title.trim();
+        
+        // Clear form
+        setTitle("");
+        setDescription("");
+        
+        // Call onSuccess to close form and return to board
+        onSuccess?.(submittedTitle);
       } catch (easError) {
         console.error("EAS attestation failed:", easError);
         if (easError instanceof Error && easError.message.includes("EAS schemas not configured")) {
@@ -96,18 +106,12 @@ export const IdeaSubmissionForm = ({ onSuccess, onCancel }: IdeaSubmissionFormPr
         } else {
           toast.error("Blockchain attestation failed. Please check your wallet connection and try again.");
         }
+        // Don't return here - still clear form and close on error
+        setTitle("");
+        setDescription("");
+        onSuccess?.("");
         return;
       }
-      
-      // Store the title before clearing the form
-      const submittedTitle = title.trim();
-      
-      // Clear form
-      setTitle("");
-      setDescription("");
-      
-      // Call onSuccess with the submitted title
-      onSuccess?.(submittedTitle);
     } catch (error) {
       handleError(error, { operation: "submit idea", component: "IdeaSubmissionForm" });
     } finally {
