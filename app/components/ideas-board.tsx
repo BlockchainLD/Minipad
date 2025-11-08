@@ -7,13 +7,15 @@ import { useAccount } from "wagmi";
 import { useEAS, createClaimAttestation, revokeAttestation, SCHEMAS } from "../lib/eas";
 import { Button } from "@worldcoin/mini-apps-ui-kit-react";
 import { toast } from "sonner";
-import { handleError, handleSuccess, handleWarning } from "../lib/error-handler";
 import { Id } from "../../convex/_generated/dataModel";
-import { Heart, Hammer, Flash, Xmark, Trash, User, LightBulb } from "iconoir-react";
+import { Heart, Hammer, Flash, Xmark, Trash, LightBulb, Tools } from "iconoir-react";
 import { IdeaFilter, FilterOption } from "./idea-filter";
 import { CompletionForm } from "./completion-form";
 import { RemixForm } from "./remix-form";
-import { ClaimButton, SubmitBuildButton, UnclaimButton, DeleteButton } from "./ui/standard-button";
+import { UserAvatar } from "./ui/user-avatar";
+import { StatusBadge } from "./ui/status-badge";
+import { handleError } from "../lib/error-handler";
+import { extractAttestationUid } from "../lib/eas-utils";
 
 // Types
 type Idea = {
@@ -43,19 +45,6 @@ const handleButtonClick = (e: React.MouseEvent, callback: () => void) => {
   callback();
 };
 
-// Status configuration
-const STATUS_CONFIG = {
-  open: { color: "bg-green-100 text-green-800", text: "Open" },
-  claimed: { color: "bg-yellow-100 text-yellow-800", text: "In Progress" },
-  completed: { color: "bg-blue-100 text-blue-800", text: "Completed" },
-} as const;
-
-const getStatusConfig = (status: string) => {
-  return STATUS_CONFIG[status as keyof typeof STATUS_CONFIG] || { 
-    color: "bg-gray-100 text-gray-800", 
-    text: status 
-  };
-};
 
 // Idea Detail Modal Component
 const IdeaDetailModal = ({ 
@@ -69,7 +58,6 @@ const IdeaDetailModal = ({
   onUnclaim,
   onDelete,
   onRemixUpvote,
-  onRemixRemoveUpvote,
   onRemixDelete,
   onOpenCompletionForm,
   address 
@@ -84,7 +72,6 @@ const IdeaDetailModal = ({
   onUnclaim: (ideaId: Id<"ideas">) => void;
   onDelete: (ideaId: Id<"ideas">) => void;
   onRemixUpvote: (remixId: Id<"ideas">) => void;
-  onRemixRemoveUpvote: (remixId: Id<"ideas">) => void;
   onRemixDelete: (remixId: Id<"ideas">) => void;
   onOpenCompletionForm: () => void;
   address: string | undefined;
@@ -154,6 +141,22 @@ const IdeaDetailModal = ({
             {/* Title */}
             <h1 className="text-3xl font-bold text-gray-900 mb-4">{idea.title}</h1>
             
+            {/* Author Info */}
+            <div className="flex items-center gap-3 mb-6">
+              <UserAvatar
+                author={idea.author}
+                authorAvatar={idea.authorAvatar}
+                authorDisplayName={idea.authorDisplayName}
+                authorUsername={idea.authorUsername}
+                size={48}
+              />
+              <div className="min-w-0">
+                <div className="text-lg font-medium text-gray-900">
+                  {idea.authorDisplayName || idea.authorUsername || "Anonymous"}
+                </div>
+              </div>
+            </div>
+            
             {/* Meta Info */}
             <div className="flex flex-wrap gap-4 mb-6 text-sm text-gray-600">
               <div className="flex items-center gap-2">
@@ -168,9 +171,7 @@ const IdeaDetailModal = ({
 
             {/* Status Badge */}
             <div className="mb-8">
-            <span className={`inline-flex items-center px-4 py-2 rounded-full text-sm font-semibold shadow-sm ${getStatusConfig(idea.status).color}`}>
-              {getStatusConfig(idea.status).text}
-            </span>
+              <StatusBadge status={idea.status} className="px-4 py-2 text-sm" />
             </div>
 
             {/* Description */}
@@ -255,18 +256,27 @@ const IdeaDetailModal = ({
               {remixes && remixes.length > 0 ? (
                 <div className="space-y-4">
                   {remixes.map((remix) => (
-                    <div key={remix._id} className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-                      <div className="flex items-start gap-3">
-                        <div className="flex-shrink-0">
-                          <div className="w-8 h-8 bg-yellow-100 rounded-full flex items-center justify-center">
-                            <User width={16} height={16} className="text-yellow-600" />
+                      <div key={remix._id} className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                        <div className="flex items-start gap-3">
+                          <div className="flex-shrink-0">
+                            <UserAvatar
+                              author={remix.author}
+                              authorAvatar={remix.authorAvatar}
+                              authorDisplayName={remix.authorDisplayName}
+                              authorUsername={remix.authorUsername}
+                              size={32}
+                            />
                           </div>
-                        </div>
                         <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 mb-2">
+                          <div className="flex items-center gap-2 mb-1">
                             <h4 className="font-semibold text-gray-900 truncate">{remix.title}</h4>
                             <span className="text-xs text-gray-500">
                               {new Date(remix.timestamp).toLocaleDateString()}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-2 mb-2">
+                            <span className="text-sm text-gray-600">
+                              by {remix.authorDisplayName || remix.authorUsername || "Anonymous"}
                             </span>
                           </div>
                           <p className="text-gray-700 text-sm leading-relaxed whitespace-pre-wrap">
@@ -278,9 +288,7 @@ const IdeaDetailModal = ({
                                 <Heart width={12} height={12} />
                                 <span>{remix.upvotes} upvotes</span>
                               </div>
-                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusConfig(remix.status).color}`}>
-                              {getStatusConfig(remix.status).text}
-                            </span>
+                            <StatusBadge status={remix.status} className="px-2 py-1 text-xs" />
                             </div>
                             
                             <div className="flex items-center gap-2">
@@ -288,7 +296,6 @@ const IdeaDetailModal = ({
                               <RemixUpvoteButton
                                 remixId={remix._id}
                                 onUpvote={onRemixUpvote}
-                                onRemoveUpvote={onRemixRemoveUpvote}
                                 address={address}
                               />
                               
@@ -296,10 +303,10 @@ const IdeaDetailModal = ({
                               {address && remix.author === address && (
                                 <button
                                   onClick={(e) => handleButtonClick(e, () => onRemixDelete(remix._id))}
-                                  className="flex items-center justify-center p-2 text-red-500 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all duration-200 hover:scale-105"
+                                  className="flex items-center justify-center p-1 text-red-500 hover:text-red-600 transition-all duration-200 hover:scale-105"
                                   title="Delete this remix (only you can see this)"
                                 >
-                                  <Trash width={16} height={16} />
+                                  <Trash width={14} height={14} />
                                 </button>
                               )}
                             </div>
@@ -322,7 +329,7 @@ const IdeaDetailModal = ({
 
         {/* Fixed Bottom Action Bar */}
         <div className="flex-shrink-0 border-t border-gray-100 bg-gradient-to-r from-white to-gray-50 p-8">
-          <div className="flex items-center gap-3 flex-wrap">
+          <div className="flex flex-wrap gap-3">
             <UpvoteButton
               ideaId={idea._id}
               upvotes={idea.upvotes}
@@ -342,143 +349,56 @@ const IdeaDetailModal = ({
             </button>
             
             {idea.status === "open" && (
-              <ClaimButton
+              <button
                 onClick={(e) => handleButtonClick(e, () => onClaim(idea._id))}
-              />
+                className="flex items-center gap-2 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-all duration-200 hover:scale-105"
+                title="Claim this idea to build it"
+              >
+                <Hammer width={16} height={16} />
+                <span className="text-sm font-medium">Claim</span>
+              </button>
             )}
             
             {idea.status === "claimed" && address && idea.claimedBy === address && (
               <>
-                <SubmitBuildButton
+                <button
                   onClick={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
                     onOpenCompletionForm();
                   }}
-                />
+                  className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white rounded-xl font-medium shadow-md hover:shadow-lg transition-all duration-200 hover:scale-105 active:scale-95 cursor-pointer min-h-[44px] w-full justify-center"
+                  title="Submit your build for this idea"
+                >
+                  <Tools width={16} height={16} className="pointer-events-none" />
+                  <span className="text-sm font-medium pointer-events-none">Submit Build</span>
+                </button>
                 
-                <UnclaimButton
+                <button
                   onClick={(e) => handleButtonClick(e, () => onUnclaim(idea._id))}
-                />
+                  className="flex items-center gap-2 px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-lg transition-all duration-200 hover:scale-105 active:scale-95 cursor-pointer min-h-[44px]"
+                  title="Unclaim this idea"
+                >
+                  <Hammer width={16} height={16} className="pointer-events-none" />
+                  <span className="text-sm font-medium pointer-events-none">Unclaim</span>
+                </button>
               </>
             )}
             
             {/* Delete button - only show for the author */}
             {address && idea.author === address && (
-              <DeleteButton
+              <button
                 onClick={(e) => handleButtonClick(e, () => onDelete(idea._id))}
-              />
+                className="flex items-center justify-center p-2 text-red-500 hover:text-red-600 transition-all duration-200 hover:scale-105"
+                title="Delete this idea (only you can see this)"
+              >
+                <Trash width={20} height={20} />
+              </button>
             )}
           </div>
         </div>
       </div>
     </div>
-  );
-};
-
-// Helper component for remix upvote button
-const RemixUpvoteButton = ({ 
-  remixId, 
-  onUpvote, 
-  onRemoveUpvote,
-  address
-}: { 
-  remixId: Id<"ideas">; 
-  onUpvote: (remixId: Id<"ideas">) => void; 
-  onRemoveUpvote: (remixId: Id<"ideas">) => void;
-  address: string | undefined;
-}) => {
-  const [optimisticUpvoted, setOptimisticUpvoted] = useState<boolean | null>(null);
-  const [isProcessing, setIsProcessing] = useState(false);
-  
-  const hasUpvoted = useQuery(api.upvotes.hasUserUpvoted, 
-    address ? { ideaId: remixId, voter: address } : "skip"
-  );
-
-  const isConnected = !!address;
-  const canInteract = isConnected;
-  
-  // Use optimistic state if available, otherwise use query result
-  const currentUpvotedState = optimisticUpvoted !== null ? optimisticUpvoted : hasUpvoted;
-  
-  // Reset optimistic state when query result changes
-  useEffect(() => {
-    if (hasUpvoted !== undefined && optimisticUpvoted !== null) {
-      setOptimisticUpvoted(null);
-    }
-  }, [hasUpvoted, optimisticUpvoted]);
-  
-  // Clear optimistic state after timeout as fallback
-  useEffect(() => {
-    if (optimisticUpvoted !== null) {
-      const timeout = setTimeout(() => {
-        setOptimisticUpvoted(null);
-      }, 5000); // 5 second timeout
-      
-      return () => clearTimeout(timeout);
-    }
-  }, [optimisticUpvoted]);
-
-  const handleClick = async (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-
-    if (!isConnected) {
-      toast.error("Please connect your wallet to upvote");
-      return;
-    }
-    
-    if (isProcessing) {
-      return;
-    }
-    
-    setIsProcessing(true);
-    
-    try {
-      // Handle the upvote toggle with optimistic updates
-      if (currentUpvotedState === true) {
-        setOptimisticUpvoted(false); // Optimistic update
-        await onRemoveUpvote(remixId);
-      } else {
-        setOptimisticUpvoted(true); // Optimistic update
-        await onUpvote(remixId);
-      }
-    } catch (error) {
-      console.error('Error in handleClick:', error);
-      // Revert optimistic updates on error
-      setOptimisticUpvoted(null);
-    } finally {
-      setIsProcessing(false);
-    }
-  };
-
-  // Determine visual state
-  const isUpvoted = currentUpvotedState === true;
-  const isLoading = (hasUpvoted === undefined && isConnected) || isProcessing;
-
-  return (
-    <button
-      onClick={handleClick}
-      disabled={!canInteract || isLoading}
-      className={`flex items-center justify-center p-1 transition-all duration-200 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed ${
-        isUpvoted 
-          ? "text-red-500 hover:text-red-600" 
-          : "text-gray-500 hover:text-gray-700"
-      }`}
-      title={
-        !isConnected ? "Connect wallet to upvote" :
-        isUpvoted ? "Remove upvote" : "Add upvote"
-      }
-    >
-      <Heart 
-        width={14} 
-        height={14}
-        fill={isUpvoted ? "currentColor" : "none"}
-        stroke="currentColor"
-        className={`transition-transform ${isUpvoted ? "text-red-500" : "text-gray-500"}`}
-      />
-      {isLoading && <span className="text-xs text-gray-400 ml-1">...</span>}
-    </button>
   );
 };
 
@@ -606,6 +526,110 @@ const UpvoteButton = ({
   );
 };
 
+// Helper component for remix upvote button
+const RemixUpvoteButton = ({ 
+  remixId, 
+  onUpvote, 
+  address
+}: { 
+  remixId: Id<"ideas">; 
+  onUpvote: (remixId: Id<"ideas">) => void; 
+  address: string | undefined;
+}) => {
+  const [optimisticUpvoted, setOptimisticUpvoted] = useState<boolean | null>(null);
+  const [isProcessing, setIsProcessing] = useState(false);
+  
+  const hasUpvoted = useQuery(api.upvotes.hasUserUpvoted, 
+    address ? { ideaId: remixId, voter: address } : "skip"
+  );
+
+  const isConnected = !!address;
+  const canInteract = isConnected;
+  
+  // Use optimistic state if available, otherwise use query result
+  const currentUpvotedState = optimisticUpvoted !== null ? optimisticUpvoted : hasUpvoted;
+  
+  // Reset optimistic state when query result changes
+  useEffect(() => {
+    if (hasUpvoted !== undefined && optimisticUpvoted !== null) {
+      setOptimisticUpvoted(null);
+    }
+  }, [hasUpvoted, optimisticUpvoted]);
+  
+  // Clear optimistic state after timeout as fallback
+  useEffect(() => {
+    if (optimisticUpvoted !== null) {
+      const timeout = setTimeout(() => {
+        setOptimisticUpvoted(null);
+      }, 5000); // 5 second timeout
+      
+      return () => clearTimeout(timeout);
+    }
+  }, [optimisticUpvoted]);
+
+  const handleClick = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (!isConnected) {
+      toast.error("Please connect your wallet to upvote");
+      return;
+    }
+    
+    if (isProcessing) {
+      return;
+    }
+    
+    setIsProcessing(true);
+    
+    try {
+      // Handle the upvote toggle with optimistic updates
+      if (currentUpvotedState === true) {
+        setOptimisticUpvoted(false); // Optimistic update
+        await onUpvote(remixId); // This will remove the upvote
+      } else {
+        setOptimisticUpvoted(true); // Optimistic update
+        await onUpvote(remixId); // This will add the upvote
+      }
+    } catch (error) {
+      console.error('Error in handleClick:', error);
+      // Revert optimistic updates on error
+      setOptimisticUpvoted(null);
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  // Determine visual state
+  const isUpvoted = currentUpvotedState === true;
+  const isLoading = (hasUpvoted === undefined && isConnected) || isProcessing;
+
+  return (
+    <button
+      onClick={handleClick}
+      disabled={!canInteract || isLoading}
+      className={`flex items-center justify-center p-1 transition-all duration-200 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed ${
+        isUpvoted 
+          ? "text-red-500 hover:text-red-600" 
+          : "text-gray-500 hover:text-gray-700"
+      }`}
+      title={
+        !isConnected ? "Connect wallet to upvote" :
+        isUpvoted ? "Remove upvote" : "Add upvote"
+      }
+    >
+      <Heart 
+        width={14} 
+        height={14}
+        fill={isUpvoted ? "currentColor" : "none"}
+        stroke="currentColor"
+        className={`transition-transform ${isUpvoted ? "text-red-500" : "text-gray-500"}`}
+      />
+      {isLoading && <span className="text-xs text-gray-400 ml-1">...</span>}
+    </button>
+  );
+};
+
 interface IdeasBoardProps {
   onViewChange?: (view: "board" | "submit" | "complete" | "confirmation") => void;
 }
@@ -648,9 +672,9 @@ export const IdeasBoard = ({ onViewChange }: IdeasBoardProps) => {
         voter: address,
       });
 
-      handleSuccess("Upvoted successfully!");
+      toast.success("Upvoted successfully!");
     } catch (error) {
-      handleError(error, { operation: "upvote", component: "IdeasBoard" });
+      handleError(error, { operation: "upvote idea", component: "IdeasBoard" });
     }
   };
 
@@ -667,7 +691,7 @@ export const IdeasBoard = ({ onViewChange }: IdeasBoardProps) => {
         voter: address,
       });
 
-      handleSuccess("Upvote removed successfully!");
+      toast.success("Upvote removed successfully!");
     } catch (error) {
       handleError(error, { operation: "remove upvote", component: "IdeasBoard" });
     }
@@ -679,16 +703,36 @@ export const IdeasBoard = ({ onViewChange }: IdeasBoardProps) => {
       return;
     }
     const originalIdea = ideas?.find(idea => idea._id === ideaId);
+    
     if (!originalIdea) {
       toast.error("Original idea not found");
       return;
     }
+    
     setSelectedIdea(originalIdea);
     setShowRemixForm(true);
   };
 
-  const submitRemix = async ({ title, description }: { title: string; description: string }) => {
-    if (!address || !selectedIdea) return;
+  const submitRemix = async ({ 
+    title, 
+    description, 
+    authorFid, 
+    authorAvatar, 
+    authorDisplayName, 
+    authorUsername 
+  }: { 
+    title: string; 
+    description: string;
+    authorFid?: number;
+    authorAvatar?: string;
+    authorDisplayName?: string;
+    authorUsername?: string;
+  }) => {
+    if (!address || !selectedIdea) {
+      toast.error("Missing wallet connection or selected idea");
+      return;
+    }
+    
     try {
       await createRemix({
         originalIdeaId: selectedIdea._id,
@@ -696,9 +740,18 @@ export const IdeasBoard = ({ onViewChange }: IdeasBoardProps) => {
         title,
         description,
         attestationUid: undefined,
+        authorFid,
+        authorAvatar,
+        authorDisplayName,
+        authorUsername,
       });
+      
+      // Close both the remix form and the main idea detail modal
       setShowRemixForm(false);
-      handleSuccess("Remix created successfully!");
+      setIsModalOpen(false);
+      setSelectedIdea(null);
+      toast.success("Remix created successfully!");
+      
     } catch (error) {
       handleError(error, { operation: "create remix", component: "IdeasBoard" });
     }
@@ -712,7 +765,7 @@ export const IdeasBoard = ({ onViewChange }: IdeasBoardProps) => {
 
     // Temporary workaround: Allow claiming without EAS for testing
     if (!eas || !isInitialized) {
-      handleWarning("EAS not configured - claiming without blockchain attestation (for testing)");
+      toast.warning("EAS not configured - claiming without blockchain attestation (for testing)");
       
       try {
         // Update Convex without EAS attestation
@@ -722,9 +775,20 @@ export const IdeasBoard = ({ onViewChange }: IdeasBoardProps) => {
           attestationUid: undefined, // No attestation for testing
         });
 
-        handleSuccess("Idea claimed successfully! (Testing mode - no blockchain attestation)");
+        toast.success("Idea claimed successfully! (Testing mode - no blockchain attestation)");
       } catch (error) {
-        handleError(error, { operation: "claim idea", component: "IdeasBoard" });
+        console.error("Error claiming idea:", error);
+        if (error instanceof Error) {
+          if (error.message === "Idea is not available for claiming") {
+            toast.error("This idea has already been claimed");
+          } else if (error.message === "Idea not found") {
+            toast.error("Idea not found");
+          } else {
+            toast.error(`Failed to claim idea: ${error.message}`);
+          }
+        } else {
+          toast.error("Failed to claim idea. Please try again.");
+        }
       }
       return;
     }
@@ -740,7 +804,7 @@ export const IdeasBoard = ({ onViewChange }: IdeasBoardProps) => {
       let attestationUid: string | undefined;
       if (attestationTx) {
         await attestationTx.wait();
-        attestationUid = (attestationTx as unknown as { uid: string }).uid;
+        attestationUid = extractAttestationUid(attestationTx);
       }
 
       // Update Convex with the attestation
@@ -750,7 +814,7 @@ export const IdeasBoard = ({ onViewChange }: IdeasBoardProps) => {
         attestationUid,
       });
 
-      handleSuccess("Idea claimed successfully! (Attested to blockchain)");
+      toast.success("Idea claimed successfully! (Attested to blockchain)");
     } catch (error) {
       handleError(error, { operation: "claim idea", component: "IdeasBoard" });
     }
@@ -773,7 +837,7 @@ export const IdeasBoard = ({ onViewChange }: IdeasBoardProps) => {
 
     // Temporary workaround: Allow unclaiming without EAS for testing
     if (!eas || !isInitialized) {
-      handleWarning("EAS not configured - unclaiming without blockchain attestation (for testing)");
+      toast.warning("EAS not configured - unclaiming without blockchain attestation (for testing)");
       
       try {
         // Unclaim the idea from Convex without EAS
@@ -782,7 +846,7 @@ export const IdeasBoard = ({ onViewChange }: IdeasBoardProps) => {
           claimer: address,
         });
         
-        handleSuccess("Idea unclaimed successfully! (Testing mode - no blockchain attestation)");
+        toast.success("Idea unclaimed successfully! (Testing mode - no blockchain attestation)");
       } catch (error) {
         handleError(error, { operation: "unclaim idea", component: "IdeasBoard" });
       }
@@ -801,13 +865,13 @@ export const IdeasBoard = ({ onViewChange }: IdeasBoardProps) => {
         try {
           const revokeTx = await revokeAttestation(eas, attestationUid, SCHEMAS.CLAIM);
           await revokeTx.wait();
-          handleSuccess("Idea unclaimed and attestation revoked successfully!");
+          toast.success("Idea unclaimed and attestation revoked successfully!");
         } catch (revokeError) {
           console.error("Error revoking claim attestation:", revokeError);
           toast.error("Failed to revoke claim attestation, but idea was unclaimed successfully");
         }
       } else {
-        handleSuccess("Idea unclaimed successfully!");
+        toast.success("Idea unclaimed successfully!");
       }
     } catch (error) {
       handleError(error, { operation: "unclaim idea", component: "IdeasBoard" });
@@ -853,7 +917,7 @@ export const IdeasBoard = ({ onViewChange }: IdeasBoardProps) => {
         author: address,
       });
 
-      handleSuccess("Idea deleted successfully!");
+      toast.success("Idea deleted successfully!");
       closeModal(); // Close modal after successful deletion
     } catch (error) {
       handleError(error, { operation: "delete idea", component: "IdeasBoard" });
@@ -867,30 +931,27 @@ export const IdeasBoard = ({ onViewChange }: IdeasBoardProps) => {
     }
 
     try {
-      await upvoteIdea({
-        ideaId: remixId,
-        voter: address,
-      });
-      handleSuccess("Remix upvoted successfully!");
+      // Try to upvote first - if it fails because already upvoted, then remove upvote
+      try {
+        await upvoteIdea({
+          ideaId: remixId,
+          voter: address,
+        });
+        toast.success("Remix upvoted successfully!");
+      } catch (upvoteError) {
+        // If upvoting failed, try removing the upvote instead
+        if (upvoteError instanceof Error && upvoteError.message.includes("already upvoted")) {
+          await removeUpvote({
+            ideaId: remixId,
+            voter: address,
+          });
+          toast.success("Remix upvote removed successfully!");
+        } else {
+          throw upvoteError; // Re-throw if it's a different error
+        }
+      }
     } catch (error) {
-      handleError(error, { operation: "upvote remix", component: "IdeasBoard" });
-    }
-  };
-
-  const handleRemixRemoveUpvote = async (remixId: Id<"ideas">) => {
-    if (!address) {
-      toast.error("Please connect your wallet");
-      return;
-    }
-
-    try {
-      await removeUpvote({
-        ideaId: remixId,
-        voter: address,
-      });
-      handleSuccess("Remix upvote removed successfully!");
-    } catch (error) {
-      handleError(error, { operation: "remove remix upvote", component: "IdeasBoard" });
+      handleError(error, { operation: "toggle remix upvote", component: "IdeasBoard" });
     }
   };
 
@@ -915,7 +976,7 @@ export const IdeasBoard = ({ onViewChange }: IdeasBoardProps) => {
         remixId,
         author: address,
       });
-      handleSuccess("Remix deleted successfully!");
+      toast.success("Remix deleted successfully!");
     } catch (error) {
       handleError(error, { operation: "delete remix", component: "IdeasBoard" });
     }
@@ -929,6 +990,8 @@ export const IdeasBoard = ({ onViewChange }: IdeasBoardProps) => {
 
   const closeModal = () => {
     setIsModalOpen(false);
+    setShowRemixForm(false);
+    setShowCompletionForm(false);
     setSelectedIdea(null);
   };
 
@@ -1012,36 +1075,33 @@ export const IdeasBoard = ({ onViewChange }: IdeasBoardProps) => {
           >
             <div className="flex flex-col sm:flex-row justify-between items-start mb-4 gap-3">
               <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-3 mb-2">
-                  {idea.authorAvatar ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      src={idea.authorAvatar}
-                      alt={idea.authorDisplayName || idea.authorUsername || "Author avatar"}
-                      className="w-8 h-8 rounded-full object-cover"
-                    />
-                  ) : (
-                    <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-gray-600 text-xs font-semibold">
-                      {(idea.authorDisplayName || idea.authorUsername || idea.author)
-                        .slice(0, 2)
-                        .toUpperCase()}
-                    </div>
+                <div className="flex items-center gap-2 mb-2">
+                  <h3 className="text-lg font-semibold text-gray-900 break-words">
+                    {idea.title}
+                  </h3>
+                  {idea.isRemix && (
+                    <span className="px-2 py-1 bg-yellow-100 text-yellow-800 text-xs font-medium rounded-full">
+                      Remix
+                    </span>
                   )}
-                  <div className="min-w-0">
-                    <div className="text-sm font-medium text-gray-900 truncate">{idea.authorDisplayName || idea.authorUsername || "Anonymous"}</div>
-                    <div className="text-xs text-gray-500 truncate">{idea.author}</div>
-                  </div>
                 </div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-2 break-words">
-                  {idea.title}
-                </h3>
+                <div className="flex items-center gap-2 mb-3">
+                  <UserAvatar
+                    author={idea.author}
+                    authorAvatar={idea.authorAvatar}
+                    authorDisplayName={idea.authorDisplayName}
+                    authorUsername={idea.authorUsername}
+                    size={24}
+                  />
+                  <span className="text-sm text-gray-600">
+                    {idea.authorDisplayName || idea.authorUsername || "Anonymous"}
+                  </span>
+                </div>
                 <p className="text-gray-600 mb-4 line-clamp-3 break-words">
                   {idea.description}
                 </p>
               </div>
-              <span className={`px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap shadow-sm ${getStatusConfig(idea.status).color}`}>
-                {getStatusConfig(idea.status).text}
-              </span>
+              <StatusBadge status={idea.status} className="px-3 py-1.5" />
             </div>
 
             <div className="flex items-center justify-between">
@@ -1066,19 +1126,27 @@ export const IdeasBoard = ({ onViewChange }: IdeasBoardProps) => {
                 
                 
                 {idea.status === "open" && (
-                  <ClaimButton
+                  <button
                     onClick={(e) => handleButtonClick(e, () => handleClaim(idea._id))}
-                  />
+                    className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-medium shadow-md hover:shadow-lg transition-all duration-200 hover:scale-105 group active:scale-95 cursor-pointer min-h-[44px] min-w-[100px] justify-center"
+                  >
+                    <Hammer width={16} height={16} className="group-hover:scale-110 transition-transform pointer-events-none" />
+                    <span className="text-sm font-semibold pointer-events-none">Claim</span>
+                  </button>
                 )}
                 
                 {idea.status === "claimed" && idea.claimedBy === address && (
-                  <SubmitBuildButton
+                  <button
                     onClick={(e) => {
                       e.preventDefault();
                       e.stopPropagation();
                       setShowCompletionForm(true);
                     }}
-                  />
+                    className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-medium shadow-md hover:shadow-lg transition-all duration-200 hover:scale-105 group active:scale-95 cursor-pointer min-h-[44px] min-w-[120px] justify-center"
+                  >
+                    <Tools width={16} height={16} className="group-hover:scale-110 transition-transform pointer-events-none" />
+                    <span className="text-sm font-semibold pointer-events-none">Submit Build</span>
+                  </button>
                 )}
               </div>
             </div>
@@ -1128,39 +1196,34 @@ export const IdeasBoard = ({ onViewChange }: IdeasBoardProps) => {
         </div>
       )}
 
-      {/* Idea Detail Modal */}
-      {selectedIdea && !showCompletionForm && (
-        <IdeaDetailModal
-          idea={selectedIdea}
-          isOpen={isModalOpen}
-          onClose={closeModal}
-          onUpvote={handleUpvote}
-          onRemoveUpvote={handleRemoveUpvote}
-          onRemix={handleRemix}
-          onClaim={handleClaim}
-          onUnclaim={handleUnclaim}
-          onDelete={handleDelete}
-          onRemixUpvote={handleRemixUpvote}
-          onRemixRemoveUpvote={handleRemixRemoveUpvote}
-          onRemixDelete={handleRemixDelete}
-          onOpenCompletionForm={() => setShowCompletionForm(true)}
-          address={address}
-        />
-      )}
+        {/* Idea Detail Modal */}
+        {selectedIdea && !showCompletionForm && !showRemixForm && (
+          <IdeaDetailModal
+            idea={selectedIdea}
+            isOpen={isModalOpen}
+            onClose={closeModal}
+            onUpvote={handleUpvote}
+            onRemoveUpvote={handleRemoveUpvote}
+            onRemix={handleRemix}
+            onClaim={handleClaim}
+            onUnclaim={handleUnclaim}
+            onDelete={handleDelete}
+            onRemixUpvote={handleRemixUpvote}
+            onRemixDelete={handleRemixDelete}
+            onOpenCompletionForm={() => setShowCompletionForm(true)}
+            address={address}
+          />
+        )}
 
-      {/* Remix Form Modal */}
-      {showRemixForm && selectedIdea && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-3xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <RemixForm
-              originalTitle={selectedIdea.title}
-              originalDescription={selectedIdea.description}
-              onSubmit={submitRemix}
-              onCancel={() => setShowRemixForm(false)}
-            />
-          </div>
-        </div>
-      )}
-    </div>
-  );
-    };
+        {/* Remix Form Modal */}
+        {showRemixForm && selectedIdea && (
+          <RemixForm
+            originalTitle={selectedIdea.title}
+            originalDescription={selectedIdea.description}
+            onSubmit={submitRemix}
+            onCancel={() => setShowRemixForm(false)}
+          />
+        )}
+      </div>
+    );
+  };

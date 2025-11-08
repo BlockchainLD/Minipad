@@ -1,11 +1,13 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useMutation } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { useAccount } from "wagmi";
 import { useEAS, createIdeaAttestation } from "../lib/eas";
-import { useFarcaster } from "./auto-connect-wrapper";
+import { useFarcasterData } from "../hooks/use-farcaster-data";
+import { extractAttestationUid } from "../lib/eas-utils";
+import { handleError } from "../lib/error-handler";
 import { Button, Input, TextArea } from "@worldcoin/mini-apps-ui-kit-react";
 import { toast } from "sonner";
 
@@ -14,47 +16,16 @@ interface IdeaSubmissionFormProps {
   onCancel?: () => void;
 }
 
-interface FarcasterUser {
-  fid: number;
-  displayName: string;
-  username: string;
-  pfp: {
-    url: string;
-    verified: boolean;
-  };
-}
-
 export const IdeaSubmissionForm = ({ onSuccess, onCancel }: IdeaSubmissionFormProps) => {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [farcasterData, setFarcasterData] = useState<FarcasterUser | null>(null);
+  const farcasterData = useFarcasterData();
   
   const { address } = useAccount();
-  const { fid, isInMiniApp } = useFarcaster();
   const { eas, isInitialized } = useEAS();
   const submitIdea = useMutation(api.ideas.submitIdea);
   const updateIdeaAttestation = useMutation(api.ideas.updateIdeaAttestation);
-
-  // Fetch Farcaster data when component mounts
-  useEffect(() => {
-    const fetchFarcasterData = async () => {
-      if (!fid || !isInMiniApp) return;
-
-      try {
-        const response = await fetch(`/api/farcaster/${fid}`);
-        if (response.ok) {
-          const data = await response.json();
-          setFarcasterData(data.result.user);
-        }
-      } catch (error) {
-        console.error('Error fetching Farcaster data:', error);
-        // Continue without Farcaster data - not critical for submission
-      }
-    };
-
-    fetchFarcasterData();
-  }, [fid, isInMiniApp]);
 
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -109,7 +80,7 @@ export const IdeaSubmissionForm = ({ onSuccess, onCancel }: IdeaSubmissionFormPr
         // Wait for the transaction to be mined
         await attestationTx.wait();
         
-        const attestationUid = (attestationTx as unknown as { uid: string }).uid;
+        const attestationUid = extractAttestationUid(attestationTx);
         
         // Update the idea with the attestation UID
         await updateIdeaAttestation({
@@ -138,22 +109,7 @@ export const IdeaSubmissionForm = ({ onSuccess, onCancel }: IdeaSubmissionFormPr
       // Call onSuccess with the submitted title
       onSuccess?.(submittedTitle);
     } catch (error) {
-      console.error("Error submitting idea:", error);
-      
-      // Handle specific error types
-      if (error instanceof Error) {
-        if (error.message.includes("User rejected") || error.message.includes("rejected")) {
-          toast.error("Transaction was rejected. Please try again.");
-        } else if (error.message.includes("insufficient funds")) {
-          toast.error("Insufficient funds for transaction. Please add ETH to your wallet.");
-        } else if (error.message.includes("network")) {
-          toast.error("Network error. Please check your connection and try again.");
-        } else {
-          toast.error(`Failed to submit idea: ${error.message}`);
-        }
-      } else {
-        toast.error("Failed to submit idea. Please try again.");
-      }
+      handleError(error, { operation: "submit idea", component: "IdeaSubmissionForm" });
     } finally {
       setIsSubmitting(false);
     }

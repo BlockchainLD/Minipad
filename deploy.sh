@@ -22,6 +22,17 @@ fi
 echo "🌐 Deploying to Vercel..."
 vercel --prod
 
+# Ensure persistent production alias points to the latest successful production deployment
+echo "🔗 Updating persistent production alias (minipad-app.vercel.app)..."
+# Grab the most recent production deployment URL from the list output
+LATEST_PROD_DEPLOYMENT=$(vercel ls minipad --prod | grep '^https://' | head -n1)
+if [ -n "$LATEST_PROD_DEPLOYMENT" ]; then
+    vercel alias set "$LATEST_PROD_DEPLOYMENT" minipad-app.vercel.app
+    echo "✅ Persistent alias updated to point to: $LATEST_PROD_DEPLOYMENT"
+else
+    echo "⚠️ Could not determine latest production deployment URL; alias not updated."
+fi
+
 echo "✅ Deployment complete!"
 echo ""
 echo "📱 Next steps:"

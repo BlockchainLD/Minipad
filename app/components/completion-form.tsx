@@ -5,6 +5,7 @@ import { useMutation } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { useAccount } from "wagmi";
 import { useEAS, createCompletionAttestation } from "../lib/eas";
+import { extractAttestationUid } from "../lib/eas-utils";
 import { Input } from "@worldcoin/mini-apps-ui-kit-react";
 import { toast } from "sonner";
 import { handleError, handleSuccess, handleWarning } from "../lib/error-handler";
@@ -85,7 +86,7 @@ export const CompletionForm = ({ ideaId, onSuccess, onCancel }: CompletionFormPr
 
       // Wait for the transaction to be mined
       await attestationTx.wait();
-      const attestationUid = (attestationTx as unknown as { uid: string }).uid;
+      const attestationUid = extractAttestationUid(attestationTx);
 
       // Mark the idea as completed
       await completeIdea({

@@ -5,12 +5,10 @@ import { Button } from "@worldcoin/mini-apps-ui-kit-react";
 
 interface IdeaSubmissionConfirmationProps {
   onReturnHome: () => void;
-  ideaTitle?: string;
 }
 
 export const IdeaSubmissionConfirmation = ({ 
-  onReturnHome, 
-  ideaTitle 
+  onReturnHome
 }: IdeaSubmissionConfirmationProps) => {
   const [showAnimation, setShowAnimation] = useState(false);
 
@@ -54,13 +52,6 @@ export const IdeaSubmissionConfirmation = ({
           It&apos;s now live and ready for the community to vote on and claim!
         </p>
 
-        {/* Idea Title Display */}
-        {ideaTitle && (
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-            <p className="text-sm text-blue-800 font-medium mb-1">Your submitted idea:</p>
-            <p className="text-blue-900 font-semibold">&ldquo;{ideaTitle}&rdquo;</p>
-          </div>
-        )}
 
         {/* What's Next Section */}
         <div className="bg-gradient-to-r from-green-50 to-blue-50 border border-green-200 rounded-xl p-6 mb-8">

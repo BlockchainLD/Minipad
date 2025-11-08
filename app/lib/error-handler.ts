@@ -5,6 +5,10 @@ export interface ErrorContext {
   component: string;
 }
 
+/**
+ * Centralized error handling function
+ * Handles common error messages and displays user-friendly toast notifications
+ */
 export const handleError = (error: unknown, context: ErrorContext) => {
   console.error(`Error in ${context.component} during ${context.operation}:`, error);
   
@@ -24,6 +28,12 @@ export const handleError = (error: unknown, context: ErrorContext) => {
       toast.error("You cannot upvote your own idea");
     } else if (error.message.includes("EAS schemas not configured")) {
       toast.error("EAS not properly configured. Please contact support.");
+    } else if (error.message.includes("User rejected") || error.message.includes("rejected")) {
+      toast.error("Transaction was rejected. Please try again.");
+    } else if (error.message.includes("insufficient funds")) {
+      toast.error("Insufficient funds for transaction. Please add ETH to your wallet.");
+    } else if (error.message.includes("network")) {
+      toast.error("Network error. Please check your connection and try again.");
     } else {
       toast.error(`Failed to ${context.operation}: ${error.message}`);
     }
@@ -43,3 +53,4 @@ export const handleWarning = (message: string) => {
 export const handleInfo = (message: string) => {
   toast.info(message);
 };
+

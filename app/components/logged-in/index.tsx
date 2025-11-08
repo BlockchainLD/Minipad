@@ -6,10 +6,11 @@ import { useLoggedIn } from "./use-logged-in";
 import { IdeasBoard } from "../ideas-board";
 import { IdeaSubmissionForm } from "../idea-submission-form";
 import { IdeaSubmissionConfirmation } from "../idea-submission-confirmation";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { LightBulb } from "iconoir-react";
 import Image from "next/image";
 import { useFarcaster } from "../auto-connect-wrapper";
+import { useFarcasterData } from "../../hooks/use-farcaster-data";
 
 export const LoggedIn = () => {
   const {
@@ -26,25 +27,9 @@ export const LoggedIn = () => {
   
   const isMobile = useIsMobile();
   const [currentView, setCurrentView] = useState<"board" | "submit" | "complete" | "confirmation">("board");
-  const [submittedIdeaTitle, setSubmittedIdeaTitle] = useState("");
   const { fid, isInMiniApp } = useFarcaster();
-  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
-
-  useEffect(() => {
-    const fetchAvatar = async () => {
-      if (!fid || !isInMiniApp) return;
-      try {
-        const response = await fetch(`/api/farcaster/${fid}`);
-        if (!response.ok) return;
-        const data = await response.json();
-        const url: string | undefined = data?.result?.user?.pfp?.url;
-        if (url) setAvatarUrl(url);
-      } catch {
-        // ignore avatar load failures in header
-      }
-    };
-    fetchAvatar();
-  }, [fid, isInMiniApp]);
+  const farcasterData = useFarcasterData();
+  const avatarUrl = farcasterData?.pfp?.url || null;
 
 
 
@@ -84,9 +69,9 @@ export const LoggedIn = () => {
                 )}
                 {currentView === "submit" && (
                   <IdeaSubmissionForm 
-                    onSuccess={(title: string) => {
-                      setSubmittedIdeaTitle(title);
-                      setCurrentView("confirmation");
+                    onSuccess={() => {
+                      // Automatically return to ideas board after successful submission
+                      setCurrentView("board");
                     }}
                     onCancel={() => setCurrentView("board")}
                   />
@@ -94,7 +79,6 @@ export const LoggedIn = () => {
                 {currentView === "confirmation" && (
                   <IdeaSubmissionConfirmation 
                     onReturnHome={() => setCurrentView("board")}
-                    ideaTitle={submittedIdeaTitle}
                   />
                 )}
               </div>
@@ -155,9 +139,9 @@ export const LoggedIn = () => {
           )}
           {currentView === "submit" && (
             <IdeaSubmissionForm 
-              onSuccess={(title: string) => {
-                setSubmittedIdeaTitle(title);
-                setCurrentView("confirmation");
+              onSuccess={() => {
+                // Automatically return to ideas board after successful submission
+                setCurrentView("board");
               }}
               onCancel={() => setCurrentView("board")}
             />
@@ -165,7 +149,6 @@ export const LoggedIn = () => {
           {currentView === "confirmation" && (
             <IdeaSubmissionConfirmation 
               onReturnHome={() => setCurrentView("board")}
-              ideaTitle={submittedIdeaTitle}
             />
           )}
         </div>
