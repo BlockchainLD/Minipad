@@ -36,15 +36,29 @@ export const CompletionForm = ({ ideaId, onSuccess, onCancel }: CompletionFormPr
       return;
     }
     
-    if (!githubUrl.trim() || !deploymentUrl.trim()) {
+    const trimmedGithubUrl = githubUrl.trim();
+    const trimmedDeploymentUrl = deploymentUrl.trim();
+    
+    if (!trimmedGithubUrl || !trimmedDeploymentUrl) {
       toast.error("Please provide both GitHub and deployment URLs");
       return;
     }
 
-    // Basic URL validation
+    // Basic URL validation - check if URLs start with http:// or https://
+    if (!trimmedGithubUrl.startsWith('http://') && !trimmedGithubUrl.startsWith('https://')) {
+      toast.error("GitHub URL must start with http:// or https://");
+      return;
+    }
+    
+    if (!trimmedDeploymentUrl.startsWith('http://') && !trimmedDeploymentUrl.startsWith('https://')) {
+      toast.error("Deployment URL must start with http:// or https://");
+      return;
+    }
+    
+    // Validate URL format
     try {
-      new URL(githubUrl);
-      new URL(deploymentUrl);
+      new URL(trimmedGithubUrl);
+      new URL(trimmedDeploymentUrl);
     } catch {
       toast.error("Please enter valid URLs");
       return;
@@ -82,8 +96,8 @@ export const CompletionForm = ({ ideaId, onSuccess, onCancel }: CompletionFormPr
       await completeIdea({
         ideaId,
         claimer: address,
-        githubUrl: githubUrl.trim(),
-        deploymentUrl: deploymentUrl.trim(),
+        githubUrl: trimmedGithubUrl,
+        deploymentUrl: trimmedDeploymentUrl,
         attestationUid,
       });
 
@@ -125,11 +139,12 @@ export const CompletionForm = ({ ideaId, onSuccess, onCancel }: CompletionFormPr
           </label>
           <Input
             id="githubUrl"
-            type="url"
+            type="text"
             value={githubUrl}
             onChange={(e) => setGithubUrl(e.target.value)}
             required
           />
+          <p className="mt-1 text-xs text-gray-500">Example: https://github.com/username/repo</p>
         </div>
 
         <div>
@@ -138,11 +153,12 @@ export const CompletionForm = ({ ideaId, onSuccess, onCancel }: CompletionFormPr
           </label>
           <Input
             id="deploymentUrl"
-            type="url"
+            type="text"
             value={deploymentUrl}
             onChange={(e) => setDeploymentUrl(e.target.value)}
             required
           />
+          <p className="mt-1 text-xs text-gray-500">Example: https://your-app.vercel.app</p>
         </div>
 
         <div className="bg-green-50 border border-green-200 rounded-2xl p-6 shadow-sm">

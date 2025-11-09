@@ -724,6 +724,7 @@ export const IdeasBoard = ({ onViewChange, onProfileClick }: IdeasBoardProps) =>
     }
     
     setSelectedIdea(originalIdea);
+    setIsModalOpen(true); // Ensure modal is open
     setShowRemixForm(true);
   };
 
@@ -798,14 +799,19 @@ export const IdeasBoard = ({ onViewChange, onProfileClick }: IdeasBoardProps) =>
         toast.success("Remix created successfully! (Blockchain attestation will be available after EAS setup) It will appear below the original idea.");
       }
       
-      // Close only the remix form, keep the original idea modal open to show the new remix
+      // Close the remix form
       setShowRemixForm(false);
       
-      // Note: We keep isModalOpen true and selectedIdea set so the modal stays open
-      // The remixes query will automatically update and show the new remix
+      // Ensure the original idea modal is open to show the new remix
+      setIsModalOpen(true);
+      // selectedIdea is already set from handleRemix, so the modal will show
+      
+      // The remixes query will automatically update and show the new remix via Convex reactivity
       
     } catch (error) {
       handleError(error, { operation: "create remix", component: "IdeasBoard" });
+      // On error, still close the remix form
+      setShowRemixForm(false);
     }
   };
 
