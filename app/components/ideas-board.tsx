@@ -1261,10 +1261,8 @@ export const IdeasBoard = ({ onViewChange, onProfileClick }: IdeasBoardProps) =>
             onSubmit={submitRemix}
             onCancel={() => {
               setShowRemixForm(false);
-              // If modal was open before, ensure it stays open
-              if (selectedIdea) {
-                setIsModalOpen(true);
-              }
+              // Ensure modal is open when canceling remix form
+              setIsModalOpen(true);
             }}
           />
         )}
