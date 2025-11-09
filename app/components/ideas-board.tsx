@@ -765,6 +765,11 @@ export const IdeasBoard = ({ onViewChange, onProfileClick }: IdeasBoardProps) =>
         authorUsername,
       });
 
+      // Verify remix was created successfully
+      if (!remixId) {
+        throw new Error("Failed to create remix - no ID returned from Convex");
+      }
+
       // Try to create EAS attestation if available (optional for now)
       if (eas && isInitialized) {
         try {
@@ -799,19 +804,18 @@ export const IdeasBoard = ({ onViewChange, onProfileClick }: IdeasBoardProps) =>
         toast.success("Remix created successfully! (Blockchain attestation will be available after EAS setup) It will appear below the original idea.");
       }
       
-      // Close the remix form
+      // Close the remix form and ensure modal is open
+      // Do this synchronously to avoid race conditions
       setShowRemixForm(false);
-      
-      // Ensure the original idea modal is open to show the new remix
       setIsModalOpen(true);
-      // selectedIdea is already set from handleRemix, so the modal will show
       
       // The remixes query will automatically update and show the new remix via Convex reactivity
       
     } catch (error) {
       handleError(error, { operation: "create remix", component: "IdeasBoard" });
-      // On error, still close the remix form
+      // On error, still close the remix form and show the modal
       setShowRemixForm(false);
+      setIsModalOpen(true);
     }
   };
 
@@ -1255,7 +1259,13 @@ export const IdeasBoard = ({ onViewChange, onProfileClick }: IdeasBoardProps) =>
             originalTitle={selectedIdea.title}
             originalDescription={selectedIdea.description}
             onSubmit={submitRemix}
-            onCancel={() => setShowRemixForm(false)}
+            onCancel={() => {
+              setShowRemixForm(false);
+              // If modal was open before, ensure it stays open
+              if (selectedIdea) {
+                setIsModalOpen(true);
+              }
+            }}
           />
         )}
       </div>
