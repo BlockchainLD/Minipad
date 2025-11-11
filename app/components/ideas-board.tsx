@@ -84,6 +84,13 @@ const IdeaDetailModal = ({
     idea ? { originalIdeaId: idea._id } : "skip"
   );
   
+  // Debug logging
+  useEffect(() => {
+    if (idea) {
+      console.log("Fetching remixes for idea:", idea._id, "Found remixes:", remixes?.length || 0);
+    }
+  }, [idea?._id, remixes?.length]);
+  
   // Optimistic upvote count state
   const [optimisticUpvotes, setOptimisticUpvotes] = useState<number | null>(null);
   
@@ -769,6 +776,9 @@ export const IdeasBoard = ({ onViewChange, onProfileClick }: IdeasBoardProps) =>
       if (!remixId) {
         throw new Error("Failed to create remix - no ID returned from Convex");
       }
+      
+      // Log for debugging
+      console.log("Remix created successfully with ID:", remixId, "for original idea:", selectedIdea._id);
 
       // Try to create EAS attestation if available (optional for now)
       if (eas && isInitialized) {

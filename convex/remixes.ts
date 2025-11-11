@@ -42,6 +42,15 @@ export const createRemix = mutation({
         remixAttestationUid: args.attestationUid,
       });
 
+      // Verify the remix was created and has the correct fields
+      const createdRemix = await ctx.db.get(remixId);
+      if (!createdRemix) {
+        throw new Error("Remix was not created successfully");
+      }
+      if (!createdRemix.isRemix || createdRemix.originalIdeaId !== args.originalIdeaId) {
+        throw new Error("Remix was created but with incorrect fields");
+      }
+
       return remixId;
     } catch (error) {
       console.error("Error in createRemix:", error);
@@ -134,14 +143,27 @@ export const getRemixesForIdea = query({
   returns: v.array(v.any()),
   handler: async (ctx, args) => {
     try {
-      const remixes = await ctx.db
+      // First, try to get remixes using the index
+      let remixes = await ctx.db
         .query("ideas")
         .withIndex("by_original_idea", (q) => q.eq("originalIdeaId", args.originalIdeaId))
         .filter((q) => q.eq(q.field("isRemix"), true))
         .collect();
       
+      // If no results, try a fallback query without index (in case index isn't working)
+      if (remixes.length === 0) {
+        const allIdeas = await ctx.db
+          .query("ideas")
+          .collect();
+        remixes = allIdeas.filter(
+          (idea) => idea.isRemix === true && idea.originalIdeaId === args.originalIdeaId
+        );
+      }
+      
       // Sort remixes by timestamp (newest first)
-      return remixes.sort((a, b) => b.timestamp - a.timestamp);
+      const sortedRemixes = remixes.sort((a, b) => b.timestamp - a.timestamp);
+      console.log(`Found ${sortedRemixes.length} remixes for idea ${args.originalIdeaId}`);
+      return sortedRemixes;
     } catch (error) {
       console.error("Error in getRemixesForIdea:", error);
       return [];
