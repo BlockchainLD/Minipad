@@ -1,5 +1,6 @@
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
+import { ideaType } from "./types";
 
 // Create a remix of an existing idea
 export const createRemix = mutation({
@@ -140,7 +141,7 @@ export const getRemixesForIdea = query({
   args: {
     originalIdeaId: v.id("ideas"),
   },
-  returns: v.array(v.any()),
+  returns: v.array(ideaType),
   handler: async (ctx, args) => {
     try {
       // First, try to get remixes using the index

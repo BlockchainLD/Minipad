@@ -7,6 +7,7 @@ import { api } from "../../../convex/_generated/api";
 import { useAccount } from "wagmi";
 import { IdeaListItem } from "./idea-list-item";
 import { Id } from "../../../convex/_generated/dataModel";
+import { IDEAS_PER_SECTION } from "../../lib/constants";
 
 // Type for idea in user ideas section
 type UserIdea = {
@@ -62,12 +63,12 @@ export const SettingsContent = ({ walletAddress, copied, onCopyAddress, onSignOu
           </div>
           {submittedIdeas && submittedIdeas.length > 0 ? (
             <div className="space-y-2">
-              {submittedIdeas.slice(0, 3).map((idea: UserIdea) => (
+              {submittedIdeas.slice(0, IDEAS_PER_SECTION).map((idea: UserIdea) => (
                 <IdeaListItem key={idea._id} idea={idea} />
               ))}
-              {submittedIdeas.length > 3 && (
+              {submittedIdeas.length > IDEAS_PER_SECTION && (
                 <p className="text-xs text-gray-500 text-center mt-2">
-                  +{submittedIdeas.length - 3} more
+                  +{submittedIdeas.length - IDEAS_PER_SECTION} more
                 </p>
               )}
             </div>
@@ -86,12 +87,12 @@ export const SettingsContent = ({ walletAddress, copied, onCopyAddress, onSignOu
           </div>
           {claimedIdeas && claimedIdeas.length > 0 ? (
             <div className="space-y-2">
-              {claimedIdeas.slice(0, 3).map((idea: UserIdea) => (
+              {claimedIdeas.slice(0, IDEAS_PER_SECTION).map((idea: UserIdea) => (
                 <IdeaListItem key={idea._id} idea={idea} />
               ))}
-              {claimedIdeas.length > 3 && (
+              {claimedIdeas.length > IDEAS_PER_SECTION && (
                 <p className="text-xs text-gray-500 text-center mt-2">
-                  +{claimedIdeas.length - 3} more
+                  +{claimedIdeas.length - IDEAS_PER_SECTION} more
                 </p>
               )}
             </div>
@@ -110,12 +111,12 @@ export const SettingsContent = ({ walletAddress, copied, onCopyAddress, onSignOu
           </div>
           {completedIdeas && completedIdeas.length > 0 ? (
             <div className="space-y-2">
-              {completedIdeas.slice(0, 3).map((idea: UserIdea) => (
+              {completedIdeas.slice(0, IDEAS_PER_SECTION).map((idea: UserIdea) => (
                 <IdeaListItem key={idea._id} idea={idea} />
               ))}
-              {completedIdeas.length > 3 && (
+              {completedIdeas.length > IDEAS_PER_SECTION && (
                 <p className="text-xs text-gray-500 text-center mt-2">
-                  +{completedIdeas.length - 3} more
+                  +{completedIdeas.length - IDEAS_PER_SECTION} more
                 </p>
               )}
             </div>

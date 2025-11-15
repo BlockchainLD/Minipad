@@ -1,9 +1,9 @@
 'use client';
 
 import { BasePayButton } from "@base-org/account-ui/react";
-import { useToast } from "@worldcoin/mini-apps-ui-kit-react";
 import { pay } from '@base-org/account';
 import { APP_METADATA } from '../lib/utils';
+import { toast } from "sonner";
 
 export function BasePay({ amount = '0.01', to = APP_METADATA.baseBuilder.allowedAddresses[0], testnet = false, colorScheme = 'light' }: {
   amount?: string;
@@ -11,8 +11,6 @@ export function BasePay({ amount = '0.01', to = APP_METADATA.baseBuilder.allowed
   testnet?: boolean;
   colorScheme?: "light" | "dark" | "system" | undefined;
 }) {
-  const { toast } = useToast();
-
   const handlePay = async () => {
     try {
       const payment = await pay({
@@ -21,10 +19,10 @@ export function BasePay({ amount = '0.01', to = APP_METADATA.baseBuilder.allowed
         testnet
       });
       if(payment.success){
-        toast.success({ title: `You paid $${payment.amount}!` });
+        toast.success(`You paid $${payment.amount}!`);
       }
     } catch (error) {
-      toast.error({ title: `Payment failed: ${error instanceof Error ? error.message : 'Unknown error'}` });
+      toast.error(`Payment failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   };
 

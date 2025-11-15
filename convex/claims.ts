@@ -1,5 +1,6 @@
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
+import { claimType } from "./types";
 
 // MINIMAL: Claim an idea as in progress
 export const claimIdea = mutation({
@@ -130,7 +131,7 @@ export const getClaimForIdea = query({
     ideaId: v.id("ideas"),
     claimer: v.string(),
   },
-  returns: v.union(v.any(), v.null()),
+  returns: v.union(claimType, v.null()),
   handler: async (ctx, args) => {
     try {
       const claim = await ctx.db

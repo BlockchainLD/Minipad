@@ -3,6 +3,7 @@
 import { ReactNode, useEffect, useState, createContext, useContext, useRef } from "react";
 import { useAccount, useConnect } from "wagmi";
 import { sdk } from '@farcaster/miniapp-sdk';
+import { AUTO_CONNECT_TIMEOUT } from "../lib/constants";
 
 interface FarcasterContextType {
   fid: number | null;
@@ -110,10 +111,10 @@ export function AutoConnectWrapper({ children }: AutoConnectWrapperProps) {
               
               // Set new timeout
               timeoutRef.current = setTimeout(() => {
-                console.log('Auto-connect timeout after 7 seconds');
+                console.log(`Auto-connect timeout after ${AUTO_CONNECT_TIMEOUT}ms`);
                 setConnectingTimedOut(true);
                 timeoutRef.current = null;
-              }, 7000);
+              }, AUTO_CONNECT_TIMEOUT);
               
               await connectAsync({ connector: farcasterConnector });
               

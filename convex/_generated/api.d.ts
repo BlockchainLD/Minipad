@@ -17,6 +17,7 @@ import type * as claims from "../claims.js";
 import type * as http from "../http.js";
 import type * as ideas from "../ideas.js";
 import type * as remixes from "../remixes.js";
+import type * as types from "../types.js";
 import type * as upvotes from "../upvotes.js";
 import type * as userIdeas from "../userIdeas.js";
 
@@ -44,6 +45,7 @@ declare const fullApi: ApiFromModules<{
   http: typeof http;
   ideas: typeof ideas;
   remixes: typeof remixes;
+  types: typeof types;
   upvotes: typeof upvotes;
   userIdeas: typeof userIdeas;
 }>;

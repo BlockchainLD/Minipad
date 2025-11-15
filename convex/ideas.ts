@@ -1,5 +1,9 @@
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
+import { ideaType } from "./types";
+
+// Default limit for ideas query
+const DEFAULT_IDEAS_LIMIT = 20;
 
 // MINIMAL: Submit a new idea
 export const submitIdea = mutation({
@@ -37,10 +41,10 @@ export const getIdeas = query({
   args: {
     limit: v.optional(v.number()),
   },
-  returns: v.array(v.any()),
+  returns: v.array(ideaType),
   handler: async (ctx, args) => {
     try {
-      const limit = args.limit ?? 20;
+      const limit = args.limit ?? DEFAULT_IDEAS_LIMIT;
       const ideas = await ctx.db
         .query("ideas")
         .order("desc")

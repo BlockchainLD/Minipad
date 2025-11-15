@@ -1,12 +1,13 @@
 import { useState } from "react";
 import { useAccount, useDisconnect } from "wagmi";
+import { TABS, COPY_NOTIFICATION_TIMEOUT } from "../../lib/constants";
 
 export const useLoggedIn = () => {
   const { address } = useAccount();
   const { disconnect } = useDisconnect();
   const [copied, setCopied] = useState<boolean>(false);
   const [copiedUserId, setCopiedUserId] = useState<boolean>(false);
-  const [activeTab, setActiveTab] = useState("home");
+  const [activeTab, setActiveTab] = useState(TABS.HOME);
 
   const handleSignOut = async () => {
     try {
@@ -23,7 +24,7 @@ export const useLoggedIn = () => {
     if (walletAddress) {
       await navigator.clipboard.writeText(walletAddress);
       setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
+      setTimeout(() => setCopied(false), COPY_NOTIFICATION_TIMEOUT);
     }
   };
 
@@ -32,7 +33,7 @@ export const useLoggedIn = () => {
     if (userId) {
       await navigator.clipboard.writeText(userId);
       setCopiedUserId(true);
-      setTimeout(() => setCopiedUserId(false), 2000);
+      setTimeout(() => setCopiedUserId(false), COPY_NOTIFICATION_TIMEOUT);
     }
   };
 
