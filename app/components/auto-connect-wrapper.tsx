@@ -159,7 +159,9 @@ export function AutoConnectWrapper({ children }: AutoConnectWrapperProps) {
     };
   }, [isConnected, autoConnectAttempted, connectAsync, connectors]);
 
-  // If we're in a mini app and connecting, show loading state
+  // Show loading screen only during auto-connect in mini apps
+  // Condition: isInMiniApp && isConnecting ensures we don't show loading
+  // for manual wallet connections on the web (only for auto-connect in mini apps)
   if (isInMiniApp && isConnecting && !connectingTimedOut) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center p-4">
