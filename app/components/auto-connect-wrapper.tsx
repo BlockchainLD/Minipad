@@ -1,6 +1,6 @@
 "use client";
 
-import { ReactNode, useEffect, useState, createContext, useContext } from "react";
+import { ReactNode, useEffect, useState, createContext, useContext, useRef } from "react";
 import { useAccount, useConnect } from "wagmi";
 import { sdk } from '@farcaster/miniapp-sdk';
 
@@ -27,6 +27,39 @@ export function AutoConnectWrapper({ children }: AutoConnectWrapperProps) {
   const [autoConnectAttempted, setAutoConnectAttempted] = useState(false);
   const [fid, setFid] = useState<number | null>(null);
   const [connectingTimedOut, setConnectingTimedOut] = useState(false);
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Reset connectingTimedOut when connection succeeds
+  useEffect(() => {
+    if (isConnected) {
+      setConnectingTimedOut(false);
+      // Clear any pending timeout
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+        timeoutRef.current = null;
+      }
+    }
+  }, [isConnected]);
+
+  // Reset autoConnectAttempted when user disconnects to allow retry
+  useEffect(() => {
+    if (!isConnected && autoConnectAttempted) {
+      // Only reset if we're still in mini app, otherwise keep the flag
+      // This prevents infinite retry loops if user manually disconnects
+      const checkAndReset = async () => {
+        try {
+          const inMiniApp = await sdk.isInMiniApp();
+          if (inMiniApp) {
+            setAutoConnectAttempted(false);
+            setConnectingTimedOut(false);
+          }
+        } catch (error) {
+          console.log('Error checking mini app status for reset:', error);
+        }
+      };
+      checkAndReset();
+    }
+  }, [isConnected, autoConnectAttempted]);
 
   useEffect(() => {
     const checkMiniApp = async () => {
@@ -56,22 +89,56 @@ export function AutoConnectWrapper({ children }: AutoConnectWrapperProps) {
         // If we're in a mini app and not connected, try to auto-connect
         if (inMiniApp && !isConnected && !autoConnectAttempted) {
           setAutoConnectAttempted(true);
-          const farcasterConnector = connectors.find(connector => 
-            connector.type === 'farcasterMiniApp' || 
-            connector.name.toLowerCase().includes('farcaster')
-          );
+          
+          // Find Farcaster connector - check both type and name
+          const farcasterConnector = connectors.find(connector => {
+            const typeMatch = connector.type === 'farcasterMiniApp';
+            const nameMatch = connector.name.toLowerCase().includes('farcaster');
+            return typeMatch || nameMatch;
+          });
           
           if (farcasterConnector) {
+            console.log('Found Farcaster connector:', farcasterConnector.name, farcasterConnector.type);
             try {
               // Add a timeout so we never get stuck on loading
               setConnectingTimedOut(false);
-              const timeout = setTimeout(() => setConnectingTimedOut(true), 7000);
+              
+              // Clear any existing timeout
+              if (timeoutRef.current) {
+                clearTimeout(timeoutRef.current);
+              }
+              
+              // Set new timeout
+              timeoutRef.current = setTimeout(() => {
+                console.log('Auto-connect timeout after 7 seconds');
+                setConnectingTimedOut(true);
+                timeoutRef.current = null;
+              }, 7000);
+              
               await connectAsync({ connector: farcasterConnector });
-              clearTimeout(timeout);
+              
+              // Clear timeout on success
+              if (timeoutRef.current) {
+                clearTimeout(timeoutRef.current);
+                timeoutRef.current = null;
+              }
+              console.log('Auto-connect succeeded');
             } catch (error) {
               console.log('Auto-connect failed:', error);
               setConnectingTimedOut(true);
+              // Clear timeout on error
+              if (timeoutRef.current) {
+                clearTimeout(timeoutRef.current);
+                timeoutRef.current = null;
+              }
             }
+          } else {
+            console.warn('Farcaster connector not found. Available connectors:', 
+              connectors.map(c => ({ name: c.name, type: c.type }))
+            );
+            // If we're in mini app but connector not found, still mark as attempted
+            // to prevent infinite retries
+            setConnectingTimedOut(true);
           }
         }
       } catch (error) {
@@ -81,6 +148,14 @@ export function AutoConnectWrapper({ children }: AutoConnectWrapperProps) {
     };
 
     checkMiniApp();
+
+    // Cleanup function to clear timeout on unmount
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+        timeoutRef.current = null;
+      }
+    };
   }, [isConnected, autoConnectAttempted, connectAsync, connectors]);
 
   // If we're in a mini app and connecting, show loading state
