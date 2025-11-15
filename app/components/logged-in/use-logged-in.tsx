@@ -12,7 +12,8 @@ export const useLoggedIn = () => {
     try {
       disconnect();
     } catch (error) {
-      console.error("Sign-out error:", error);
+      // Disconnect errors are usually non-critical (user cancelled, etc.)
+      // Silently handle to avoid unnecessary error messages
     }
   };
 
@@ -27,8 +28,9 @@ export const useLoggedIn = () => {
   };
 
   const handleCopyUserId = async () => {
-    if (walletAddress) {
-      await navigator.clipboard.writeText(walletAddress);
+    const userId = walletAddress; // Use wallet address as user ID for now
+    if (userId) {
+      await navigator.clipboard.writeText(userId);
       setCopiedUserId(true);
       setTimeout(() => setCopiedUserId(false), 2000);
     }

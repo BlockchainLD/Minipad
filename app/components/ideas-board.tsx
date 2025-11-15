@@ -84,12 +84,7 @@ const IdeaDetailModal = ({
     idea ? { originalIdeaId: idea._id } : "skip"
   );
   
-  // Debug logging
-  useEffect(() => {
-    if (idea) {
-      console.log("Fetching remixes for idea:", idea._id, "Found remixes:", remixes?.length || 0);
-    }
-  }, [idea?._id, remixes?.length]);
+  // Remixes are automatically fetched via Convex reactivity
   
   // Optimistic upvote count state
   const [optimisticUpvotes, setOptimisticUpvotes] = useState<number | null>(null);
@@ -493,7 +488,7 @@ const UpvoteButton = ({
         await onUpvote(ideaId);
       }
     } catch (error) {
-      console.error('Error in handleClick:', error);
+      handleError(error, { operation: "handle click", component: "IdeasBoard" });
       // Revert optimistic updates on error
       setOptimisticUpvoted(null);
       if (onOptimisticUpvoteChange) {
@@ -601,7 +596,7 @@ const RemixUpvoteButton = ({
         await onUpvote(remixId); // This will add the upvote
       }
     } catch (error) {
-      console.error('Error in handleClick:', error);
+      handleError(error, { operation: "handle click", component: "IdeasBoard" });
       // Revert optimistic updates on error
       setOptimisticUpvoted(null);
     } finally {
@@ -777,8 +772,7 @@ export const IdeasBoard = ({ onViewChange, onProfileClick }: IdeasBoardProps) =>
         throw new Error("Failed to create remix - no ID returned from Convex");
       }
       
-      // Log for debugging
-      console.log("Remix created successfully with ID:", remixId, "for original idea:", selectedIdea._id);
+      // Remix created successfully - Convex reactivity will update the UI
 
       // Try to create EAS attestation if available (optional for now)
       if (eas && isInitialized) {

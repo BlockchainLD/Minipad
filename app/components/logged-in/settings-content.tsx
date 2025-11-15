@@ -5,7 +5,7 @@ import { FarcasterProfile } from "../farcaster-profile";
 import { useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { useAccount } from "wagmi";
-import { StatusBadge } from "../ui/status-badge";
+import { IdeaListItem } from "./idea-list-item";
 import { Id } from "../../../convex/_generated/dataModel";
 
 // Type for idea in user ideas section
@@ -63,15 +63,7 @@ export const SettingsContent = ({ walletAddress, copied, onCopyAddress, onSignOu
           {submittedIdeas && submittedIdeas.length > 0 ? (
             <div className="space-y-2">
               {submittedIdeas.slice(0, 3).map((idea: UserIdea) => (
-                <div key={idea._id} className="bg-white rounded-lg p-3 border border-gray-200">
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="flex-1 min-w-0">
-                      <h4 className="font-medium text-gray-900 text-sm truncate">{idea.title}</h4>
-                      <p className="text-xs text-gray-600 mt-1 line-clamp-2">{idea.description}</p>
-                    </div>
-                    <StatusBadge status={idea.status} className="px-2 py-0.5 text-xs flex-shrink-0" />
-                  </div>
-                </div>
+                <IdeaListItem key={idea._id} idea={idea} />
               ))}
               {submittedIdeas.length > 3 && (
                 <p className="text-xs text-gray-500 text-center mt-2">
@@ -95,15 +87,7 @@ export const SettingsContent = ({ walletAddress, copied, onCopyAddress, onSignOu
           {claimedIdeas && claimedIdeas.length > 0 ? (
             <div className="space-y-2">
               {claimedIdeas.slice(0, 3).map((idea: UserIdea) => (
-                <div key={idea._id} className="bg-white rounded-lg p-3 border border-gray-200">
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="flex-1 min-w-0">
-                      <h4 className="font-medium text-gray-900 text-sm truncate">{idea.title}</h4>
-                      <p className="text-xs text-gray-600 mt-1 line-clamp-2">{idea.description}</p>
-                    </div>
-                    <StatusBadge status={idea.status} className="px-2 py-0.5 text-xs flex-shrink-0" />
-                  </div>
-                </div>
+                <IdeaListItem key={idea._id} idea={idea} />
               ))}
               {claimedIdeas.length > 3 && (
                 <p className="text-xs text-gray-500 text-center mt-2">
@@ -127,25 +111,7 @@ export const SettingsContent = ({ walletAddress, copied, onCopyAddress, onSignOu
           {completedIdeas && completedIdeas.length > 0 ? (
             <div className="space-y-2">
               {completedIdeas.slice(0, 3).map((idea: UserIdea) => (
-                <div key={idea._id} className="bg-white rounded-lg p-3 border border-gray-200">
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="flex-1 min-w-0">
-                      <h4 className="font-medium text-gray-900 text-sm truncate">{idea.title}</h4>
-                      <p className="text-xs text-gray-600 mt-1 line-clamp-2">{idea.description}</p>
-                      {idea.deploymentUrl && (
-                        <a 
-                          href={idea.deploymentUrl} 
-                          target="_blank" 
-                          rel="noopener noreferrer"
-                          className="text-xs text-blue-600 hover:underline mt-1 block"
-                        >
-                          View Deployment →
-                        </a>
-                      )}
-                    </div>
-                    <StatusBadge status={idea.status} className="px-2 py-0.5 text-xs flex-shrink-0" />
-                  </div>
-                </div>
+                <IdeaListItem key={idea._id} idea={idea} />
               ))}
               {completedIdeas.length > 3 && (
                 <p className="text-xs text-gray-500 text-center mt-2">

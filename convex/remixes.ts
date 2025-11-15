@@ -161,9 +161,7 @@ export const getRemixesForIdea = query({
       }
       
       // Sort remixes by timestamp (newest first)
-      const sortedRemixes = remixes.sort((a, b) => b.timestamp - a.timestamp);
-      console.log(`Found ${sortedRemixes.length} remixes for idea ${args.originalIdeaId}`);
-      return sortedRemixes;
+      return remixes.sort((a, b) => b.timestamp - a.timestamp);
     } catch (error) {
       console.error("Error in getRemixesForIdea:", error);
       return [];
