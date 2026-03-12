@@ -1,6 +1,3 @@
-import Image from "next/image";
-import type { FarcasterUser } from "../../lib/types";
-
 interface UserAvatarProps {
   author: string;
   authorAvatar?: string;
@@ -32,16 +29,18 @@ export function UserAvatar({
   };
 
   const backgroundColor = `hsl(${author?.charCodeAt(0) * 137.5 % 360}, 70%, 50%)`;
+  const sizeClass = size === 24 ? "w-6 h-6 text-xs" : size === 32 ? "w-8 h-8 text-xs" : "w-12 h-12 text-lg";
 
   return (
     <>
       {authorAvatar && (
-        <Image
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
           src={authorAvatar}
           alt={authorDisplayName || authorUsername || "Author avatar"}
           width={size}
           height={size}
-          className={`${size === 24 ? "w-6 h-6" : size === 32 ? "w-8 h-8" : "w-12 h-12"} rounded-full object-cover ${className}`}
+          className={`${sizeClass} rounded-full object-cover ${className}`}
           onError={(e) => {
             const target = e.target as HTMLImageElement;
             target.style.display = "none";
@@ -51,7 +50,7 @@ export function UserAvatar({
         />
       )}
       <div
-        className={`${size === 24 ? "w-6 h-6 text-xs" : size === 32 ? "w-8 h-8 text-xs" : "w-12 h-12 text-lg"} rounded-full flex items-center justify-center font-semibold ${
+        className={`${sizeClass} rounded-full flex items-center justify-center font-semibold ${
           authorAvatar ? "hidden" : "flex"
         } ${className}`}
         style={{
@@ -64,4 +63,3 @@ export function UserAvatar({
     </>
   );
 }
-

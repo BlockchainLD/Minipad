@@ -1100,7 +1100,8 @@ export const IdeasBoard = ({ onViewChange, onProfileClick }: IdeasBoardProps) =>
         </div>
       )}
 
-        {/* Idea Detail Modal — keep mounted while remix form is open so the remixes query stays live */}
+        {/* Idea Detail Modal — keep mounted while remix form is open so the
+           Convex useQuery subscription stays alive and remixes appear instantly */}
         {selectedIdea && !showCompletionForm && (
           <IdeaDetailModal
             idea={selectedIdea}
