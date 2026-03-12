@@ -14,14 +14,11 @@ import { TABS, VIEWS } from "../../lib/constants";
 export const LoggedIn = () => {
   const {
     copied,
-    copiedUserId,
     activeTab,
     setActiveTab,
     handleSignOut,
     walletAddress,
     handleCopyAddress,
-    handleCopyUserId,
-    userId,
   } = useLoggedIn();
   
   const isMobile = useIsMobile();
@@ -81,14 +78,11 @@ export const LoggedIn = () => {
               </div>
             )}
             {activeTab === TABS.SETTINGS && (
-              <SettingsContent 
+              <SettingsContent
                 walletAddress={walletAddress}
                 copied={copied}
                 onCopyAddress={handleCopyAddress}
                 onSignOut={handleSignOut}
-                userId={userId}
-                copiedUserId={copiedUserId}
-                onCopyUserId={handleCopyUserId}
               />
             )}
           </div>
@@ -100,36 +94,45 @@ export const LoggedIn = () => {
   }
 
   return (
-        <>
-          <div className="bg-white rounded-3xl shadow-2xl overflow-hidden border border-gray-100">
-            <Header 
-              avatarUrl={avatarUrl}
-              onLogoClick={handleLogoClick}
-              onAvatarClick={handleAvatarClick}
-            />
+    <>
+      <div className="bg-white rounded-3xl shadow-2xl overflow-hidden border border-gray-100">
+        <Header
+          avatarUrl={avatarUrl}
+          onLogoClick={handleLogoClick}
+          onAvatarClick={handleAvatarClick}
+        />
         <div className="p-6 pt-4">
-          {currentView === VIEWS.BOARD && (
-            <IdeasBoard 
-              onViewChange={setCurrentView}
-              onProfileClick={(authorAddress) => {
-                if (authorAddress === walletAddress) {
-                  setActiveTab(TABS.SETTINGS);
-                }
-              }}
-            />
+          {activeTab === TABS.HOME && (
+            <>
+              {currentView === VIEWS.BOARD && (
+                <IdeasBoard
+                  onViewChange={setCurrentView}
+                  onProfileClick={(authorAddress) => {
+                    if (authorAddress === walletAddress) {
+                      setActiveTab(TABS.SETTINGS);
+                    }
+                  }}
+                />
+              )}
+              {currentView === VIEWS.SUBMIT && (
+                <IdeaSubmissionForm
+                  onSuccess={() => setCurrentView(VIEWS.BOARD)}
+                  onCancel={() => setCurrentView(VIEWS.BOARD)}
+                />
+              )}
+              {currentView === VIEWS.CONFIRMATION && (
+                <IdeaSubmissionConfirmation
+                  onReturnHome={() => setCurrentView(VIEWS.BOARD)}
+                />
+              )}
+            </>
           )}
-          {currentView === VIEWS.SUBMIT && (
-            <IdeaSubmissionForm 
-              onSuccess={() => {
-                // Automatically return to ideas board after successful submission
-                setCurrentView(VIEWS.BOARD);
-              }}
-              onCancel={() => setCurrentView(VIEWS.BOARD)}
-            />
-          )}
-          {currentView === VIEWS.CONFIRMATION && (
-            <IdeaSubmissionConfirmation 
-              onReturnHome={() => setCurrentView(VIEWS.BOARD)}
+          {activeTab === TABS.SETTINGS && (
+            <SettingsContent
+              walletAddress={walletAddress}
+              copied={copied}
+              onCopyAddress={handleCopyAddress}
+              onSignOut={handleSignOut}
             />
           )}
         </div>

@@ -4,8 +4,6 @@ import { useState } from "react";
 import { useMutation } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { useAccount } from "wagmi";
-import { useEAS, createCompletionAttestation } from "../lib/eas";
-import { extractAttestationUid } from "../lib/eas-utils";
 import { Input } from "@worldcoin/mini-apps-ui-kit-react";
 import { toast } from "sonner";
 import { handleError, handleSuccess } from "../lib/error-handler";
@@ -25,37 +23,34 @@ export const CompletionForm = ({ ideaId, onSuccess, onCancel }: CompletionFormPr
   const [isSubmitting, setIsSubmitting] = useState(false);
   
   const { address } = useAccount();
-  const { eas, isInitialized } = useEAS();
   const completeIdea = useMutation(api.claims.completeIdea);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!address) {
       toast.error("Please connect your wallet");
       return;
     }
-    
+
     const trimmedGithubUrl = githubUrl.trim();
     const trimmedDeploymentUrl = deploymentUrl.trim();
-    
+
     if (!trimmedGithubUrl || !trimmedDeploymentUrl) {
       toast.error("Please provide both GitHub and deployment URLs");
       return;
     }
 
-    // Basic URL validation - check if URLs start with http:// or https://
     if (!trimmedGithubUrl.startsWith('http://') && !trimmedGithubUrl.startsWith('https://')) {
       toast.error("GitHub URL must start with http:// or https://");
       return;
     }
-    
+
     if (!trimmedDeploymentUrl.startsWith('http://') && !trimmedDeploymentUrl.startsWith('https://')) {
       toast.error("Deployment URL must start with http:// or https://");
       return;
     }
-    
-    // Validate URL format
+
     try {
       new URL(trimmedGithubUrl);
       new URL(trimmedDeploymentUrl);
@@ -67,41 +62,14 @@ export const CompletionForm = ({ ideaId, onSuccess, onCancel }: CompletionFormPr
     setIsSubmitting(true);
 
     try {
-      // Try to create EAS attestation if available (optional for now)
-      let attestationUid: string | undefined;
-      
-      if (eas && isInitialized) {
-        try {
-          const attestationTx = await createCompletionAttestation(
-            eas,
-            ideaId.toString(), // Convert Id to string
-            address,
-            deploymentUrl.trim()
-          );
-
-          // Wait for the transaction to be mined
-          await attestationTx.wait();
-          attestationUid = extractAttestationUid(attestationTx);
-        } catch (easError) {
-          console.error("EAS attestation failed:", easError);
-          // Continue without attestation - completion will still work
-          toast.warning("Submitting build without blockchain attestation (EAS not available)");
-        }
-      } else {
-        // EAS not configured - submit without attestation
-        toast.info("Submitting build (blockchain attestation will be available after EAS setup)");
-      }
-
-      // Mark the idea as completed (with or without attestation)
       await completeIdea({
         ideaId,
         claimer: address,
         githubUrl: trimmedGithubUrl,
         deploymentUrl: trimmedDeploymentUrl,
-        attestationUid,
       });
 
-      handleSuccess("🎉 Build submitted successfully! Your idea is now marked as complete.");
+      handleSuccess("Build submitted! This idea is now marked as complete.");
       setGithubUrl("");
       setDeploymentUrl("");
       onSuccess?.();
@@ -127,15 +95,15 @@ export const CompletionForm = ({ ideaId, onSuccess, onCancel }: CompletionFormPr
         <h2 className="text-2xl font-bold text-gray-900 mb-2">
           Submit Your Build
         </h2>
-        <p className="text-gray-600">
-          Provide the GitHub repository and deployment links for your completed miniapp.
+        <p className="text-gray-500 text-sm">
+          Share the GitHub repo and live URL for your completed miniapp.
         </p>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-6">
+      <form onSubmit={handleSubmit} className="space-y-5">
         <div>
           <label htmlFor="githubUrl" className="block text-sm font-medium text-gray-700 mb-2">
-            GitHub Repository URL *
+            GitHub Repository URL
           </label>
           <Input
             id="githubUrl"
@@ -144,12 +112,12 @@ export const CompletionForm = ({ ideaId, onSuccess, onCancel }: CompletionFormPr
             onChange={(e) => setGithubUrl(e.target.value)}
             required
           />
-          <p className="mt-1 text-xs text-gray-500">Example: https://github.com/username/repo</p>
+          <p className="mt-1 text-xs text-gray-400">e.g. https://github.com/username/repo</p>
         </div>
 
         <div>
           <label htmlFor="deploymentUrl" className="block text-sm font-medium text-gray-700 mb-2">
-            Deployment URL *
+            Live App URL
           </label>
           <Input
             id="deploymentUrl"
@@ -158,35 +126,13 @@ export const CompletionForm = ({ ideaId, onSuccess, onCancel }: CompletionFormPr
             onChange={(e) => setDeploymentUrl(e.target.value)}
             required
           />
-          <p className="mt-1 text-xs text-gray-500">Example: https://your-app.vercel.app</p>
+          <p className="mt-1 text-xs text-gray-400">e.g. https://your-app.vercel.app</p>
         </div>
 
-        <div className="bg-green-50 border border-green-200 rounded-2xl p-6 shadow-sm">
-          <h3 className="font-semibold text-green-900 mb-3">Build Requirements:</h3>
-          <ul className="text-sm text-green-800 space-y-2">
-            <li className="flex items-start gap-2">
-              <span className="text-green-500 mt-0.5">•</span>
-              <span>Your miniapp should be deployed and accessible</span>
-            </li>
-            <li className="flex items-start gap-2">
-              <span className="text-green-500 mt-0.5">•</span>
-              <span>It should implement the core idea described</span>
-            </li>
-            <li className="flex items-start gap-2">
-              <span className="text-green-500 mt-0.5">•</span>
-              <span>Both URLs will be publicly visible to all users</span>
-            </li>
-            <li className="flex items-start gap-2">
-              <span className="text-green-500 mt-0.5">•</span>
-              <span>Your completion will be attested to the blockchain</span>
-            </li>
-          </ul>
-        </div>
-
-        <div className="flex gap-3">
+        <div className="flex gap-3 pt-2">
           <StandardButton
             type="submit"
-            disabled={isSubmitting}
+            disabled={isSubmitting || !githubUrl.trim() || !deploymentUrl.trim()}
             loading={isSubmitting}
             variant="success"
             size="md"
