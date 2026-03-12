@@ -4,7 +4,6 @@ import React, { useState, useEffect } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { useAccount } from "wagmi";
-import { useEAS, createClaimAttestation, createRemixAttestation, revokeAttestation, SCHEMAS } from "../lib/eas";
 import { Button } from "@worldcoin/mini-apps-ui-kit-react";
 import { toast } from "sonner";
 import { Id } from "../../convex/_generated/dataModel";
@@ -16,7 +15,6 @@ import { UserAvatar } from "./ui/user-avatar";
 import { StatusBadge } from "./ui/status-badge";
 import { ClaimButton, UnclaimButton, SubmitBuildButton } from "./ui/standard-button";
 import { handleError } from "../lib/error-handler";
-import { extractAttestationUid } from "../lib/eas-utils";
 
 // Types
 type Idea = {
@@ -641,7 +639,6 @@ interface IdeasBoardProps {
 
 export const IdeasBoard = ({ onViewChange, onProfileClick }: IdeasBoardProps) => {
   const { address } = useAccount();
-  const { eas, isInitialized } = useEAS();
   
   // Modal state
   const [selectedIdea, setSelectedIdea] = useState<Idea | null>(null);
@@ -661,7 +658,6 @@ export const IdeasBoard = ({ onViewChange, onProfileClick }: IdeasBoardProps) =>
   const claimIdea = useMutation(api.claims.claimIdea);
   const unclaimIdea = useMutation(api.claims.unclaimIdea);
   const createRemix = useMutation(api.remixes.createRemix);
-  const updateRemixAttestation = useMutation(api.remixes.updateRemixAttestation);
   const deleteRemix = useMutation(api.remixes.deleteRemix);
   const deleteIdea = useMutation(api.ideas.deleteIdea);
 
@@ -682,13 +678,10 @@ export const IdeasBoard = ({ onViewChange, onProfileClick }: IdeasBoardProps) =>
     }
 
     try {
-      // Simple upvote without EAS attestation
       await upvoteIdea({
         ideaId,
         voter: address,
       });
-
-      toast.success("Upvoted successfully!");
     } catch (error) {
       handleError(error, { operation: "upvote idea", component: "IdeasBoard" });
     }
@@ -701,13 +694,10 @@ export const IdeasBoard = ({ onViewChange, onProfileClick }: IdeasBoardProps) =>
     }
 
     try {
-      // Remove upvote from Convex
       await removeUpvote({
         ideaId,
         voter: address,
       });
-
-      toast.success("Upvote removed successfully!");
     } catch (error) {
       handleError(error, { operation: "remove upvote", component: "IdeasBoard" });
     }
@@ -751,73 +741,26 @@ export const IdeasBoard = ({ onViewChange, onProfileClick }: IdeasBoardProps) =>
     }
     
     try {
-      // Try to create EAS attestation if available (optional for now)
-      let attestationUid: string | undefined;
-      
-      // First create the remix in Convex to get the remixId
       const remixId = await createRemix({
         originalIdeaId: selectedIdea._id,
         remixer: address,
         title,
         description,
-        attestationUid: undefined, // Will update after attestation if available
         authorFid,
         authorAvatar,
         authorDisplayName,
         authorUsername,
       });
 
-      // Verify remix was created successfully
       if (!remixId) {
-        throw new Error("Failed to create remix - no ID returned from Convex");
+        throw new Error("Failed to create remix");
       }
-      
-      // Remix created successfully - Convex reactivity will update the UI
 
-      // Try to create EAS attestation if available (optional for now)
-      if (eas && isInitialized) {
-        try {
-          // Create EAS attestation
-          const attestationTx = await createRemixAttestation(
-            eas,
-            title,
-            description,
-            address,
-            selectedIdea._id, // This is Id<"ideas">, will be converted to string in the function
-            remixId, // This is Id<"ideas">, will be converted to string in the function
-            authorFid?.toString()
-          );
-
-          await attestationTx.wait();
-          attestationUid = extractAttestationUid(attestationTx);
-
-          // Update remix with attestation UID
-          await updateRemixAttestation({
-            remixId,
-            attestationUid,
-          });
-
-          toast.success("Remix created and attested to blockchain successfully! It will appear below the original idea.");
-        } catch (easError) {
-          console.error("EAS attestation failed:", easError);
-          // Remix is already created, just continue without attestation
-          toast.warning("Remix created successfully, but blockchain attestation failed. It will appear below the original idea.");
-        }
-      } else {
-        // EAS not configured - remix already created without attestation
-        toast.success("Remix created successfully! (Blockchain attestation will be available after EAS setup) It will appear below the original idea.");
-      }
-      
-      // Close the remix form and ensure modal is open
-      // Do this synchronously to avoid race conditions
+      toast.success("Remix created!");
       setShowRemixForm(false);
       setIsModalOpen(true);
-      
-      // The remixes query will automatically update and show the new remix via Convex reactivity
-      
     } catch (error) {
       handleError(error, { operation: "create remix", component: "IdeasBoard" });
-      // On error, still close the remix form and show the modal
       setShowRemixForm(false);
       setIsModalOpen(true);
     }
@@ -830,44 +773,12 @@ export const IdeasBoard = ({ onViewChange, onProfileClick }: IdeasBoardProps) =>
     }
 
     try {
-      // Try to create EAS attestation if available (optional for now)
-      let attestationUid: string | undefined;
-      
-      if (eas && isInitialized) {
-        try {
-          // Create EAS attestation first
-          const attestationTx = await createClaimAttestation(
-            eas,
-            ideaId.toString(), // Convert Id to string
-            address
-          );
-
-          if (attestationTx) {
-            await attestationTx.wait();
-            attestationUid = extractAttestationUid(attestationTx);
-          }
-        } catch (easError) {
-          console.error("EAS attestation failed:", easError);
-          // Continue without attestation - claim will still work
-          toast.warning("Claiming idea without blockchain attestation (EAS not available)");
-        }
-      } else {
-        // EAS not configured - claim without attestation
-        toast.info("Claiming idea (blockchain attestation will be available after EAS setup)");
-      }
-
-      // Update Convex with the claim (with or without attestation)
       await claimIdea({
         ideaId,
         claimer: address,
-        attestationUid,
       });
 
-      toast.success("✅ Idea claimed successfully! You can now work on building it.");
-      
-      // Keep modal open to show updated status, but refresh the idea data
-      // The query will automatically update via Convex reactivity
-      
+      toast.success("Idea claimed! Start building.");
     } catch (error) {
       handleError(error, { operation: "claim idea", component: "IdeasBoard" });
     }
@@ -879,38 +790,21 @@ export const IdeasBoard = ({ onViewChange, onProfileClick }: IdeasBoardProps) =>
       return;
     }
 
-    // Show confirmation dialog
     const confirmed = window.confirm(
-      "Are you sure you want to unclaim this idea? This will make it available for others to claim."
+      "Unclaim this idea? It will become available for others to claim."
     );
-    
+
     if (!confirmed) {
       return;
     }
 
     try {
-      // Unclaim the idea from Convex and get the attestation UID
-      const attestationUid = await unclaimIdea({
+      await unclaimIdea({
         ideaId,
         claimer: address,
       });
-      
-      // Try to revoke the claim attestation if it exists and EAS is available
-      if (attestationUid && eas && isInitialized) {
-        try {
-          const revokeTx = await revokeAttestation(eas, attestationUid, SCHEMAS.CLAIM);
-          await revokeTx.wait();
-          toast.success("✅ Idea unclaimed and attestation revoked successfully!");
-        } catch (revokeError) {
-          console.error("Error revoking claim attestation:", revokeError);
-          toast.warning("Idea unclaimed successfully, but attestation revocation failed");
-        }
-      } else {
-        toast.success("✅ Idea unclaimed successfully! It's now available for others to claim.");
-      }
-      
-      // Keep modal open to show updated status - the query will automatically update
-      
+
+      toast.success("Idea unclaimed.");
     } catch (error) {
       handleError(error, { operation: "unclaim idea", component: "IdeasBoard" });
     }
@@ -922,41 +816,22 @@ export const IdeasBoard = ({ onViewChange, onProfileClick }: IdeasBoardProps) =>
       return;
     }
 
-    // Show confirmation dialog
     const confirmed = window.confirm(
-      "Are you sure you want to delete this idea? This action cannot be undone and will revoke your attestation."
+      "Delete this idea? This cannot be undone."
     );
-    
+
     if (!confirmed) {
       return;
     }
 
     try {
-      // Get the idea to check for attestation UID
-      const idea = ideas?.find(i => i._id === ideaId);
-      
-      // Revoke attestation if it exists
-      if (idea?.attestationUid && eas && isInitialized) {
-        try {
-          // Determine schema UID based on whether it's a remix or regular idea
-          const schemaUid = idea.isRemix ? SCHEMAS.REMIX : SCHEMAS.IDEA;
-          const revokeTx = await revokeAttestation(eas, idea.attestationUid, schemaUid);
-          await revokeTx.wait();
-          toast.success("Attestation revoked successfully!");
-        } catch (revokeError) {
-          console.error("Error revoking attestation:", revokeError);
-          toast.error("Failed to revoke attestation, but idea will still be deleted");
-        }
-      }
-
-      // Delete the idea from Convex
       await deleteIdea({
         ideaId,
         author: address,
       });
 
-      toast.success("Idea deleted successfully!");
-      closeModal(); // Close modal after successful deletion
+      toast.success("Idea deleted.");
+      closeModal();
     } catch (error) {
       handleError(error, { operation: "delete idea", component: "IdeasBoard" });
     }
@@ -969,23 +844,19 @@ export const IdeasBoard = ({ onViewChange, onProfileClick }: IdeasBoardProps) =>
     }
 
     try {
-      // Try to upvote first - if it fails because already upvoted, then remove upvote
       try {
         await upvoteIdea({
           ideaId: remixId,
           voter: address,
         });
-        toast.success("Remix upvoted successfully!");
       } catch (upvoteError) {
-        // If upvoting failed, try removing the upvote instead
         if (upvoteError instanceof Error && upvoteError.message.includes("already upvoted")) {
           await removeUpvote({
             ideaId: remixId,
             voter: address,
           });
-          toast.success("Remix upvote removed successfully!");
         } else {
-          throw upvoteError; // Re-throw if it's a different error
+          throw upvoteError;
         }
       }
     } catch (error) {
@@ -1000,11 +871,8 @@ export const IdeasBoard = ({ onViewChange, onProfileClick }: IdeasBoardProps) =>
       return;
     }
 
-    // Show confirmation dialog
-    const confirmed = window.confirm(
-      "Are you sure you want to delete this remix? This action cannot be undone."
-    );
-    
+    const confirmed = window.confirm("Delete this remix? This cannot be undone.");
+
     if (!confirmed) {
       return;
     }
@@ -1014,7 +882,7 @@ export const IdeasBoard = ({ onViewChange, onProfileClick }: IdeasBoardProps) =>
         remixId,
         author: address,
       });
-      toast.success("Remix deleted successfully!");
+      toast.success("Remix deleted.");
     } catch (error) {
       handleError(error, { operation: "delete remix", component: "IdeasBoard" });
     }
@@ -1078,14 +946,9 @@ export const IdeasBoard = ({ onViewChange, onProfileClick }: IdeasBoardProps) =>
 
   return (
     <div className="w-full max-w-4xl mx-auto p-6 sm:p-8">
-      <div className="mb-6">
+      <div className="mb-5">
         <div className="flex justify-between items-center mb-4">
-          <h1 className="text-2xl font-bold text-gray-900">
-            Miniapp Ideas Board
-          </h1>
-        </div>
-        
-        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-xl font-bold text-gray-900">Ideas</h1>
           <Button
             variant="primary"
             onClick={() => {
@@ -1095,16 +958,16 @@ export const IdeasBoard = ({ onViewChange, onProfileClick }: IdeasBoardProps) =>
               }
             }}
             size="sm"
-            className="rounded-xl hover:shadow-lg transition-all duration-200 hover:scale-105"
+            className="rounded-xl"
           >
-            Submit Idea
+            + New Idea
           </Button>
-          
-          <IdeaFilter 
-            currentFilter={currentFilter}
-            onFilterChange={setCurrentFilter}
-          />
         </div>
+
+        <IdeaFilter
+          currentFilter={currentFilter}
+          onFilterChange={setCurrentFilter}
+        />
       </div>
 
       <div className="space-y-4">

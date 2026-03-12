@@ -29,16 +29,14 @@ export function SignInForm() {
   return (
     <div className="bg-white rounded-3xl shadow-2xl p-8 space-y-8 border border-gray-100">
       <div className="text-center space-y-3">
-        <div className="space-y-3">
-          <Typography variant="heading" className="text-gray-900">
-            Minipad
-          </Typography>
-          <Typography variant="body" className="text-gray-600">
-            Connect your wallet to continue
-          </Typography>
-        </div>
+        <Typography variant="heading" className="text-gray-900">
+          Minipad
+        </Typography>
+        <Typography variant="body" className="text-gray-600">
+          Submit ideas, vote, remix, and build Farcaster miniapps.
+        </Typography>
       </div>
-      <div className="space-y-4">        
+      <div className="space-y-4">
         {isLoading ? (
           <div className="flex items-center justify-center space-x-3 py-4">
             <Spinner />
@@ -46,8 +44,8 @@ export function SignInForm() {
               Connecting...
             </Typography>
           </div>
-        ) : 
-        <SignInWithBaseButton 
+        ) :
+        <SignInWithBaseButton
           align="center"
           variant="solid"
           colorScheme="light"
