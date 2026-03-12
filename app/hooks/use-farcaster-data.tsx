@@ -23,8 +23,12 @@ export function useFarcasterData(): FarcasterUser | null {
         const response = await fetch(`/api/farcaster/${fid}`);
         if (response.ok) {
           const data = await response.json();
-          setFarcasterData(data.result.user);
-          return;
+          const user = data?.result?.user;
+          // Only use API data if the response has the required shape
+          if (user && typeof user.fid === "number") {
+            setFarcasterData(user);
+            return;
+          }
         }
       } catch {
         // Fall through to SDK fallback

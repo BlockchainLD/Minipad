@@ -15,7 +15,7 @@ export function FarcasterProfile() {
   return (
     <div className="bg-white rounded-lg p-4 space-y-4">
       <div className="flex items-center space-x-3">
-        {farcasterData.pfp.url ? (
+        {farcasterData.pfp?.url ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
             src={farcasterData.pfp.url}
@@ -27,7 +27,7 @@ export function FarcasterProfile() {
           />
         ) : (
           <div className="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 font-semibold text-lg">
-            {farcasterData.displayName.charAt(0).toUpperCase()}
+            {farcasterData.displayName?.charAt(0).toUpperCase() ?? "?"}
           </div>
         )}
         <div className="flex-1">
@@ -35,7 +35,7 @@ export function FarcasterProfile() {
             <Typography variant="heading" className="text-gray-900">
               {farcasterData.displayName}
             </Typography>
-            {farcasterData.pfp.verified && (
+            {farcasterData.pfp?.verified && (
               <span className="text-blue-500">✓</span>
             )}
           </div>
@@ -45,7 +45,7 @@ export function FarcasterProfile() {
         </div>
       </div>
 
-      {farcasterData.profile.bio.text && (
+      {farcasterData.profile?.bio?.text && (
         <div>
           <Typography variant="body" className="text-gray-700">
             {farcasterData.profile.bio.text}
@@ -55,23 +55,23 @@ export function FarcasterProfile() {
 
       <div className="flex items-center space-x-4 text-sm text-gray-600">
         <div className="flex items-center space-x-1">
-          <span className="font-medium">{farcasterData.followerCount.toLocaleString()}</span>
+          <span className="font-medium">{(farcasterData.followerCount ?? 0).toLocaleString()}</span>
           <span>followers</span>
         </div>
         <div className="flex items-center space-x-1">
-          <span className="font-medium">{farcasterData.followingCount.toLocaleString()}</span>
+          <span className="font-medium">{(farcasterData.followingCount ?? 0).toLocaleString()}</span>
           <span>following</span>
         </div>
       </div>
 
-      {farcasterData.profile.location && (
+      {farcasterData.profile?.location && (
         <div className="flex items-center space-x-2 text-sm text-gray-600">
           <span>📍</span>
           <span>{farcasterData.profile.location.description}</span>
         </div>
       )}
 
-      {farcasterData.profile.url && (
+      {farcasterData.profile?.url && (
         <div className="flex items-center space-x-2 text-sm">
           <span>🔗</span>
           <a 

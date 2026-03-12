@@ -270,7 +270,12 @@ const IdeaDetailModal = ({
                 Remixes ({remixes?.length || 0})
               </h3>
               
-              {remixes && remixes.length > 0 ? (
+              {remixes === undefined ? (
+                <div className="text-center py-8 text-gray-400">
+                  <div className="animate-spin w-6 h-6 border-2 border-gray-300 rounded-full border-t-blue-500 mx-auto mb-2"></div>
+                  <p className="text-sm">Loading remixes...</p>
+                </div>
+              ) : remixes.length > 0 ? (
                 <div className="space-y-4">
                   {remixes.map((remix) => (
                       <div key={remix._id} className="bg-gray-50 border border-gray-200 rounded-lg p-4" onClick={(e) => e.stopPropagation()}>
@@ -307,7 +312,7 @@ const IdeaDetailModal = ({
                               </div>
                             <StatusBadge status={remix.status} className="px-2 py-1 text-xs" />
                             </div>
-                            
+
                             <div className="flex items-center gap-2">
                               {/* Upvote button for remix */}
                               <RemixUpvoteButton
@@ -315,7 +320,7 @@ const IdeaDetailModal = ({
                                 onUpvote={onRemixUpvote}
                                 address={address}
                               />
-                              
+
                               {/* Delete button - only show for the remix author */}
                               {address && remix.author === address && (
                                 <button
