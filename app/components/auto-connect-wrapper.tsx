@@ -8,11 +8,18 @@ import { AUTO_CONNECT_TIMEOUT } from "../lib/constants";
 interface FarcasterContextType {
   fid: number | null;
   isInMiniApp: boolean;
+  sdkUser: {
+    fid: number;
+    username?: string;
+    displayName?: string;
+    pfpUrl?: string;
+  } | null;
 }
 
 const FarcasterContext = createContext<FarcasterContextType>({
   fid: null,
   isInMiniApp: false,
+  sdkUser: null,
 });
 
 export const useFarcaster = () => useContext(FarcasterContext);
@@ -27,6 +34,7 @@ export function AutoConnectWrapper({ children }: AutoConnectWrapperProps) {
   const [isInMiniApp, setIsInMiniApp] = useState(false);
   const [autoConnectAttempted, setAutoConnectAttempted] = useState(false);
   const [fid, setFid] = useState<number | null>(null);
+  const [sdkUser, setSdkUser] = useState<FarcasterContextType["sdkUser"]>(null);
   const [connectingTimedOut, setConnectingTimedOut] = useState(false);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -74,6 +82,12 @@ export function AutoConnectWrapper({ children }: AutoConnectWrapperProps) {
             const context = await sdk.context;
             if (context?.user?.fid) {
               setFid(context.user.fid);
+              setSdkUser({
+                fid: context.user.fid,
+                username: context.user.username,
+                displayName: context.user.displayName,
+                pfpUrl: context.user.pfpUrl,
+              });
             }
           } catch (error) {
             console.log('Error getting Farcaster context:', error);
@@ -182,7 +196,7 @@ export function AutoConnectWrapper({ children }: AutoConnectWrapperProps) {
 
   // Show the main app content
   return (
-    <FarcasterContext.Provider value={{ fid, isInMiniApp }}>
+    <FarcasterContext.Provider value={{ fid, isInMiniApp, sdkUser }}>
       <div>{children}</div>
     </FarcasterContext.Provider>
   );
