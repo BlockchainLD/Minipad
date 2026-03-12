@@ -72,10 +72,18 @@ export function AutoConnectWrapper({ children }: AutoConnectWrapperProps) {
 
   useEffect(() => {
     const checkMiniApp = async () => {
+      // Always call ready() first — the desktop Preview Tool may not set the
+      // isInMiniApp flag but still expects ready() to dismiss the splash screen.
+      try {
+        await sdk.actions.ready({ disableNativeGestures: true });
+      } catch (error) {
+        console.log('Error signaling ready:', error);
+      }
+
       try {
         const inMiniApp = await sdk.isInMiniApp();
         setIsInMiniApp(inMiniApp);
-        
+
         // Get FID from Farcaster context if available
         if (inMiniApp) {
           try {
@@ -91,13 +99,6 @@ export function AutoConnectWrapper({ children }: AutoConnectWrapperProps) {
             }
           } catch (error) {
             console.log('Error getting Farcaster context:', error);
-          }
-
-          // Signal readiness to host before attempting wallet connect
-          try {
-            await sdk.actions.ready({ disableNativeGestures: true });
-          } catch (error) {
-            console.log('Error signaling ready to mini app host:', error);
           }
         }
         
