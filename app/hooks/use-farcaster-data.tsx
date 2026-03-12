@@ -7,7 +7,7 @@ import type { FarcasterUser } from "../lib/types";
  * Returns the Farcaster user data if available, null otherwise
  */
 export function useFarcasterData(): FarcasterUser | null {
-  const { fid, isInMiniApp } = useFarcaster();
+  const { fid, isInMiniApp, sdkUser } = useFarcaster();
   const [farcasterData, setFarcasterData] = useState<FarcasterUser | null>(null);
 
   useEffect(() => {
@@ -22,17 +22,30 @@ export function useFarcasterData(): FarcasterUser | null {
         if (response.ok) {
           const data = await response.json();
           setFarcasterData(data.result.user);
-        } else {
-          setFarcasterData(null);
+          return;
         }
-      } catch (error) {
-        // Silently fail - Farcaster data is optional
+      } catch {
+        // Fall through to SDK fallback
+      }
+
+      // API failed — use data from SDK context if available
+      if (sdkUser) {
+        setFarcasterData({
+          fid: sdkUser.fid,
+          displayName: sdkUser.displayName || sdkUser.username || `FID ${sdkUser.fid}`,
+          username: sdkUser.username || `fid${sdkUser.fid}`,
+          profile: { bio: { text: "" } },
+          followerCount: 0,
+          followingCount: 0,
+          pfp: { url: sdkUser.pfpUrl || "", verified: false },
+        });
+      } else {
         setFarcasterData(null);
       }
     };
 
     fetchFarcasterData();
-  }, [fid, isInMiniApp]);
+  }, [fid, isInMiniApp, sdkUser]);
 
   return farcasterData;
 }
