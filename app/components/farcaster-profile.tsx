@@ -1,9 +1,8 @@
 "use client";
 
-import Image from "next/image";
 import { useFarcaster } from "./auto-connect-wrapper";
 import { useFarcasterData } from "../hooks/use-farcaster-data";
-import { Typography, Spinner } from "@worldcoin/mini-apps-ui-kit-react";
+import { Typography } from "@worldcoin/mini-apps-ui-kit-react";
 
 export function FarcasterProfile() {
   const { fid, isInMiniApp } = useFarcaster();
@@ -16,13 +15,21 @@ export function FarcasterProfile() {
   return (
     <div className="bg-white rounded-lg p-4 space-y-4">
       <div className="flex items-center space-x-3">
-        <Image
-          src={farcasterData.pfp.url}
-          alt={farcasterData.displayName}
-          width={48}
-          height={48}
-          className="w-12 h-12 rounded-full"
-        />
+        {farcasterData.pfp.url ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={farcasterData.pfp.url}
+            alt={farcasterData.displayName}
+            width={48}
+            height={48}
+            className="w-12 h-12 rounded-full object-cover"
+            onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+          />
+        ) : (
+          <div className="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 font-semibold text-lg">
+            {farcasterData.displayName.charAt(0).toUpperCase()}
+          </div>
+        )}
         <div className="flex-1">
           <div className="flex items-center space-x-2">
             <Typography variant="heading" className="text-gray-900">

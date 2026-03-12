@@ -3,8 +3,10 @@ import { useFarcaster } from "../components/auto-connect-wrapper";
 import type { FarcasterUser } from "../lib/types";
 
 /**
- * Custom hook to fetch Farcaster user data
- * Returns the Farcaster user data if available, null otherwise
+ * Custom hook to fetch Farcaster user data.
+ * Tries the Warpcast API first; falls back to the SDK context data
+ * (available when running inside the Farcaster mini-app) so the profile
+ * always renders even when the external API is unavailable.
  */
 export function useFarcasterData(): FarcasterUser | null {
   const { fid, isInMiniApp, sdkUser } = useFarcaster();
@@ -49,4 +51,3 @@ export function useFarcasterData(): FarcasterUser | null {
 
   return farcasterData;
 }
-
