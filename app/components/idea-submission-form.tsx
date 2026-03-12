@@ -4,9 +4,7 @@ import { useState } from "react";
 import { useMutation } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { useAccount } from "wagmi";
-import { useEAS, createIdeaAttestation } from "../lib/eas";
 import { useFarcasterData } from "../hooks/use-farcaster-data";
-import { extractAttestationUid } from "../lib/eas-utils";
 import { handleError } from "../lib/error-handler";
 import { Button, Input, TextArea } from "@worldcoin/mini-apps-ui-kit-react";
 import { toast } from "sonner";
@@ -21,32 +19,30 @@ export const IdeaSubmissionForm = ({ onSuccess, onCancel }: IdeaSubmissionFormPr
   const [description, setDescription] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const farcasterData = useFarcasterData();
-  
-  const { address } = useAccount();
-  const { eas, isInitialized } = useEAS();
-  const submitIdea = useMutation(api.ideas.submitIdea);
-  const updateIdeaAttestation = useMutation(api.ideas.updateIdeaAttestation);
 
+  const { address } = useAccount();
+  const submitIdea = useMutation(api.ideas.submitIdea);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!address) {
       toast.error("Please connect your wallet");
       return;
     }
-    
+
     if (!title.trim() || !description.trim()) {
       toast.error("Please fill in all fields");
       return;
     }
 
     setIsSubmitting(true);
-    
+
     try {
-      // First, submit the idea to Convex
-      const ideaId = await submitIdea({
-        title: title.trim(),
+      const submittedTitle = title.trim();
+
+      await submitIdea({
+        title: submittedTitle,
         description: description.trim(),
         author: address,
         authorFid: farcasterData?.fid,
@@ -55,54 +51,11 @@ export const IdeaSubmissionForm = ({ onSuccess, onCancel }: IdeaSubmissionFormPr
         authorUsername: farcasterData?.username,
       });
 
-      // Create the EAS attestation if available (optional for now)
-      if (eas && isInitialized) {
-        try {
-          // Show wallet confirmation message
-          toast.info("Please confirm the transaction in your wallet to attest your idea to the blockchain...");
+      toast.success("Idea submitted!");
 
-          const attestationTx = await createIdeaAttestation(
-            eas,
-            title.trim(),
-            description.trim(),
-            address,
-            undefined,
-            ideaId
-          );
-
-          // Show transaction pending message
-          toast.info("Transaction submitted! Waiting for confirmation...");
-
-          // Wait for the transaction to be mined
-          await attestationTx.wait();
-          
-          const attestationUid = extractAttestationUid(attestationTx);
-          
-          // Update the idea with the attestation UID
-          await updateIdeaAttestation({
-            ideaId,
-            attestationUid,
-          });
-
-          toast.success("🎉 Idea submitted and attested to blockchain successfully! Your idea is now live and ready for votes and claims.");
-        } catch (easError) {
-          console.error("EAS attestation failed:", easError);
-          // Continue without attestation - idea is still submitted
-          toast.warning("Idea submitted successfully, but blockchain attestation failed. Your idea is still live.");
-        }
-      } else {
-        // EAS not configured - submit without attestation
-        toast.success("🎉 Idea submitted successfully! (Blockchain attestation will be available after EAS setup)");
-      }
-      
-      // Store the title before clearing the form
-      const submittedTitle = title.trim();
-      
-      // Clear form
       setTitle("");
       setDescription("");
-      
-      // Call onSuccess to close form and return to board
+
       onSuccess?.(submittedTitle);
     } catch (error) {
       handleError(error, { operation: "submit idea", component: "IdeaSubmissionForm" });
@@ -124,18 +77,17 @@ export const IdeaSubmissionForm = ({ onSuccess, onCancel }: IdeaSubmissionFormPr
       )}
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-gray-900 mb-2">
-          Submit Your Miniapp Idea
+          Submit an Idea
         </h1>
-        <p className="text-gray-600">
-          Share your idea for a miniapp that could be built on Base. 
-          Other users can vote on it, and developers can claim it to build.
+        <p className="text-gray-500 text-sm">
+          Share your miniapp idea. Others can upvote it, remix it, or claim it to build.
         </p>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-6">
+      <form onSubmit={handleSubmit} className="space-y-5">
         <div>
           <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-2">
-            Idea Title *
+            Title
           </label>
           <Input
             id="title"
@@ -148,42 +100,20 @@ export const IdeaSubmissionForm = ({ onSuccess, onCancel }: IdeaSubmissionFormPr
 
         <div>
           <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-2">
-            Description *
+            Description
           </label>
           <TextArea
             id="description"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             required
-            rows={6}
+            rows={5}
           />
-        </div>
-
-        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-2xl p-6 shadow-sm">
-          <h3 className="font-semibold text-blue-900 mb-3">How it works:</h3>
-          <ul className="text-sm text-blue-800 space-y-2">
-            <li className="flex items-start gap-2">
-              <span className="text-blue-500 mt-0.5">•</span>
-              <span>Your idea will be attested to the blockchain</span>
-            </li>
-            <li className="flex items-start gap-2">
-              <span className="text-blue-500 mt-0.5">•</span>
-              <span>Other users can vote on your idea</span>
-            </li>
-            <li className="flex items-start gap-2">
-              <span className="text-blue-500 mt-0.5">•</span>
-              <span>Developers can claim ideas to build them</span>
-            </li>
-            <li className="flex items-start gap-2">
-              <span className="text-blue-500 mt-0.5">•</span>
-              <span>You can remix and expand on existing ideas</span>
-            </li>
-          </ul>
         </div>
 
         <Button
           type="submit"
-          disabled={isSubmitting || !address}
+          disabled={isSubmitting || !title.trim() || !description.trim()}
           className="w-full"
         >
           {isSubmitting ? "Submitting..." : "Submit Idea"}
