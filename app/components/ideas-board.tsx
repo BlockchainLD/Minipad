@@ -1100,11 +1100,11 @@ export const IdeasBoard = ({ onViewChange, onProfileClick }: IdeasBoardProps) =>
         </div>
       )}
 
-        {/* Idea Detail Modal */}
-        {selectedIdea && !showCompletionForm && !showRemixForm && (
+        {/* Idea Detail Modal — keep mounted while remix form is open so the remixes query stays live */}
+        {selectedIdea && !showCompletionForm && (
           <IdeaDetailModal
             idea={selectedIdea}
-            isOpen={isModalOpen}
+            isOpen={isModalOpen && !showRemixForm}
             onClose={closeModal}
             onUpvote={handleUpvote}
             onRemoveUpvote={handleRemoveUpvote}
