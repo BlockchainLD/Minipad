@@ -19,7 +19,6 @@ export const IdeaSubmissionForm = ({ onSuccess, onCancel }: IdeaSubmissionFormPr
   const [description, setDescription] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const farcasterData = useFarcasterData();
-
   const { address } = useAccount();
   const submitIdea = useMutation(api.ideas.submitIdea);
 
@@ -37,10 +36,8 @@ export const IdeaSubmissionForm = ({ onSuccess, onCancel }: IdeaSubmissionFormPr
     }
 
     setIsSubmitting(true);
-
     try {
       const submittedTitle = title.trim();
-
       await submitIdea({
         title: submittedTitle,
         description: description.trim(),
@@ -50,12 +47,9 @@ export const IdeaSubmissionForm = ({ onSuccess, onCancel }: IdeaSubmissionFormPr
         authorDisplayName: farcasterData?.displayName,
         authorUsername: farcasterData?.username,
       });
-
       toast.success("Idea submitted!");
-
       setTitle("");
       setDescription("");
-
       onSuccess?.(submittedTitle);
     } catch (error) {
       handleError(error, { operation: "submit idea", component: "IdeaSubmissionForm" });
@@ -76,9 +70,7 @@ export const IdeaSubmissionForm = ({ onSuccess, onCancel }: IdeaSubmissionFormPr
         </button>
       )}
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900 mb-2">
-          Submit an Idea
-        </h1>
+        <h1 className="text-2xl font-bold text-gray-900 mb-2">Submit an Idea</h1>
         <p className="text-gray-500 text-sm">
           Share your miniapp idea. Others can upvote it, remix it, or claim it to build.
         </p>
@@ -122,4 +114,3 @@ export const IdeaSubmissionForm = ({ onSuccess, onCancel }: IdeaSubmissionFormPr
     </div>
   );
 };
-

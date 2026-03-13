@@ -1,11 +1,5 @@
 import { v } from "convex/values";
 
-/**
- * Type definitions for Convex query/mutation returns
- * These match the schema defined in schema.ts
- */
-
-// Idea type matching the schema
 export const ideaType = v.object({
   _id: v.id("ideas"),
   title: v.string(),
@@ -30,7 +24,6 @@ export const ideaType = v.object({
   remixAttestationUid: v.optional(v.string()),
 });
 
-// Claim type matching the schema
 export const claimType = v.object({
   _id: v.id("claims"),
   ideaId: v.id("ideas"),
@@ -41,4 +34,3 @@ export const claimType = v.object({
   completedAt: v.optional(v.number()),
   miniappUrl: v.optional(v.string()),
 });
-

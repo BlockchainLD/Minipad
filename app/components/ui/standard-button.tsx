@@ -26,14 +26,15 @@ export const StandardButton = ({
   icon,
   fullWidth = false,
 }: StandardButtonProps) => {
-  const baseClasses = "rounded-xl font-medium shadow-md hover:shadow-lg transition-all duration-200 hover:scale-105 active:scale-95 cursor-pointer";
-  
+  const baseClasses =
+    "rounded-xl font-medium shadow-md hover:shadow-lg transition-all duration-200 hover:scale-105 active:scale-95 cursor-pointer";
+
   const sizeClasses = {
     sm: "px-3 py-2 text-sm min-h-[36px]",
     md: "px-4 py-2.5 text-sm min-h-[44px]",
     lg: "px-6 py-3 text-base min-h-[52px]",
   };
-  
+
   const variantClasses = {
     primary: "bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white",
     secondary: "bg-gradient-to-r from-gray-500 to-gray-600 hover:from-gray-600 hover:to-gray-700 text-white",
@@ -41,9 +42,8 @@ export const StandardButton = ({
     success: "bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white",
     warning: "bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-white",
   };
-  
+
   const widthClasses = fullWidth ? "w-full justify-center" : "";
-  
   const combinedClasses = `${baseClasses} ${sizeClasses[size]} ${variantClasses[variant]} ${widthClasses} ${className}`.trim();
 
   return (
@@ -70,8 +70,15 @@ export const StandardButton = ({
   );
 };
 
-// Specialized button components for common use cases
-export const ClaimButton = ({ onClick, disabled = false, loading = false }: { onClick: (e: React.MouseEvent) => void; disabled?: boolean; loading?: boolean }) => (
+export const ClaimButton = ({
+  onClick,
+  disabled = false,
+  loading = false,
+}: {
+  onClick: (e: React.MouseEvent) => void;
+  disabled?: boolean;
+  loading?: boolean;
+}) => (
   <StandardButton
     onClick={onClick}
     disabled={disabled}
@@ -84,7 +91,17 @@ export const ClaimButton = ({ onClick, disabled = false, loading = false }: { on
   </StandardButton>
 );
 
-export const SubmitBuildButton = ({ onClick, disabled = false, loading = false, fullWidth = false }: { onClick: (e: React.MouseEvent) => void; disabled?: boolean; loading?: boolean; fullWidth?: boolean }) => (
+export const SubmitBuildButton = ({
+  onClick,
+  disabled = false,
+  loading = false,
+  fullWidth = false,
+}: {
+  onClick: (e: React.MouseEvent) => void;
+  disabled?: boolean;
+  loading?: boolean;
+  fullWidth?: boolean;
+}) => (
   <StandardButton
     onClick={onClick}
     disabled={disabled}
@@ -98,7 +115,15 @@ export const SubmitBuildButton = ({ onClick, disabled = false, loading = false, 
   </StandardButton>
 );
 
-export const UnclaimButton = ({ onClick, disabled = false, loading = false }: { onClick: (e: React.MouseEvent) => void; disabled?: boolean; loading?: boolean }) => (
+export const UnclaimButton = ({
+  onClick,
+  disabled = false,
+  loading = false,
+}: {
+  onClick: (e: React.MouseEvent) => void;
+  disabled?: boolean;
+  loading?: boolean;
+}) => (
   <StandardButton
     onClick={onClick}
     disabled={disabled}
@@ -111,7 +136,15 @@ export const UnclaimButton = ({ onClick, disabled = false, loading = false }: { 
   </StandardButton>
 );
 
-export const DeleteButton = ({ onClick, disabled = false, loading = false }: { onClick: (e: React.MouseEvent) => void; disabled?: boolean; loading?: boolean }) => (
+export const DeleteButton = ({
+  onClick,
+  disabled = false,
+  loading = false,
+}: {
+  onClick: (e: React.MouseEvent) => void;
+  disabled?: boolean;
+  loading?: boolean;
+}) => (
   <StandardButton
     onClick={onClick}
     disabled={disabled}

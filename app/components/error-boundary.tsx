@@ -1,10 +1,7 @@
 "use client";
-
 import React from "react";
 
-interface State {
-  hasError: boolean;
-}
+interface State { hasError: boolean }
 
 export class ErrorBoundary extends React.Component<
   { children: React.ReactNode; fallback?: React.ReactNode },
@@ -14,15 +11,9 @@ export class ErrorBoundary extends React.Component<
     super(props);
     this.state = { hasError: false };
   }
-
-  static getDerivedStateFromError(): State {
-    return { hasError: true };
-  }
-
+  static getDerivedStateFromError(): State { return { hasError: true }; }
   render() {
-    if (this.state.hasError) {
-      return this.props.fallback ?? null;
-    }
+    if (this.state.hasError) return this.props.fallback ?? null;
     return this.props.children;
   }
 }

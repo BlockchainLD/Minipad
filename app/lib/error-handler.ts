@@ -5,15 +5,10 @@ export interface ErrorContext {
   component: string;
 }
 
-/**
- * Centralized error handling function
- * Handles common error messages and displays user-friendly toast notifications
- */
 export const handleError = (error: unknown, context: ErrorContext) => {
   console.error(`Error in ${context.component} during ${context.operation}:`, error);
-  
+
   if (error instanceof Error) {
-    // Handle specific error messages
     if (error.message === "Idea not found") {
       toast.error("Idea not found");
     } else if (error.message === "Idea is not available for claiming") {
@@ -53,4 +48,3 @@ export const handleWarning = (message: string) => {
 export const handleInfo = (message: string) => {
   toast.info(message);
 };
-

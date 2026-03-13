@@ -2,15 +2,13 @@ import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 import { ideaType } from "./types";
 
-// Create a remix of an existing idea
 export const createRemix = mutation({
   args: {
     originalIdeaId: v.id("ideas"),
-    remixer: v.string(), // wallet address
+    remixer: v.string(),
     title: v.string(),
     description: v.string(),
     attestationUid: v.optional(v.string()),
-    // Farcaster profile data for the remix author
     authorFid: v.optional(v.number()),
     authorAvatar: v.optional(v.string()),
     authorDisplayName: v.optional(v.string()),
@@ -18,74 +16,28 @@ export const createRemix = mutation({
   },
   returns: v.id("ideas"),
   handler: async (ctx, args) => {
-    try {
-      // Get the original idea
-      const originalIdea = await ctx.db.get(args.originalIdeaId);
-      if (!originalIdea) {
-        throw new Error("Original idea not found");
-      }
+    const original = await ctx.db.get(args.originalIdeaId);
+    if (!original) throw new Error("Original idea not found");
 
-      // Create the remix idea
-      const remixId = await ctx.db.insert("ideas", {
-        title: args.title,
-        description: args.description,
-        author: args.remixer,
-        authorFid: args.authorFid,
-        authorAvatar: args.authorAvatar,
-        authorDisplayName: args.authorDisplayName,
-        authorUsername: args.authorUsername,
-        attestationUid: args.attestationUid,
-        timestamp: Date.now(),
-        upvotes: 0,
-        status: "open" as const,
-        isRemix: true,
-        originalIdeaId: args.originalIdeaId,
-        remixAttestationUid: args.attestationUid,
-      });
-
-      // Verify the remix was created and has the correct fields
-      const createdRemix = await ctx.db.get(remixId);
-      if (!createdRemix) {
-        throw new Error("Remix was not created successfully");
-      }
-      if (!createdRemix.isRemix || createdRemix.originalIdeaId !== args.originalIdeaId) {
-        throw new Error("Remix was created but with incorrect fields");
-      }
-
-      return remixId;
-    } catch (error) {
-      console.error("Error in createRemix:", error);
-      throw error;
-    }
+    return await ctx.db.insert("ideas", {
+      title: args.title,
+      description: args.description,
+      author: args.remixer,
+      authorFid: args.authorFid,
+      authorAvatar: args.authorAvatar,
+      authorDisplayName: args.authorDisplayName,
+      authorUsername: args.authorUsername,
+      attestationUid: args.attestationUid,
+      timestamp: Date.now(),
+      upvotes: 0,
+      status: "open",
+      isRemix: true,
+      originalIdeaId: args.originalIdeaId,
+      remixAttestationUid: args.attestationUid,
+    });
   },
 });
 
-// Update remix with attestation UID
-export const updateRemixAttestation = mutation({
-  args: {
-    remixId: v.id("ideas"),
-    attestationUid: v.string(),
-  },
-  returns: v.null(),
-  handler: async (ctx, args) => {
-    try {
-      const remix = await ctx.db.get(args.remixId);
-      if (!remix || !remix.isRemix) {
-        throw new Error("Remix not found");
-      }
-      
-      await ctx.db.patch(args.remixId, {
-        attestationUid: args.attestationUid,
-        remixAttestationUid: args.attestationUid,
-      });
-    } catch (error) {
-      console.error("Error in updateRemixAttestation:", error);
-      throw error;
-    }
-  },
-});
-
-// Delete a remix (only by the author)
 export const deleteRemix = mutation({
   args: {
     remixId: v.id("ideas"),
@@ -93,79 +45,51 @@ export const deleteRemix = mutation({
   },
   returns: v.null(),
   handler: async (ctx, args) => {
-    try {
-      const remix = await ctx.db.get(args.remixId);
-      if (!remix) {
-        throw new Error("Remix not found");
-      }
-      
-      if (remix.author !== args.author) {
-        throw new Error("Only the author can delete their remix");
-      }
-      
-      if (!remix.isRemix) {
-        throw new Error("This is not a remix");
-      }
-      
-      // Delete all related upvotes first
-      const upvotes = await ctx.db
-        .query("upvotes")
-        .withIndex("by_idea", (q) => q.eq("ideaId", args.remixId))
-        .collect();
-      
-      for (const upvote of upvotes) {
-        await ctx.db.delete(upvote._id);
-      }
-      
-      // Delete all related claims
-      const claims = await ctx.db
-        .query("claims")
-        .withIndex("by_idea", (q) => q.eq("ideaId", args.remixId))
-        .collect();
-      
-      for (const claim of claims) {
-        await ctx.db.delete(claim._id);
-      }
-      
-      // Finally delete the remix
-      await ctx.db.delete(args.remixId);
-    } catch (error) {
-      console.error("Error in deleteRemix:", error);
-      throw error;
+    const remix = await ctx.db.get(args.remixId);
+    if (!remix) throw new Error("Remix not found");
+    if (remix.author !== args.author) throw new Error("Only the author can delete their remix");
+    if (!remix.isRemix) throw new Error("This is not a remix");
+
+    const upvotes = await ctx.db
+      .query("upvotes")
+      .withIndex("by_idea", (q) => q.eq("ideaId", args.remixId))
+      .collect();
+    for (const upvote of upvotes) {
+      await ctx.db.delete(upvote._id);
     }
+
+    await ctx.db.delete(args.remixId);
   },
 });
 
-// Get remixes for a specific idea
+export const updateRemixAttestation = mutation({
+  args: {
+    remixId: v.id("ideas"),
+    attestationUid: v.string(),
+  },
+  returns: v.null(),
+  handler: async (ctx, args) => {
+    const remix = await ctx.db.get(args.remixId);
+    if (!remix || !remix.isRemix) throw new Error("Remix not found");
+    await ctx.db.patch(args.remixId, {
+      attestationUid: args.attestationUid,
+      remixAttestationUid: args.attestationUid,
+    });
+  },
+});
+
 export const getRemixesForIdea = query({
   args: {
     originalIdeaId: v.id("ideas"),
   },
   returns: v.array(ideaType),
   handler: async (ctx, args) => {
-    try {
-      // First, try to get remixes using the index
-      let remixes = await ctx.db
-        .query("ideas")
-        .withIndex("by_original_idea", (q) => q.eq("originalIdeaId", args.originalIdeaId))
-        .filter((q) => q.eq(q.field("isRemix"), true))
-        .collect();
-      
-      // If no results, try a fallback query without index (in case index isn't working)
-      if (remixes.length === 0) {
-        const allIdeas = await ctx.db
-          .query("ideas")
-          .collect();
-        remixes = allIdeas.filter(
-          (idea) => idea.isRemix === true && idea.originalIdeaId === args.originalIdeaId
-        );
-      }
-      
-      // Sort remixes by timestamp (newest first)
-      return remixes.sort((a, b) => b.timestamp - a.timestamp);
-    } catch (error) {
-      console.error("Error in getRemixesForIdea:", error);
-      return [];
-    }
+    const results = await ctx.db
+      .query("ideas")
+      .withIndex("by_original_idea", (q) => q.eq("originalIdeaId", args.originalIdeaId))
+      .collect();
+    return results
+      .filter(idea => idea.isRemix)
+      .sort((a, b) => b.timestamp - a.timestamp);
   },
 });

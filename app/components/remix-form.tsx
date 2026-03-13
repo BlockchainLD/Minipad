@@ -8,8 +8,8 @@ import { toast } from "sonner";
 interface RemixFormProps {
   originalTitle: string;
   originalDescription: string;
-  onSubmit: (data: { 
-    title: string; 
+  onSubmit: (data: {
+    title: string;
     description: string;
     authorFid?: number;
     authorAvatar?: string;
@@ -19,7 +19,12 @@ interface RemixFormProps {
   onCancel: () => void;
 }
 
-export const RemixForm = ({ originalTitle, originalDescription, onSubmit, onCancel }: RemixFormProps) => {
+export const RemixForm = ({
+  originalTitle,
+  originalDescription,
+  onSubmit,
+  onCancel,
+}: RemixFormProps) => {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -27,37 +32,28 @@ export const RemixForm = ({ originalTitle, originalDescription, onSubmit, onCanc
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     const trimmedTitle = title.trim();
     const trimmedDescription = description.trim();
-    
+
     if (!trimmedTitle || !trimmedDescription) {
       toast.error("Please fill in both title and description");
       return;
     }
 
+    setIsSubmitting(true);
     try {
-      setIsSubmitting(true);
-      
-      // Submit with or without Farcaster data - don't block on it
-      const submissionData = { 
-        title: trimmedTitle, 
+      await onSubmit({
+        title: trimmedTitle,
         description: trimmedDescription,
         authorFid: farcasterData?.fid || undefined,
         authorAvatar: farcasterData?.pfp?.url || undefined,
         authorDisplayName: farcasterData?.displayName || undefined,
         authorUsername: farcasterData?.username || undefined,
-      };
-      
-      await onSubmit(submissionData);
-      
-      // Clear form on success
+      });
       setTitle("");
       setDescription("");
-      
-      // Success handling is done in the parent component
     } catch (error) {
-      // Error handling is done in the parent component
       throw error;
     } finally {
       setIsSubmitting(false);
@@ -68,7 +64,6 @@ export const RemixForm = ({ originalTitle, originalDescription, onSubmit, onCanc
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
       <div className="bg-white rounded-3xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
         <div className="p-6 sm:p-8">
-          {/* Header */}
           <div className="flex items-center justify-between mb-6">
             <div>
               <h2 className="text-2xl font-bold text-gray-900">Create Remix</h2>
@@ -82,14 +77,12 @@ export const RemixForm = ({ originalTitle, originalDescription, onSubmit, onCanc
             </button>
           </div>
 
-          {/* Original Idea Context */}
           <div className="bg-gray-50 rounded-xl p-4 mb-6">
             <h3 className="font-semibold text-gray-900 mb-2">Original Idea:</h3>
             <h4 className="text-lg font-medium text-gray-800 mb-2">{originalTitle}</h4>
             <p className="text-gray-600 text-sm leading-relaxed">{originalDescription}</p>
           </div>
 
-          {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
               <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-2">
@@ -123,7 +116,6 @@ export const RemixForm = ({ originalTitle, originalDescription, onSubmit, onCanc
               />
             </div>
 
-            {/* Action Buttons */}
             <div className="flex gap-3 pt-4">
               <button
                 type="button"

@@ -2,56 +2,44 @@ import { useState, useEffect } from "react";
 import { useFarcaster } from "../components/auto-connect-wrapper";
 import type { FarcasterUser } from "../lib/types";
 
-/**
- * Custom hook to fetch Farcaster user data.
- * Tries the Warpcast API first; falls back to the SDK context data
- * (available when running inside the Farcaster mini-app) so the profile
- * always renders even when the external API is unavailable.
- */
 export function useFarcasterData(): FarcasterUser | null {
   const { fid, isInMiniApp, sdkUser } = useFarcaster();
   const [farcasterData, setFarcasterData] = useState<FarcasterUser | null>(null);
 
   useEffect(() => {
-    const fetchFarcasterData = async () => {
-      if (!fid || !isInMiniApp) {
-        setFarcasterData(null);
-        return;
-      }
+    if (!fid || !isInMiniApp) {
+      setFarcasterData(null);
+      return;
+    }
 
+    const fetchData = async () => {
       try {
-        const response = await fetch(`/api/farcaster/${fid}`);
-        if (response.ok) {
-          const data = await response.json();
-          const user = data?.result?.user;
-          // Sanitize: the Warpcast API can return null for any field
-          if (user && typeof user.fid === "number") {
+        const res = await fetch(`/api/farcaster/${fid}`);
+        if (res.ok) {
+          const data = await res.json();
+          const u = data?.result?.user;
+          if (u && typeof u.fid === "number") {
             setFarcasterData({
-              fid: user.fid,
-              displayName: user.displayName || user.username || `FID ${user.fid}`,
-              username: user.username || `fid${user.fid}`,
-              profile: user.profile ? {
-                bio: user.profile.bio ? { text: user.profile.bio.text || "" } : { text: "" },
-                location: user.profile.location || undefined,
-                url: user.profile.url || undefined,
-                bannerImageUrl: user.profile.bannerImageUrl || undefined,
+              fid: u.fid,
+              displayName: u.displayName || u.username || `FID ${u.fid}`,
+              username: u.username || `fid${u.fid}`,
+              profile: u.profile ? {
+                bio: { text: u.profile?.bio?.text || "" },
+                location: u.profile?.location || undefined,
+                url: u.profile?.url || undefined,
+                bannerImageUrl: u.profile?.bannerImageUrl || undefined,
               } : { bio: { text: "" } },
-              followerCount: typeof user.followerCount === "number" ? user.followerCount : 0,
-              followingCount: typeof user.followingCount === "number" ? user.followingCount : 0,
-              pfp: user.pfp ? {
-                url: user.pfp.url || "",
-                verified: !!user.pfp.verified,
-              } : { url: "", verified: false },
-              connectedAccounts: Array.isArray(user.connectedAccounts) ? user.connectedAccounts : undefined,
+              followerCount: typeof u.followerCount === "number" ? u.followerCount : 0,
+              followingCount: typeof u.followingCount === "number" ? u.followingCount : 0,
+              pfp: { url: u.pfp?.url || "", verified: !!u.pfp?.verified },
+              connectedAccounts: Array.isArray(u.connectedAccounts) ? u.connectedAccounts : undefined,
             });
             return;
           }
         }
       } catch {
-        // Fall through to SDK fallback
+        // fall through to SDK fallback
       }
-
-      // API failed — use data from SDK context if available
       if (sdkUser) {
         setFarcasterData({
           fid: sdkUser.fid,
@@ -67,7 +55,7 @@ export function useFarcasterData(): FarcasterUser | null {
       }
     };
 
-    fetchFarcasterData();
+    fetchData();
   }, [fid, isInMiniApp, sdkUser]);
 
   return farcasterData;

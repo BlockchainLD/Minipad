@@ -3,24 +3,20 @@
 import { useState } from "react";
 import { SignInWithBaseButton } from "@base-org/account-ui/react";
 import { useConnect } from "wagmi";
-import { 
-  Typography, 
-  Spinner
-} from "@worldcoin/mini-apps-ui-kit-react";
+import { Typography, Spinner } from "@worldcoin/mini-apps-ui-kit-react";
 
 export function SignInForm() {
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState(false);
   const { connectAsync, connectors } = useConnect();
 
   const handleWalletConnect = async () => {
     setIsLoading(true);
-    
     try {
-      // Prefer Base Smart Wallet connector for web
-      const baseConnector = connectors.find(c => c.name.toLowerCase().includes('base')) || connectors[0];
+      const baseConnector =
+        connectors.find((c) => c.name.toLowerCase().includes("base")) || connectors[0];
       await connectAsync({ connector: baseConnector });
     } catch (error) {
-      console.error('Wallet connection error:', error);
+      console.error("Wallet connection error:", error);
     } finally {
       setIsLoading(false);
     }
@@ -44,13 +40,14 @@ export function SignInForm() {
               Connecting...
             </Typography>
           </div>
-        ) :
-        <SignInWithBaseButton
-          align="center"
-          variant="solid"
-          colorScheme="light"
-          onClick={handleWalletConnect}
-        />}
+        ) : (
+          <SignInWithBaseButton
+            align="center"
+            variant="solid"
+            colorScheme="light"
+            onClick={handleWalletConnect}
+          />
+        )}
       </div>
     </div>
   );

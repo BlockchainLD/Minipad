@@ -9,7 +9,6 @@ import { IdeaListItem } from "./idea-list-item";
 import { Id } from "../../../convex/_generated/dataModel";
 import { IDEAS_PER_SECTION } from "../../lib/constants";
 
-// Type for idea in user ideas section
 type UserIdea = {
   _id: Id<"ideas">;
   title: string;
@@ -26,33 +25,38 @@ interface SettingsContentProps {
   onSignOut: () => void;
 }
 
-export const SettingsContent = ({ walletAddress, copied, onCopyAddress, onSignOut }: SettingsContentProps) => {
+export const SettingsContent = ({
+  walletAddress,
+  copied,
+  onCopyAddress,
+  onSignOut,
+}: SettingsContentProps) => {
   const { address } = useAccount();
-  
-  // Fetch user's ideas
-  const submittedIdeas = useQuery(api.userIdeas.getUserSubmittedIdeas, 
+
+  const submittedIdeas = useQuery(
+    api.userIdeas.getUserSubmittedIdeas,
     address ? { author: address } : "skip"
   );
-  const claimedIdeas = useQuery(api.userIdeas.getUserClaimedIdeas, 
+  const claimedIdeas = useQuery(
+    api.userIdeas.getUserClaimedIdeas,
     address ? { claimer: address } : "skip"
   );
-  const completedIdeas = useQuery(api.userIdeas.getUserCompletedIdeas, 
+  const completedIdeas = useQuery(
+    api.userIdeas.getUserCompletedIdeas,
     address ? { claimer: address } : "skip"
   );
-  
+
   return (
     <div className="space-y-6">
       <ErrorBoundary>
         <FarcasterProfile />
       </ErrorBoundary>
-      
-      {/* User's Ideas Section */}
+
       <div className="space-y-4">
         <Typography variant="subtitle" className="text-black">
           Your Ideas
         </Typography>
-        
-        {/* Submitted Ideas */}
+
         <div className="bg-gray-50 rounded-lg p-4">
           <div className="flex items-center gap-2 mb-3">
             <LightBulb width={20} height={20} className="text-blue-600" />
@@ -75,8 +79,7 @@ export const SettingsContent = ({ walletAddress, copied, onCopyAddress, onSignOu
             <p className="text-sm text-gray-500">No ideas submitted yet</p>
           )}
         </div>
-        
-        {/* Claimed Ideas */}
+
         <div className="bg-gray-50 rounded-lg p-4">
           <div className="flex items-center gap-2 mb-3">
             <Hammer width={20} height={20} className="text-yellow-600" />
@@ -99,8 +102,7 @@ export const SettingsContent = ({ walletAddress, copied, onCopyAddress, onSignOu
             <p className="text-sm text-gray-500">No ideas claimed yet</p>
           )}
         </div>
-        
-        {/* Completed/Deployed Ideas */}
+
         <div className="bg-gray-50 rounded-lg p-4">
           <div className="flex items-center gap-2 mb-3">
             <Tools width={20} height={20} className="text-green-600" />
@@ -124,7 +126,7 @@ export const SettingsContent = ({ walletAddress, copied, onCopyAddress, onSignOu
           )}
         </div>
       </div>
-      
+
       <div className="space-y-3">
         <Typography variant="subtitle" className="text-black">
           Wallet
@@ -136,7 +138,7 @@ export const SettingsContent = ({ walletAddress, copied, onCopyAddress, onSignOu
               <div className="flex-1 min-w-0">
                 <div className="overflow-x-auto">
                   <Typography variant="body" className="text-gray-600 whitespace-nowrap text-sm">
-                    {walletAddress || 'Loading...'}
+                    {walletAddress || "Loading..."}
                   </Typography>
                 </div>
               </div>
@@ -146,7 +148,11 @@ export const SettingsContent = ({ walletAddress, copied, onCopyAddress, onSignOu
               className="p-2 text-gray-400 hover:text-gray-600 transition-colors flex-shrink-0"
               aria-label="Copy address"
             >
-              {copied ? <CheckCircle width={16} height={16} className="text-green-500" /> : <Copy width={16} height={16} />}
+              {copied ? (
+                <CheckCircle width={16} height={16} className="text-green-500" />
+              ) : (
+                <Copy width={16} height={16} />
+              )}
             </button>
           </div>
         </div>
