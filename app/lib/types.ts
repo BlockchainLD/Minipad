@@ -2,23 +2,23 @@
 
 export interface FarcasterUser {
   fid: number;
-  displayName: string;
-  username: string;
-  profile: {
-    bio: {
-      text: string;
+  displayName?: string;
+  username?: string;
+  profile?: {
+    bio?: {
+      text?: string;
     };
     location?: {
-      description: string;
+      description?: string;
     };
     url?: string;
     bannerImageUrl?: string;
   };
-  followerCount: number;
-  followingCount: number;
-  pfp: {
-    url: string;
-    verified: boolean;
+  followerCount?: number;
+  followingCount?: number;
+  pfp?: {
+    url?: string;
+    verified?: boolean;
   };
   connectedAccounts?: Array<{
     platform: string;

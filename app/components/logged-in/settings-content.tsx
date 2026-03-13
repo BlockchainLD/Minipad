@@ -1,6 +1,7 @@
 import { Button, Typography } from "@worldcoin/mini-apps-ui-kit-react";
 import { Copy, LogOut, CheckCircle, Wallet, LightBulb, Hammer, Tools } from "iconoir-react";
 import { FarcasterProfile } from "../farcaster-profile";
+import { ErrorBoundary } from "../error-boundary";
 import { useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { useAccount } from "wagmi";
@@ -41,7 +42,9 @@ export const SettingsContent = ({ walletAddress, copied, onCopyAddress, onSignOu
   
   return (
     <div className="space-y-6">
-      <FarcasterProfile />
+      <ErrorBoundary>
+        <FarcasterProfile />
+      </ErrorBoundary>
       
       {/* User's Ideas Section */}
       <div className="space-y-4">
