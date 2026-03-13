@@ -46,3 +46,4 @@ bun.lock
 bun.lockb
 .env*.local
 .claude/
+yarn.lock
