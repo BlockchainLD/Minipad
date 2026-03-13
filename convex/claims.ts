@@ -1,8 +1,6 @@
-import { mutation, query } from "./_generated/server";
+import { mutation } from "./_generated/server";
 import { v } from "convex/values";
-import { claimType } from "./types";
 
-// MINIMAL: Claim an idea as in progress
 export const claimIdea = mutation({
   args: {
     ideaId: v.id("ideas"),
@@ -11,39 +9,26 @@ export const claimIdea = mutation({
   },
   returns: v.null(),
   handler: async (ctx, args) => {
-    try {
-      const idea = await ctx.db.get(args.ideaId);
-      if (!idea) {
-        throw new Error("Idea not found");
-      }
-      
-      if (idea.status !== "open") {
-        throw new Error("Idea is not available for claiming");
-      }
+    const idea = await ctx.db.get(args.ideaId);
+    if (!idea) throw new Error("Idea not found");
+    if (idea.status !== "open") throw new Error("Idea is not available for claiming");
 
-      // Create claim record
-      await ctx.db.insert("claims", {
-        ideaId: args.ideaId,
-        claimer: args.claimer,
-        attestationUid: args.attestationUid,
-        timestamp: Date.now(),
-        status: "claimed",
-      });
+    await ctx.db.insert("claims", {
+      ideaId: args.ideaId,
+      claimer: args.claimer,
+      attestationUid: args.attestationUid,
+      timestamp: Date.now(),
+      status: "claimed",
+    });
 
-      // Update idea status
-      await ctx.db.patch(args.ideaId, {
-        status: "claimed",
-        claimedBy: args.claimer,
-        claimedAt: Date.now(),
-      });
-    } catch (error) {
-      console.error("Error in claimIdea:", error);
-      throw error;
-    }
+    await ctx.db.patch(args.ideaId, {
+      status: "claimed",
+      claimedBy: args.claimer,
+      claimedAt: Date.now(),
+    });
   },
 });
 
-// MINIMAL: Complete a claimed idea
 export const completeIdea = mutation({
   args: {
     ideaId: v.id("ideas"),
@@ -54,97 +39,53 @@ export const completeIdea = mutation({
   },
   returns: v.null(),
   handler: async (ctx, args) => {
-    try {
-      const idea = await ctx.db.get(args.ideaId);
-      if (!idea) {
-        throw new Error("Idea not found");
-      }
-      
-      if (idea.status !== "claimed" || idea.claimedBy !== args.claimer) {
-        throw new Error("Idea is not claimed by this user");
-      }
-
-      // Update idea status
-      await ctx.db.patch(args.ideaId, {
-        status: "completed",
-        githubUrl: args.githubUrl,
-        deploymentUrl: args.deploymentUrl,
-        completedAt: Date.now(),
-        completionAttestationUid: args.attestationUid,
-      });
-    } catch (error) {
-      console.error("Error in completeIdea:", error);
-      throw error;
+    const idea = await ctx.db.get(args.ideaId);
+    if (!idea) throw new Error("Idea not found");
+    if (idea.status !== "claimed" || idea.claimedBy !== args.claimer) {
+      throw new Error("Idea is not claimed by this user");
     }
+
+    await ctx.db.patch(args.ideaId, {
+      status: "completed",
+      githubUrl: args.githubUrl,
+      deploymentUrl: args.deploymentUrl,
+      completedAt: Date.now(),
+      completionAttestationUid: args.attestationUid,
+    });
   },
 });
 
-// Unclaim an idea (only by the claimer)
 export const unclaimIdea = mutation({
   args: {
     ideaId: v.id("ideas"),
     claimer: v.string(),
   },
-  returns: v.union(v.string(), v.null()), // Return attestation UID if found
+  returns: v.union(v.string(), v.null()),
   handler: async (ctx, args) => {
-    try {
-      const idea = await ctx.db.get(args.ideaId);
-      if (!idea) {
-        throw new Error("Idea not found");
-      }
-      
-      if (idea.status !== "claimed" || idea.claimedBy !== args.claimer) {
-        throw new Error("Idea is not claimed by this user");
-      }
-
-      // Find and delete the claim record
-      const claim = await ctx.db
-        .query("claims")
-        .withIndex("by_idea", (q) => q.eq("ideaId", args.ideaId))
-        .filter((q) => q.eq(q.field("claimer"), args.claimer))
-        .first();
-      
-      let attestationUid = null;
-      if (claim) {
-        attestationUid = claim.attestationUid;
-        await ctx.db.delete(claim._id);
-      }
-
-      // Update idea status back to open
-      await ctx.db.patch(args.ideaId, {
-        status: "open",
-        claimedBy: undefined,
-        claimedAt: undefined,
-      });
-
-      return attestationUid;
-    } catch (error) {
-      console.error("Error in unclaimIdea:", error);
-      throw error;
+    const idea = await ctx.db.get(args.ideaId);
+    if (!idea) throw new Error("Idea not found");
+    if (idea.status !== "claimed" || idea.claimedBy !== args.claimer) {
+      throw new Error("Idea is not claimed by this user");
     }
+
+    const claim = await ctx.db
+      .query("claims")
+      .withIndex("by_idea", (q) => q.eq("ideaId", args.ideaId))
+      .filter((q) => q.eq(q.field("claimer"), args.claimer))
+      .first();
+
+    let attestationUid: string | null = null;
+    if (claim) {
+      attestationUid = claim.attestationUid ?? null;
+      await ctx.db.delete(claim._id);
+    }
+
+    await ctx.db.patch(args.ideaId, {
+      status: "open",
+      claimedBy: undefined,
+      claimedAt: undefined,
+    });
+
+    return attestationUid;
   },
 });
-
-// Get claim for a specific idea and claimer
-export const getClaimForIdea = query({
-  args: {
-    ideaId: v.id("ideas"),
-    claimer: v.string(),
-  },
-  returns: v.union(claimType, v.null()),
-  handler: async (ctx, args) => {
-    try {
-      const claim = await ctx.db
-        .query("claims")
-        .withIndex("by_idea", (q) => q.eq("ideaId", args.ideaId))
-        .filter((q) => q.eq(q.field("claimer"), args.claimer))
-        .first();
-      
-      return claim;
-    } catch (error) {
-      console.error("Error in getClaimForIdea:", error);
-      return null;
-    }
-  },
-});
-

@@ -21,7 +21,6 @@ export const CompletionForm = ({ ideaId, onSuccess, onCancel }: CompletionFormPr
   const [githubUrl, setGithubUrl] = useState("");
   const [deploymentUrl, setDeploymentUrl] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  
   const { address } = useAccount();
   const completeIdea = useMutation(api.claims.completeIdea);
 
@@ -41,12 +40,12 @@ export const CompletionForm = ({ ideaId, onSuccess, onCancel }: CompletionFormPr
       return;
     }
 
-    if (!trimmedGithubUrl.startsWith('http://') && !trimmedGithubUrl.startsWith('https://')) {
+    if (!trimmedGithubUrl.startsWith("http://") && !trimmedGithubUrl.startsWith("https://")) {
       toast.error("GitHub URL must start with http:// or https://");
       return;
     }
 
-    if (!trimmedDeploymentUrl.startsWith('http://') && !trimmedDeploymentUrl.startsWith('https://')) {
+    if (!trimmedDeploymentUrl.startsWith("http://") && !trimmedDeploymentUrl.startsWith("https://")) {
       toast.error("Deployment URL must start with http:// or https://");
       return;
     }
@@ -60,7 +59,6 @@ export const CompletionForm = ({ ideaId, onSuccess, onCancel }: CompletionFormPr
     }
 
     setIsSubmitting(true);
-
     try {
       await completeIdea({
         ideaId,
@@ -68,7 +66,6 @@ export const CompletionForm = ({ ideaId, onSuccess, onCancel }: CompletionFormPr
         githubUrl: trimmedGithubUrl,
         deploymentUrl: trimmedDeploymentUrl,
       });
-
       handleSuccess("Build submitted! This idea is now marked as complete.");
       setGithubUrl("");
       setDeploymentUrl("");
@@ -92,9 +89,7 @@ export const CompletionForm = ({ ideaId, onSuccess, onCancel }: CompletionFormPr
         </button>
       )}
       <div className="mb-6">
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">
-          Submit Your Build
-        </h2>
+        <h2 className="text-2xl font-bold text-gray-900 mb-2">Submit Your Build</h2>
         <p className="text-gray-500 text-sm">
           Share the GitHub repo and live URL for your completed miniapp.
         </p>

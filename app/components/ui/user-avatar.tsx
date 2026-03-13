@@ -7,9 +7,6 @@ interface UserAvatarProps {
   className?: string;
 }
 
-/**
- * Reusable component for rendering user avatars with fallback to colored initials
- */
 export function UserAvatar({
   author,
   authorAvatar,
@@ -19,16 +16,12 @@ export function UserAvatar({
   className = "",
 }: UserAvatarProps) {
   const getInitial = () => {
-    if (authorDisplayName) {
-      return authorDisplayName.charAt(0).toUpperCase();
-    }
-    if (authorUsername) {
-      return authorUsername.charAt(0).toUpperCase();
-    }
+    if (authorDisplayName) return authorDisplayName.charAt(0).toUpperCase();
+    if (authorUsername) return authorUsername.charAt(0).toUpperCase();
     return author?.charAt(0).toUpperCase() || "?";
   };
 
-  const backgroundColor = `hsl(${author?.charCodeAt(0) * 137.5 % 360}, 70%, 50%)`;
+  const backgroundColor = `hsl(${(author?.charCodeAt(0) ?? 0) * 137.5 % 360}, 70%, 50%)`;
   const sizeClass = size === 24 ? "w-6 h-6 text-xs" : size === 32 ? "w-8 h-8 text-xs" : "w-12 h-12 text-lg";
 
   return (
@@ -53,10 +46,7 @@ export function UserAvatar({
         className={`${sizeClass} rounded-full flex items-center justify-center font-semibold ${
           authorAvatar ? "hidden" : "flex"
         } ${className}`}
-        style={{
-          backgroundColor,
-          color: "white",
-        }}
+        style={{ backgroundColor, color: "white" }}
       >
         {getInitial()}
       </div>

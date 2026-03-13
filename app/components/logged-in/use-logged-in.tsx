@@ -7,20 +7,18 @@ type TabName = typeof TABS.HOME | typeof TABS.SETTINGS;
 export const useLoggedIn = () => {
   const { address } = useAccount();
   const { disconnect } = useDisconnect();
-  const [copied, setCopied] = useState<boolean>(false);
-  const [copiedUserId, setCopiedUserId] = useState<boolean>(false);
+  const [copied, setCopied] = useState(false);
   const [activeTab, setActiveTab] = useState<TabName>(TABS.HOME);
 
-  const handleSignOut = async () => {
+  const walletAddress = address || "";
+
+  const handleSignOut = () => {
     try {
       disconnect();
-    } catch (error) {
-      // Disconnect errors are usually non-critical (user cancelled, etc.)
-      // Silently handle to avoid unnecessary error messages
+    } catch {
+      // non-critical
     }
   };
-
-  const walletAddress = address || '';
 
   const handleCopyAddress = async () => {
     if (walletAddress) {
@@ -30,24 +28,12 @@ export const useLoggedIn = () => {
     }
   };
 
-  const handleCopyUserId = async () => {
-    const userId = walletAddress; // Use wallet address as user ID for now
-    if (userId) {
-      await navigator.clipboard.writeText(userId);
-      setCopiedUserId(true);
-      setTimeout(() => setCopiedUserId(false), COPY_NOTIFICATION_TIMEOUT);
-    }
-  };
-
   return {
     copied,
-    copiedUserId,
     activeTab,
     setActiveTab,
     handleSignOut,
     walletAddress,
     handleCopyAddress,
-    handleCopyUserId,
-    userId: walletAddress, // Use wallet address as user ID for now
   };
 };
