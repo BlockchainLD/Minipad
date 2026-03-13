@@ -1,7 +1,6 @@
 "use client";
 
 import { LightBulb } from "iconoir-react";
-import Image from "next/image";
 
 interface HeaderProps {
   avatarUrl: string | null;
@@ -26,12 +25,14 @@ export const Header = ({ avatarUrl, onLogoClick, onAvatarClick }: HeaderProps) =
             className="rounded-full focus:outline-none focus:ring-2 focus:ring-blue-300 hover:ring-2 hover:ring-blue-200 transition-all"
             aria-label="Open profile"
           >
-            <Image
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
               src={avatarUrl}
               alt="Profile avatar"
               width={28}
               height={28}
-              className="w-7 h-7 rounded-full"
+              className="w-7 h-7 rounded-full object-cover"
+              onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
             />
           </button>
         )}

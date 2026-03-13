@@ -10,11 +10,11 @@ export const getUserSubmittedIdeas = query({
   returns: v.array(ideaType),
   handler: async (ctx, args) => {
     try {
-      const ideas = await ctx.db
+      const allIdeas = await ctx.db
         .query("ideas")
         .withIndex("by_author", (q) => q.eq("author", args.author))
-        .filter((q) => q.eq(q.field("isRemix"), false)) // Only non-remix ideas
         .collect();
+      const ideas = allIdeas.filter((idea) => !idea.isRemix);
       
       return ideas.sort((a, b) => b.timestamp - a.timestamp);
     } catch (error) {
