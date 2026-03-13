@@ -12,14 +12,18 @@ export function FarcasterProfile() {
     return null;
   }
 
+  const displayName = farcasterData.displayName || farcasterData.username || "Unknown User";
+  const username = farcasterData.username || "unknown";
+  const avatarUrl = farcasterData.pfp?.url || "";
+
   return (
     <div className="bg-white rounded-lg p-4 space-y-4">
       <div className="flex items-center space-x-3">
-        {farcasterData.pfp?.url ? (
+        {avatarUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
-            src={farcasterData.pfp.url}
-            alt={farcasterData.displayName}
+            src={avatarUrl}
+            alt={displayName}
             width={48}
             height={48}
             className="w-12 h-12 rounded-full object-cover"
@@ -27,31 +31,31 @@ export function FarcasterProfile() {
           />
         ) : (
           <div className="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 font-semibold text-lg">
-            {farcasterData.displayName?.charAt(0).toUpperCase() ?? "?"}
+            {displayName.charAt(0).toUpperCase()}
           </div>
         )}
         <div className="flex-1">
           <div className="flex items-center space-x-2">
             <Typography variant="heading" className="text-gray-900">
-              {farcasterData.displayName}
+              {displayName}
             </Typography>
             {farcasterData.pfp?.verified && (
               <span className="text-blue-500">✓</span>
             )}
           </div>
           <Typography variant="body" className="text-gray-600">
-            @{farcasterData.username}
+            @{username}
           </Typography>
         </div>
       </div>
 
-      {farcasterData.profile?.bio?.text && (
+      {farcasterData.profile?.bio?.text ? (
         <div>
           <Typography variant="body" className="text-gray-700">
             {farcasterData.profile.bio.text}
           </Typography>
         </div>
-      )}
+      ) : null}
 
       <div className="flex items-center space-x-4 text-sm text-gray-600">
         <div className="flex items-center space-x-1">
@@ -64,28 +68,28 @@ export function FarcasterProfile() {
         </div>
       </div>
 
-      {farcasterData.profile?.location && (
+      {farcasterData.profile?.location?.description ? (
         <div className="flex items-center space-x-2 text-sm text-gray-600">
           <span>📍</span>
           <span>{farcasterData.profile.location.description}</span>
         </div>
-      )}
+      ) : null}
 
-      {farcasterData.profile?.url && (
+      {farcasterData.profile?.url ? (
         <div className="flex items-center space-x-2 text-sm">
           <span>🔗</span>
-          <a 
-            href={farcasterData.profile.url} 
-            target="_blank" 
+          <a
+            href={farcasterData.profile.url}
+            target="_blank"
             rel="noopener noreferrer"
             className="text-blue-600 hover:text-blue-800"
           >
             {farcasterData.profile.url}
           </a>
         </div>
-      )}
+      ) : null}
 
-      {farcasterData.connectedAccounts && farcasterData.connectedAccounts.length > 0 && (
+      {farcasterData.connectedAccounts && farcasterData.connectedAccounts.length > 0 ? (
         <div className="space-y-2">
           <Typography variant="body" className="text-gray-700 font-medium">
             Connected Accounts:
@@ -99,7 +103,7 @@ export function FarcasterProfile() {
             ))}
           </div>
         </div>
-      )}
+      ) : null}
     </div>
   );
 }

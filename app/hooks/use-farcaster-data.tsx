@@ -24,9 +24,26 @@ export function useFarcasterData(): FarcasterUser | null {
         if (response.ok) {
           const data = await response.json();
           const user = data?.result?.user;
-          // Only use API data if the response has the required shape
+          // Sanitize: the Warpcast API can return null for any field
           if (user && typeof user.fid === "number") {
-            setFarcasterData(user);
+            setFarcasterData({
+              fid: user.fid,
+              displayName: user.displayName || user.username || `FID ${user.fid}`,
+              username: user.username || `fid${user.fid}`,
+              profile: user.profile ? {
+                bio: user.profile.bio ? { text: user.profile.bio.text || "" } : { text: "" },
+                location: user.profile.location || undefined,
+                url: user.profile.url || undefined,
+                bannerImageUrl: user.profile.bannerImageUrl || undefined,
+              } : { bio: { text: "" } },
+              followerCount: typeof user.followerCount === "number" ? user.followerCount : 0,
+              followingCount: typeof user.followingCount === "number" ? user.followingCount : 0,
+              pfp: user.pfp ? {
+                url: user.pfp.url || "",
+                verified: !!user.pfp.verified,
+              } : { url: "", verified: false },
+              connectedAccounts: Array.isArray(user.connectedAccounts) ? user.connectedAccounts : undefined,
+            });
             return;
           }
         }
