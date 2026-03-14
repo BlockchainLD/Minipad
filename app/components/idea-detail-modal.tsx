@@ -1,10 +1,10 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { useQuery } from "convex/react";
+import { useQuery, useMutation } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { Id } from "../../convex/_generated/dataModel";
-import { Heart, Flash, Xmark, Trash } from "iconoir-react";
+import { Heart, Flash, Xmark, Trash, Plus, EditPencil, MessageText } from "iconoir-react";
 import { UserAvatar } from "./ui/user-avatar";
 import { StatusBadge } from "./ui/status-badge";
 import { ClaimButton, UnclaimButton, SubmitBuildButton } from "./ui/standard-button";
@@ -31,13 +31,45 @@ type Idea = {
   deploymentUrl?: string;
 };
 
+type Remix = {
+  _id: Id<"remixes">;
+  ideaId: Id<"ideas">;
+  author: string;
+  authorFid?: number;
+  authorAvatar?: string;
+  authorDisplayName?: string;
+  authorUsername?: string;
+  content: string;
+  type: "addition" | "edit" | "comment";
+  timestamp: number;
+  upvotes: number;
+};
+
+const TYPE_CONFIG = {
+  addition: {
+    label: "Addition",
+    icon: Plus,
+    className: "text-green-700 bg-green-50 border border-green-200",
+  },
+  edit: {
+    label: "Edit",
+    icon: EditPencil,
+    className: "text-blue-700 bg-blue-50 border border-blue-200",
+  },
+  comment: {
+    label: "Comment",
+    icon: MessageText,
+    className: "text-gray-700 bg-gray-50 border border-gray-200",
+  },
+} as const;
+
 const handleButtonClick = (e: React.MouseEvent, callback: () => void) => {
   e.preventDefault();
   e.stopPropagation();
   callback();
 };
 
-// Upvote button with optimistic state
+// Upvote button for the main idea
 const UpvoteButton = ({
   ideaId,
   upvotes,
@@ -81,32 +113,23 @@ const UpvoteButton = ({
   const handleClick = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-
-    if (!address) {
-      toast.error("Please connect your wallet to upvote");
-      return;
-    }
+    if (!address) { toast.error("Please connect your wallet to upvote"); return; }
     if (isProcessing) return;
-
     setIsProcessing(true);
     try {
       if (currentUpvotedState === true) {
         setOptimisticUpvoted(false);
-        if (onOptimisticUpvoteChange) {
-          onOptimisticUpvoteChange((optimisticUpvotes ?? upvotes) - 1);
-        }
+        onOptimisticUpvoteChange?.((optimisticUpvotes ?? upvotes) - 1);
         await onRemoveUpvote(ideaId);
       } else {
         setOptimisticUpvoted(true);
-        if (onOptimisticUpvoteChange) {
-          onOptimisticUpvoteChange((optimisticUpvotes ?? upvotes) + 1);
-        }
+        onOptimisticUpvoteChange?.((optimisticUpvotes ?? upvotes) + 1);
         await onUpvote(ideaId);
       }
     } catch (error) {
       handleError(error, { operation: "upvote", component: "IdeaDetailModal" });
       setOptimisticUpvoted(null);
-      if (onOptimisticUpvoteChange) onOptimisticUpvoteChange(upvotes);
+      onOptimisticUpvoteChange?.(upvotes);
     } finally {
       setIsProcessing(false);
     }
@@ -139,22 +162,24 @@ const UpvoteButton = ({
   );
 };
 
-// Upvote button for remix entries
+// Upvote button for individual remix entries
 const RemixUpvoteButton = ({
-  remixId,
-  onUpvote,
+  remix,
   address,
 }: {
-  remixId: Id<"ideas">;
-  onUpvote: (id: Id<"ideas">) => void;
+  remix: Remix;
   address: string | undefined;
 }) => {
   const [optimisticUpvoted, setOptimisticUpvoted] = useState<boolean | null>(null);
+  const [optimisticCount, setOptimisticCount] = useState<number | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
 
+  const upvoteRemix = useMutation(api.remixes.upvoteRemix);
+  const removeRemixUpvote = useMutation(api.remixes.removeRemixUpvote);
+
   const hasUpvoted = useQuery(
-    api.upvotes.hasUserUpvoted,
-    address ? { ideaId: remixId, voter: address } : "skip"
+    api.remixes.hasUserUpvotedRemix,
+    address ? { remixId: remix._id, voter: address } : "skip"
   );
 
   const currentUpvotedState = optimisticUpvoted !== null ? optimisticUpvoted : hasUpvoted;
@@ -162,12 +187,13 @@ const RemixUpvoteButton = ({
   useEffect(() => {
     if (hasUpvoted !== undefined && optimisticUpvoted !== null) {
       setOptimisticUpvoted(null);
+      setOptimisticCount(null);
     }
   }, [hasUpvoted, optimisticUpvoted]);
 
   useEffect(() => {
     if (optimisticUpvoted !== null) {
-      const t = setTimeout(() => setOptimisticUpvoted(null), 5000);
+      const t = setTimeout(() => { setOptimisticUpvoted(null); setOptimisticCount(null); }, 5000);
       return () => clearTimeout(t);
     }
   }, [optimisticUpvoted]);
@@ -175,24 +201,23 @@ const RemixUpvoteButton = ({
   const handleClick = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-
-    if (!address) {
-      toast.error("Please connect your wallet to upvote");
-      return;
-    }
+    if (!address) { toast.error("Please connect your wallet to upvote"); return; }
     if (isProcessing) return;
-
     setIsProcessing(true);
     try {
       if (currentUpvotedState === true) {
         setOptimisticUpvoted(false);
+        setOptimisticCount((optimisticCount ?? remix.upvotes) - 1);
+        await removeRemixUpvote({ remixId: remix._id, voter: address });
       } else {
         setOptimisticUpvoted(true);
+        setOptimisticCount((optimisticCount ?? remix.upvotes) + 1);
+        await upvoteRemix({ remixId: remix._id, voter: address });
       }
-      await onUpvote(remixId);
     } catch (error) {
       handleError(error, { operation: "upvote remix", component: "IdeaDetailModal" });
       setOptimisticUpvoted(null);
+      setOptimisticCount(null);
     } finally {
       setIsProcessing(false);
     }
@@ -200,23 +225,20 @@ const RemixUpvoteButton = ({
 
   const isUpvoted = currentUpvotedState === true;
   const isLoading = (hasUpvoted === undefined && !!address) || isProcessing;
+  const count = optimisticCount ?? remix.upvotes;
 
   return (
     <button
       onClick={handleClick}
       disabled={!address || isLoading}
-      className={`flex items-center justify-center p-1 transition-all duration-200 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed ${
-        isUpvoted ? "text-red-500 hover:text-red-600" : "text-gray-500 hover:text-gray-700"
+      className={`flex items-center gap-1 px-2 py-1 rounded-lg text-xs transition-all duration-200 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed ${
+        isUpvoted ? "text-red-500 hover:text-red-600" : "text-gray-400 hover:text-gray-600"
       }`}
-      title={!address ? "Connect wallet to upvote" : isUpvoted ? "Remove upvote" : "Add upvote"}
+      title={!address ? "Connect wallet to upvote" : isUpvoted ? "Remove upvote" : "Upvote"}
     >
-      <Heart
-        width={14}
-        height={14}
-        fill={isUpvoted ? "currentColor" : "none"}
-        stroke="currentColor"
-      />
-      {isLoading && <span className="text-xs text-gray-400 ml-1">...</span>}
+      <Heart width={12} height={12} fill={isUpvoted ? "currentColor" : "none"} stroke="currentColor" />
+      {count > 0 && <span>{count}</span>}
+      {isLoading && <span className="text-gray-300">...</span>}
     </button>
   );
 };
@@ -231,8 +253,6 @@ interface IdeaDetailModalProps {
   onClaim: (id: Id<"ideas">) => void;
   onUnclaim: (id: Id<"ideas">) => void;
   onDelete: (id: Id<"ideas">) => void;
-  onRemixUpvote: (id: Id<"ideas">) => void;
-  onRemixDelete: (id: Id<"ideas">) => void;
   onOpenCompletionForm: () => void;
   onProfileClick?: (authorAddress: string) => void;
   address: string | undefined;
@@ -248,16 +268,16 @@ export const IdeaDetailModal = ({
   onClaim,
   onUnclaim,
   onDelete,
-  onRemixUpvote,
-  onRemixDelete,
   onOpenCompletionForm,
   onProfileClick,
   address,
 }: IdeaDetailModalProps) => {
   const remixes = useQuery(
     api.remixes.getRemixesForIdea,
-    idea ? { originalIdeaId: idea._id } : "skip"
-  );
+    idea ? { ideaId: idea._id } : "skip"
+  ) as Remix[] | undefined;
+
+  const deleteRemix = useMutation(api.remixes.deleteRemix);
 
   const [optimisticUpvotes, setOptimisticUpvotes] = useState<number | null>(null);
 
@@ -266,9 +286,7 @@ export const IdeaDetailModal = ({
   }, [idea]);
 
   useEffect(() => {
-    const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
-    };
+    const handleEscape = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
     if (isOpen) {
       document.addEventListener("keydown", handleEscape);
       document.body.style.overflow = "hidden";
@@ -279,14 +297,23 @@ export const IdeaDetailModal = ({
     };
   }, [isOpen, onClose]);
 
+  const handleRemixDelete = async (remixId: Id<"remixes">) => {
+    if (!address) return;
+    if (!window.confirm("Delete this? This cannot be undone.")) return;
+    try {
+      await deleteRemix({ remixId, author: address });
+      toast.success("Deleted.");
+    } catch (error) {
+      handleError(error, { operation: "delete remix", component: "IdeaDetailModal" });
+    }
+  };
+
   if (!isOpen || !idea) return null;
 
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50 backdrop-blur-sm"
-      onClick={(e) => {
-        if (e.target === e.currentTarget) onClose();
-      }}
+      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
     >
       <div className="relative w-full max-w-3xl max-h-[90vh] bg-white rounded-3xl shadow-2xl overflow-hidden animate-in fade-in-0 zoom-in-95 duration-300 flex flex-col border border-gray-100">
         {/* Fixed Header */}
@@ -412,84 +439,78 @@ export const IdeaDetailModal = ({
               </div>
             )}
 
-            {/* Remixes */}
+            {/* Remixes / Additions / Comments */}
             <div className="mb-8">
               <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
                 <Flash width={20} height={20} className="text-yellow-500" />
-                Remixes ({remixes?.length || 0})
+                Community Takes ({remixes?.length || 0})
               </h3>
 
               {remixes === undefined ? (
                 <div className="text-center py-8 text-gray-400">
                   <div className="animate-spin w-6 h-6 border-2 border-gray-300 rounded-full border-t-blue-500 mx-auto mb-2" />
-                  <p className="text-sm">Loading remixes...</p>
+                  <p className="text-sm">Loading...</p>
                 </div>
               ) : remixes.length > 0 ? (
-                <div className="space-y-4">
-                  {remixes.map((remix) => (
-                    <div
-                      key={remix._id}
-                      className="bg-gray-50 border border-gray-200 rounded-lg p-4"
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      <div className="flex items-start gap-3">
-                        <div className="flex-shrink-0">
-                          <UserAvatar
-                            author={remix.author}
-                            authorAvatar={remix.authorAvatar}
-                            authorDisplayName={remix.authorDisplayName}
-                            authorUsername={remix.authorUsername}
-                            size={32}
-                          />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 mb-1">
-                            <h4 className="font-semibold text-gray-900 truncate">{remix.title}</h4>
-                            <span className="text-xs text-gray-500">
-                              {new Date(remix.timestamp).toLocaleDateString()}
-                            </span>
+                <div className="space-y-3">
+                  {remixes.map((remix) => {
+                    const cfg = TYPE_CONFIG[remix.type];
+                    const Icon = cfg.icon;
+                    return (
+                      <div
+                        key={remix._id}
+                        className="border border-gray-100 rounded-2xl p-4 bg-gray-50"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <div className="flex items-start gap-3">
+                          <div className="flex-shrink-0 mt-0.5">
+                            <UserAvatar
+                              author={remix.author}
+                              authorAvatar={remix.authorAvatar}
+                              authorDisplayName={remix.authorDisplayName}
+                              authorUsername={remix.authorUsername}
+                              size={28}
+                            />
                           </div>
-                          <p className="text-sm text-gray-600 mb-2">
-                            by {remix.authorDisplayName || remix.authorUsername || "Anonymous"}
-                          </p>
-                          <p className="text-gray-700 text-sm leading-relaxed whitespace-pre-wrap">
-                            {remix.description}
-                          </p>
-                          <div className="flex items-center justify-between mt-3">
-                            <div className="flex items-center gap-4 text-xs text-gray-500">
-                              <div className="flex items-center gap-1">
-                                <Heart width={12} height={12} />
-                                <span>{remix.upvotes} upvotes</span>
-                              </div>
-                              <StatusBadge status={remix.status} className="px-2 py-1 text-xs" />
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-1 flex-wrap">
+                              <span className="text-sm font-medium text-gray-900">
+                                {remix.authorDisplayName || remix.authorUsername || "Anonymous"}
+                              </span>
+                              <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${cfg.className}`}>
+                                <Icon width={10} height={10} />
+                                {cfg.label}
+                              </span>
+                              <span className="text-xs text-gray-400">
+                                {new Date(remix.timestamp).toLocaleDateString()}
+                              </span>
                             </div>
-                            <div className="flex items-center gap-2">
-                              <RemixUpvoteButton
-                                remixId={remix._id}
-                                onUpvote={onRemixUpvote}
-                                address={address}
-                              />
+                            <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">
+                              {remix.content}
+                            </p>
+                            <div className="flex items-center gap-2 mt-2">
+                              <RemixUpvoteButton remix={remix} address={address} />
                               {address && remix.author === address && (
                                 <button
-                                  onClick={(e) => handleButtonClick(e, () => onRemixDelete(remix._id))}
-                                  className="flex items-center justify-center p-1 text-red-500 hover:text-red-600 transition-all duration-200 hover:scale-105"
-                                  title="Delete this remix"
+                                  onClick={(e) => handleButtonClick(e, () => handleRemixDelete(remix._id))}
+                                  className="flex items-center justify-center p-1 text-red-400 hover:text-red-600 transition-all duration-200 hover:scale-105"
+                                  title="Delete"
                                 >
-                                  <Trash width={14} height={14} />
+                                  <Trash width={12} height={12} />
                                 </button>
                               )}
                             </div>
                           </div>
                         </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               ) : (
-                <div className="text-center py-8 text-gray-500">
-                  <Flash width={32} height={32} className="mx-auto mb-2 text-gray-300" />
-                  <p>No remixes yet</p>
-                  <p className="text-sm">Be the first to remix this idea!</p>
+                <div className="text-center py-8 text-gray-400 border border-dashed border-gray-200 rounded-2xl">
+                  <Flash width={28} height={28} className="mx-auto mb-2 text-gray-300" />
+                  <p className="text-sm font-medium">No takes yet</p>
+                  <p className="text-xs mt-1">Be the first to add an addition, edit, or comment</p>
                 </div>
               )}
             </div>
@@ -511,10 +532,11 @@ export const IdeaDetailModal = ({
 
             <button
               onClick={(e) => handleButtonClick(e, () => onRemix(idea._id))}
-              className="flex items-center justify-center p-2 text-yellow-500 hover:text-yellow-600 transition-all duration-200 hover:scale-105"
-              title="Remix this idea"
+              className="flex items-center gap-1.5 px-3 py-2 text-yellow-600 hover:text-yellow-700 hover:bg-yellow-50 rounded-xl transition-all duration-200 hover:scale-105 text-sm font-medium"
+              title="Add your take"
             >
-              <Flash width={20} height={20} />
+              <Flash width={16} height={16} />
+              Add Take
             </button>
 
             {idea.status === "open" && (

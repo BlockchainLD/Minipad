@@ -160,7 +160,6 @@ export const IdeasBoard = ({ onViewChange, onProfileClick }: IdeasBoardProps) =>
   const claimIdea = useMutation(api.claims.claimIdea);
   const unclaimIdea = useMutation(api.claims.unclaimIdea);
   const createRemix = useMutation(api.remixes.createRemix);
-  const deleteRemix = useMutation(api.remixes.deleteRemix);
   const deleteIdea = useMutation(api.ideas.deleteIdea);
 
   // Keep selectedIdea in sync with latest data
@@ -200,15 +199,15 @@ export const IdeasBoard = ({ onViewChange, onProfileClick }: IdeasBoardProps) =>
   };
 
   const submitRemix = async ({
-    title,
-    description,
+    content,
+    type,
     authorFid,
     authorAvatar,
     authorDisplayName,
     authorUsername,
   }: {
-    title: string;
-    description: string;
+    content: string;
+    type: "addition" | "edit" | "comment";
     authorFid?: number;
     authorAvatar?: string;
     authorDisplayName?: string;
@@ -220,16 +219,16 @@ export const IdeasBoard = ({ onViewChange, onProfileClick }: IdeasBoardProps) =>
     }
     try {
       await createRemix({
-        originalIdeaId: selectedIdea._id,
-        remixer: address,
-        title,
-        description,
+        ideaId: selectedIdea._id,
+        author: address,
+        content,
+        type,
         authorFid,
         authorAvatar,
         authorDisplayName,
         authorUsername,
       });
-      toast.success("Remix created!");
+      toast.success("Added!");
     } catch (error) {
       handleError(error, { operation: "create remix", component: "IdeasBoard" });
     } finally {
@@ -268,34 +267,6 @@ export const IdeasBoard = ({ onViewChange, onProfileClick }: IdeasBoardProps) =>
       closeModal();
     } catch (error) {
       handleError(error, { operation: "delete idea", component: "IdeasBoard" });
-    }
-  };
-
-  const handleRemixUpvote = async (remixId: Id<"ideas">) => {
-    if (!address) { toast.error("Please connect your wallet"); return; }
-    try {
-      try {
-        await upvoteIdea({ ideaId: remixId, voter: address });
-      } catch (upvoteError) {
-        if (upvoteError instanceof Error && upvoteError.message.includes("already upvoted")) {
-          await removeUpvote({ ideaId: remixId, voter: address });
-        } else {
-          throw upvoteError;
-        }
-      }
-    } catch (error) {
-      handleError(error, { operation: "toggle remix upvote", component: "IdeasBoard" });
-    }
-  };
-
-  const handleRemixDelete = async (remixId: Id<"ideas">) => {
-    if (!address) { toast.error("Please connect your wallet"); return; }
-    if (!window.confirm("Delete this remix? This cannot be undone.")) return;
-    try {
-      await deleteRemix({ remixId, author: address });
-      toast.success("Remix deleted.");
-    } catch (error) {
-      handleError(error, { operation: "delete remix", component: "IdeasBoard" });
     }
   };
 
@@ -487,8 +458,6 @@ export const IdeasBoard = ({ onViewChange, onProfileClick }: IdeasBoardProps) =>
           onClaim={handleClaim}
           onUnclaim={handleUnclaim}
           onDelete={handleDelete}
-          onRemixUpvote={handleRemixUpvote}
-          onRemixDelete={handleRemixDelete}
           onOpenCompletionForm={() => setShowCompletionForm(true)}
           onProfileClick={onProfileClick}
           address={address}
@@ -499,7 +468,6 @@ export const IdeasBoard = ({ onViewChange, onProfileClick }: IdeasBoardProps) =>
       {showRemixForm && selectedIdea && (
         <RemixForm
           originalTitle={selectedIdea.title}
-          originalDescription={selectedIdea.description}
           onSubmit={submitRemix}
           onCancel={() => {
             setShowRemixForm(false);
