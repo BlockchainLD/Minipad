@@ -44,6 +44,8 @@ type Remix = {
   type: "addition" | "edit" | "comment";
   timestamp: number;
   upvotes: number;
+  // Returned by getRemixesForIdea when voter is provided — no separate per-remix query needed.
+  hasUpvoted: boolean;
 };
 
 const TYPE_CONFIG = {
@@ -163,7 +165,9 @@ const UpvoteButton = ({
   );
 };
 
-// Upvote button for individual remix entries
+// Upvote button for individual remix entries.
+// Receives initial upvote state from parent (via getRemixesForIdea voter param)
+// — no separate per-remix useQuery needed, eliminating the N+1 query problem.
 const RemixUpvoteButton = ({
   remix,
   address,
@@ -178,19 +182,9 @@ const RemixUpvoteButton = ({
   const upvoteRemix = useMutation(api.remixes.upvoteRemix);
   const removeRemixUpvote = useMutation(api.remixes.removeRemixUpvote);
 
-  const hasUpvoted = useQuery(
-    api.remixes.hasUserUpvotedRemix,
-    address ? { remixId: remix._id, voter: address } : "skip"
-  );
-
-  const currentUpvotedState = optimisticUpvoted !== null ? optimisticUpvoted : hasUpvoted;
-
-  useEffect(() => {
-    if (hasUpvoted !== undefined && optimisticUpvoted !== null) {
-      setOptimisticUpvoted(null);
-      setOptimisticCount(null);
-    }
-  }, [hasUpvoted, optimisticUpvoted]);
+  // Use the hasUpvoted value baked into the remix object by the server query.
+  // Optimistic state overrides this while a mutation is in-flight.
+  const currentUpvotedState = optimisticUpvoted !== null ? optimisticUpvoted : remix.hasUpvoted;
 
   useEffect(() => {
     if (optimisticUpvoted !== null) {
@@ -206,7 +200,7 @@ const RemixUpvoteButton = ({
     if (isProcessing) return;
     setIsProcessing(true);
     try {
-      if (currentUpvotedState === true) {
+      if (currentUpvotedState) {
         setOptimisticUpvoted(false);
         setOptimisticCount((optimisticCount ?? remix.upvotes) - 1);
         await removeRemixUpvote({ remixId: remix._id, voter: address });
@@ -225,13 +219,12 @@ const RemixUpvoteButton = ({
   };
 
   const isUpvoted = currentUpvotedState === true;
-  const isLoading = (hasUpvoted === undefined && !!address) || isProcessing;
   const count = optimisticCount ?? remix.upvotes;
 
   return (
     <button
       onClick={handleClick}
-      disabled={!address || isLoading}
+      disabled={!address || isProcessing}
       className={`flex items-center gap-1 px-2 py-1 rounded-lg text-xs transition-all duration-200 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed ${
         isUpvoted ? "text-red-500 hover:text-red-600" : "text-gray-400 hover:text-gray-600"
       }`}
@@ -239,7 +232,7 @@ const RemixUpvoteButton = ({
     >
       <Heart width={12} height={12} fill={isUpvoted ? "currentColor" : "none"} stroke="currentColor" />
       {count > 0 && <span>{count}</span>}
-      {isLoading && <span className="text-gray-300">...</span>}
+      {isProcessing && <span className="text-gray-300">...</span>}
     </button>
   );
 };
@@ -269,7 +262,9 @@ const RemixesSection = ({
 }) => {
   const remixes = useQuery(
     api.remixes.getRemixesForIdea,
-    { ideaId: idea._id }
+    // Passing voter here means hasUpvoted is baked into each remix —
+    // no separate per-remix useQuery calls needed downstream.
+    { ideaId: idea._id, voter: address ?? undefined }
   ) as Remix[] | undefined;
 
   const deleteRemix = useMutation(api.remixes.deleteRemix);
