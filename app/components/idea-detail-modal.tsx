@@ -11,6 +11,8 @@ import { ClaimButton, UnclaimButton, SubmitBuildButton } from "./ui/standard-but
 import { handleError } from "../lib/error-handler";
 import { toast } from "sonner";
 import { ErrorBoundary } from "./error-boundary";
+import { RemixForm } from "./remix-form";
+import { useFarcasterData } from "../hooks/use-farcaster-data";
 
 type Idea = {
   _id: Id<"ideas">;
@@ -243,13 +245,14 @@ interface IdeaDetailModalProps {
   onClose: () => void;
   onUpvote: (id: Id<"ideas">) => void;
   onRemoveUpvote: (id: Id<"ideas">) => void;
-  onRemix: (id: Id<"ideas">) => void;
   onClaim: (id: Id<"ideas">) => void;
   onUnclaim: (id: Id<"ideas">) => void;
   onDelete: (id: Id<"ideas">) => void;
   onOpenCompletionForm: () => void;
   onProfileClick?: (authorAddress: string) => void;
   address: string | undefined;
+  // When true, the remix form opens immediately (e.g. from card Flash button)
+  autoOpenRemixForm?: boolean;
 }
 
 // Isolated component so useQuery errors are caught by ErrorBoundary
@@ -364,22 +367,71 @@ export const IdeaDetailModal = ({
   onClose,
   onUpvote,
   onRemoveUpvote,
-  onRemix,
   onClaim,
   onUnclaim,
   onDelete,
   onOpenCompletionForm,
   onProfileClick,
   address,
+  autoOpenRemixForm = false,
 }: IdeaDetailModalProps) => {
   const [optimisticUpvotes, setOptimisticUpvotes] = useState<number | null>(null);
+  // Inline remix form — rendered as an overlay ON TOP of this modal so
+  // RemixesSection stays mounted and its Convex subscription stays alive.
+  // When createRemix completes, the subscription delivers the new remix
+  // automatically — no modal unmount/remount cycle needed.
+  const [showRemixForm, setShowRemixForm] = useState(false);
+
+  const createRemix = useMutation(api.remixes.createRemix);
+  const farcasterData = useFarcasterData();
+
+  // Open remix form immediately when requested (e.g. Flash button on card)
+  useEffect(() => {
+    if (isOpen && autoOpenRemixForm) setShowRemixForm(true);
+  }, [isOpen, autoOpenRemixForm]);
+
+  // Reset remix form and optimistic upvotes when the idea changes
+  useEffect(() => {
+    setShowRemixForm(false);
+    setOptimisticUpvotes(null);
+  }, [idea?._id]);
+
+  const handleSubmitRemix = async (data: {
+    content: string;
+    type: "addition" | "edit" | "comment";
+    authorFid?: number;
+    authorAvatar?: string;
+    authorDisplayName?: string;
+    authorUsername?: string;
+  }) => {
+    if (!address) { toast.error("Please connect your wallet"); return; }
+    try {
+      await createRemix({
+        ideaId: idea._id,
+        author: address,
+        content: data.content,
+        type: data.type,
+        authorFid: data.authorFid ?? farcasterData?.fid ?? undefined,
+        authorAvatar: data.authorAvatar ?? farcasterData?.pfp?.url ?? undefined,
+        authorDisplayName: data.authorDisplayName ?? farcasterData?.displayName ?? undefined,
+        authorUsername: data.authorUsername ?? farcasterData?.username ?? undefined,
+      });
+      toast.success("Added!");
+      setShowRemixForm(false);
+      // No need to manually refresh — RemixesSection's Convex subscription
+      // auto-delivers the new remix because it never unmounted.
+    } catch (error) {
+      handleError(error, { operation: "create remix", component: "IdeaDetailModal" });
+    }
+  };
 
   useEffect(() => {
-    if (idea) setOptimisticUpvotes(null);
-  }, [idea]);
-
-  useEffect(() => {
-    const handleEscape = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        if (showRemixForm) { setShowRemixForm(false); return; }
+        onClose();
+      }
+    };
     if (isOpen) {
       document.addEventListener("keydown", handleEscape);
       document.body.style.overflow = "hidden";
@@ -388,7 +440,7 @@ export const IdeaDetailModal = ({
       document.removeEventListener("keydown", handleEscape);
       document.body.style.overflow = "unset";
     };
-  }, [isOpen, onClose]);
+  }, [isOpen, onClose, showRemixForm]);
 
   if (!isOpen || !idea) return null;
 
@@ -544,7 +596,7 @@ export const IdeaDetailModal = ({
             />
 
             <button
-              onClick={(e) => handleButtonClick(e, () => onRemix(idea._id))}
+              onClick={(e) => { e.preventDefault(); e.stopPropagation(); setShowRemixForm(true); }}
               className="flex items-center gap-1.5 px-3 py-2 text-yellow-600 hover:text-yellow-700 hover:bg-yellow-50 rounded-xl transition-all duration-200 hover:scale-105 text-sm font-medium"
               title="Add your take"
             >
@@ -581,6 +633,18 @@ export const IdeaDetailModal = ({
           </div>
         </div>
       </div>
+
+      {/* Remix form renders as a z-60 overlay ON TOP of this modal.
+          This keeps RemixesSection mounted so its Convex subscription
+          remains active — the new remix arrives via subscription the
+          moment createRemix completes, no remount needed. */}
+      {showRemixForm && (
+        <RemixForm
+          originalTitle={idea.title}
+          onSubmit={handleSubmitRemix}
+          onCancel={() => setShowRemixForm(false)}
+        />
+      )}
     </div>
   );
 };

@@ -1,6 +1,6 @@
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
-import { remixType, remixWithUpvoteType } from "./types";
+import { remixWithUpvoteType } from "./types";
 
 export const createRemix = mutation({
   args: {
