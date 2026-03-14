@@ -36,6 +36,7 @@ type Idea = {
 
 type Remix = {
   _id: Id<"remixes">;
+  _creationTime: number;
   ideaId: Id<"ideas">;
   author: string;
   authorFid?: number;
@@ -46,8 +47,6 @@ type Remix = {
   type: "addition" | "edit" | "comment";
   timestamp: number;
   upvotes: number;
-  // Returned by getRemixesForIdea when voter is provided — no separate per-remix query needed.
-  hasUpvoted: boolean;
 };
 
 const TYPE_CONFIG = {
@@ -168,8 +167,6 @@ const UpvoteButton = ({
 };
 
 // Upvote button for individual remix entries.
-// Receives initial upvote state from parent (via getRemixesForIdea voter param)
-// — no separate per-remix useQuery needed, eliminating the N+1 query problem.
 const RemixUpvoteButton = ({
   remix,
   address,
@@ -184,16 +181,19 @@ const RemixUpvoteButton = ({
   const upvoteRemix = useMutation(api.remixes.upvoteRemix);
   const removeRemixUpvote = useMutation(api.remixes.removeRemixUpvote);
 
-  // Use the hasUpvoted value baked into the remix object by the server query.
-  // Optimistic state overrides this while a mutation is in-flight.
-  const currentUpvotedState = optimisticUpvoted !== null ? optimisticUpvoted : remix.hasUpvoted;
+  const hasUpvotedQuery = useQuery(
+    api.remixes.hasUserUpvotedRemix,
+    address ? { remixId: remix._id, voter: address } : "skip"
+  );
+
+  const currentUpvotedState = optimisticUpvoted !== null ? optimisticUpvoted : (hasUpvotedQuery ?? false);
 
   useEffect(() => {
-    if (optimisticUpvoted !== null) {
-      const t = setTimeout(() => { setOptimisticUpvoted(null); setOptimisticCount(null); }, 5000);
-      return () => clearTimeout(t);
+    if (hasUpvotedQuery !== undefined && optimisticUpvoted !== null) {
+      setOptimisticUpvoted(null);
+      setOptimisticCount(null);
     }
-  }, [optimisticUpvoted]);
+  }, [hasUpvotedQuery, optimisticUpvoted]);
 
   const handleClick = async (e: React.MouseEvent) => {
     e.preventDefault();
@@ -265,9 +265,7 @@ const RemixesSection = ({
 }) => {
   const remixes = useQuery(
     api.remixes.getRemixesForIdea,
-    // Passing voter here means hasUpvoted is baked into each remix —
-    // no separate per-remix useQuery calls needed downstream.
-    { ideaId: idea._id, voter: address ?? undefined }
+    { ideaId: idea._id }
   ) as Remix[] | undefined;
 
   const deleteRemix = useMutation(api.remixes.deleteRemix);
@@ -382,7 +380,32 @@ export const IdeaDetailModal = ({
   // automatically — no modal unmount/remount cycle needed.
   const [showRemixForm, setShowRemixForm] = useState(false);
 
-  const createRemix = useMutation(api.remixes.createRemix);
+  const createRemix = useMutation(api.remixes.createRemix).withOptimisticUpdate(
+    (localStore, args) => {
+      const existing = localStore.getQuery(api.remixes.getRemixesForIdea, { ideaId: args.ideaId });
+      if (existing !== undefined) {
+        const optimistic: Remix = {
+          _id: `optimistic_${Date.now()}` as Id<"remixes">,
+          _creationTime: Date.now(),
+          ideaId: args.ideaId,
+          author: args.author,
+          authorFid: args.authorFid,
+          authorAvatar: args.authorAvatar,
+          authorDisplayName: args.authorDisplayName,
+          authorUsername: args.authorUsername,
+          content: args.content,
+          type: args.type,
+          timestamp: Date.now(),
+          upvotes: 0,
+        };
+        localStore.setQuery(
+          api.remixes.getRemixesForIdea,
+          { ideaId: args.ideaId },
+          [optimistic, ...(existing as Remix[])]
+        );
+      }
+    }
+  );
   const farcasterData = useFarcasterData();
 
   // Open remix form immediately when requested (e.g. Flash button on card)
