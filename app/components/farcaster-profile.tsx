@@ -1,7 +1,6 @@
 "use client";
 import { useFarcaster } from "./auto-connect-wrapper";
 import { useFarcasterData } from "../hooks/use-farcaster-data";
-import { Typography } from "@worldcoin/mini-apps-ui-kit-react";
 
 export function FarcasterProfile() {
   const { fid, isInMiniApp } = useFarcaster();
@@ -17,17 +16,15 @@ export function FarcasterProfile() {
     <div className="bg-white rounded-lg p-4 space-y-4">
       <div className="flex items-center space-x-3">
         {avatarUrl ? (
-          <>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={avatarUrl}
-              alt={displayName}
-              width={48}
-              height={48}
-              className="w-12 h-12 rounded-full object-cover"
-              onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
-            />
-          </>
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={avatarUrl}
+            alt={displayName}
+            width={48}
+            height={48}
+            className="w-12 h-12 rounded-full object-cover"
+            onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+          />
         ) : (
           <div className="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 font-semibold text-lg">
             {displayName.charAt(0).toUpperCase()}
@@ -35,15 +32,15 @@ export function FarcasterProfile() {
         )}
         <div className="flex-1">
           <div className="flex items-center space-x-2">
-            <Typography variant="heading" className="text-gray-900">{displayName}</Typography>
-            {data.pfp?.verified && <span className="text-blue-500">✓</span>}
+            <p className="font-semibold text-gray-900">{displayName}</p>
+            {data.pfp?.verified && <span className="text-blue-500 text-sm">✓</span>}
           </div>
-          <Typography variant="body" className="text-gray-600">@{username}</Typography>
+          <p className="text-sm text-gray-600">@{username}</p>
         </div>
       </div>
 
       {data.profile?.bio?.text ? (
-        <Typography variant="body" className="text-gray-700">{data.profile.bio.text}</Typography>
+        <p className="text-sm text-gray-700">{data.profile.bio.text}</p>
       ) : null}
 
       <div className="flex items-center space-x-4 text-sm text-gray-600">
@@ -69,7 +66,7 @@ export function FarcasterProfile() {
             href={data.profile.url}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-blue-600 hover:text-blue-800"
+            className="text-blue-600 hover:text-blue-800 break-all"
           >
             {data.profile.url}
           </a>
