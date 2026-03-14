@@ -313,7 +313,7 @@ export const IdeasBoard = ({ onViewChange, onProfileClick }: IdeasBoardProps) =>
 
   const filteredAndSortedIdeas = React.useMemo(() => {
     if (!ideas) return [];
-    let filtered = ideas.filter((idea) => !idea.isRemix);
+    const filtered = ideas.filter((idea) => !idea.isRemix);
     switch (currentFilter) {
       case "newest":
         return filtered.sort((a, b) => b.timestamp - a.timestamp);
