@@ -16,6 +16,7 @@ import { StatusBadge } from "./ui/status-badge";
 import { ClaimButton, SubmitBuildButton } from "./ui/standard-button";
 import { handleError } from "../lib/error-handler";
 import { IdeaDetailModal } from "./idea-detail-modal";
+import { ErrorBoundary } from "./error-boundary";
 
 type Idea = {
   _id: Id<"ideas">;
@@ -448,20 +449,37 @@ export const IdeasBoard = ({ onViewChange, onProfileClick }: IdeasBoardProps) =>
       {/* Idea Detail Modal — keep mounted while remix form is open so Convex
           subscription stays alive and remixes appear instantly */}
       {selectedIdea && !showCompletionForm && (
-        <IdeaDetailModal
-          idea={selectedIdea}
-          isOpen={isModalOpen && !showRemixForm}
-          onClose={closeModal}
-          onUpvote={handleUpvote}
-          onRemoveUpvote={handleRemoveUpvote}
-          onRemix={handleRemix}
-          onClaim={handleClaim}
-          onUnclaim={handleUnclaim}
-          onDelete={handleDelete}
-          onOpenCompletionForm={() => setShowCompletionForm(true)}
-          onProfileClick={onProfileClick}
-          address={address}
-        />
+        <ErrorBoundary
+          fallback={
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50">
+              <div className="bg-white rounded-3xl shadow-2xl p-8 max-w-sm w-full text-center">
+                <p className="text-gray-700 font-medium mb-2">Could not load idea details</p>
+                <p className="text-sm text-gray-500 mb-4">Please try again.</p>
+                <button
+                  onClick={closeModal}
+                  className="px-4 py-2 bg-gray-900 text-white rounded-xl text-sm font-medium"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          }
+        >
+          <IdeaDetailModal
+            idea={selectedIdea}
+            isOpen={isModalOpen && !showRemixForm}
+            onClose={closeModal}
+            onUpvote={handleUpvote}
+            onRemoveUpvote={handleRemoveUpvote}
+            onRemix={handleRemix}
+            onClaim={handleClaim}
+            onUnclaim={handleUnclaim}
+            onDelete={handleDelete}
+            onOpenCompletionForm={() => setShowCompletionForm(true)}
+            onProfileClick={onProfileClick}
+            address={address}
+          />
+        </ErrorBoundary>
       )}
 
       {/* Remix Form Modal */}
