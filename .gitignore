@@ -44,6 +44,8 @@ next-env.d.ts
 # bun
 bun.lock
 bun.lockb
+
+# yarn
+yarn.lock
 .env*.local
 .claude/
-yarn.lock
