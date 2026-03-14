@@ -10,7 +10,6 @@ import { Id } from "../../convex/_generated/dataModel";
 import { Heart, Flash, Hammer, LightBulb } from "iconoir-react";
 import { IdeaFilter, FilterOption } from "./idea-filter";
 import { CompletionForm } from "./completion-form";
-import { RemixForm } from "./remix-form";
 import { UserAvatar } from "./ui/user-avatar";
 import { StatusBadge } from "./ui/status-badge";
 import { ClaimButton, SubmitBuildButton } from "./ui/standard-button";
@@ -152,7 +151,8 @@ export const IdeasBoard = ({ onViewChange, onProfileClick }: IdeasBoardProps) =>
   const [selectedIdea, setSelectedIdea] = useState<Idea | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [showCompletionForm, setShowCompletionForm] = useState(false);
-  const [showRemixForm, setShowRemixForm] = useState(false);
+  // autoOpenRemixForm: when set, IdeaDetailModal opens its remix form immediately
+  const [autoOpenRemixForm, setAutoOpenRemixForm] = useState(false);
   const [currentFilter, setCurrentFilter] = useState<FilterOption>("newest");
 
   const ideas = useQuery(api.ideas.getIdeas, { limit: 50 });
@@ -160,7 +160,6 @@ export const IdeasBoard = ({ onViewChange, onProfileClick }: IdeasBoardProps) =>
   const removeUpvote = useMutation(api.upvotes.removeUpvote);
   const claimIdea = useMutation(api.claims.claimIdea);
   const unclaimIdea = useMutation(api.claims.unclaimIdea);
-  const createRemix = useMutation(api.remixes.createRemix);
   const deleteIdea = useMutation(api.ideas.deleteIdea);
 
   // Keep selectedIdea in sync with latest data
@@ -190,52 +189,16 @@ export const IdeasBoard = ({ onViewChange, onProfileClick }: IdeasBoardProps) =>
     }
   };
 
+  // Opens the modal and immediately shows the inline remix form.
+  // Remix submission is now handled entirely within IdeaDetailModal so
+  // RemixesSection stays mounted and its Convex subscription stays alive.
   const handleRemix = (ideaId: Id<"ideas">) => {
     if (!address) { toast.error("Please connect your wallet"); return; }
     const original = ideas?.find((i) => i._id === ideaId);
     if (!original) { toast.error("Original idea not found"); return; }
     setSelectedIdea(original as Idea);
     setIsModalOpen(true);
-    setShowRemixForm(true);
-  };
-
-  const submitRemix = async ({
-    content,
-    type,
-    authorFid,
-    authorAvatar,
-    authorDisplayName,
-    authorUsername,
-  }: {
-    content: string;
-    type: "addition" | "edit" | "comment";
-    authorFid?: number;
-    authorAvatar?: string;
-    authorDisplayName?: string;
-    authorUsername?: string;
-  }) => {
-    if (!address || !selectedIdea) {
-      toast.error("Missing wallet connection or selected idea");
-      return;
-    }
-    try {
-      await createRemix({
-        ideaId: selectedIdea._id,
-        author: address,
-        content,
-        type,
-        authorFid,
-        authorAvatar,
-        authorDisplayName,
-        authorUsername,
-      });
-      toast.success("Added!");
-    } catch (error) {
-      handleError(error, { operation: "create remix", component: "IdeasBoard" });
-    } finally {
-      setShowRemixForm(false);
-      setIsModalOpen(true);
-    }
+    setAutoOpenRemixForm(true);
   };
 
   const handleClaim = async (ideaId: Id<"ideas">) => {
@@ -274,11 +237,12 @@ export const IdeasBoard = ({ onViewChange, onProfileClick }: IdeasBoardProps) =>
   const openModal = (idea: Idea) => {
     setSelectedIdea(idea);
     setIsModalOpen(true);
+    setAutoOpenRemixForm(false);
   };
 
   const closeModal = () => {
     setIsModalOpen(false);
-    setShowRemixForm(false);
+    setAutoOpenRemixForm(false);
     setShowCompletionForm(false);
     setSelectedIdea(null);
   };
@@ -446,8 +410,9 @@ export const IdeasBoard = ({ onViewChange, onProfileClick }: IdeasBoardProps) =>
         </div>
       )}
 
-      {/* Idea Detail Modal — keep mounted while remix form is open so Convex
-          subscription stays alive and remixes appear instantly */}
+      {/* Idea Detail Modal — RemixForm is now rendered inside IdeaDetailModal
+          as a z-[60] overlay so RemixesSection stays mounted and its Convex
+          subscription delivers new remixes the moment createRemix completes. */}
       {selectedIdea && !showCompletionForm && (
         <ErrorBoundary
           fallback={
@@ -467,31 +432,19 @@ export const IdeasBoard = ({ onViewChange, onProfileClick }: IdeasBoardProps) =>
         >
           <IdeaDetailModal
             idea={selectedIdea}
-            isOpen={isModalOpen && !showRemixForm}
+            isOpen={isModalOpen}
             onClose={closeModal}
             onUpvote={handleUpvote}
             onRemoveUpvote={handleRemoveUpvote}
-            onRemix={handleRemix}
             onClaim={handleClaim}
             onUnclaim={handleUnclaim}
             onDelete={handleDelete}
             onOpenCompletionForm={() => setShowCompletionForm(true)}
             onProfileClick={onProfileClick}
             address={address}
+            autoOpenRemixForm={autoOpenRemixForm}
           />
         </ErrorBoundary>
-      )}
-
-      {/* Remix Form Modal */}
-      {showRemixForm && selectedIdea && (
-        <RemixForm
-          originalTitle={selectedIdea.title}
-          onSubmit={submitRemix}
-          onCancel={() => {
-            setShowRemixForm(false);
-            setIsModalOpen(true);
-          }}
-        />
       )}
     </div>
   );
