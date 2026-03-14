@@ -10,6 +10,7 @@ import { StatusBadge } from "./ui/status-badge";
 import { ClaimButton, UnclaimButton, SubmitBuildButton } from "./ui/standard-button";
 import { handleError } from "../lib/error-handler";
 import { toast } from "sonner";
+import { ErrorBoundary } from "./error-boundary";
 
 type Idea = {
   _id: Id<"ideas">;
@@ -258,6 +259,110 @@ interface IdeaDetailModalProps {
   address: string | undefined;
 }
 
+// Isolated component so useQuery errors are caught by ErrorBoundary
+const RemixesSection = ({
+  idea,
+  address,
+}: {
+  idea: Idea;
+  address: string | undefined;
+}) => {
+  const remixes = useQuery(
+    api.remixes.getRemixesForIdea,
+    { ideaId: idea._id }
+  ) as Remix[] | undefined;
+
+  const deleteRemix = useMutation(api.remixes.deleteRemix);
+
+  const handleRemixDelete = async (remixId: Id<"remixes">) => {
+    if (!address) return;
+    if (!window.confirm("Delete this? This cannot be undone.")) return;
+    try {
+      await deleteRemix({ remixId, author: address });
+      toast.success("Deleted.");
+    } catch (error) {
+      handleError(error, { operation: "delete remix", component: "IdeaDetailModal" });
+    }
+  };
+
+  return (
+    <div className="mb-8">
+      <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+        <Flash width={20} height={20} className="text-yellow-500" />
+        Community Takes ({remixes?.length || 0})
+      </h3>
+
+      {remixes === undefined ? (
+        <div className="text-center py-8 text-gray-400">
+          <div className="animate-spin w-6 h-6 border-2 border-gray-300 rounded-full border-t-blue-500 mx-auto mb-2" />
+          <p className="text-sm">Loading...</p>
+        </div>
+      ) : remixes.length > 0 ? (
+        <div className="space-y-3">
+          {remixes.map((remix) => {
+            const cfg = TYPE_CONFIG[remix.type];
+            const Icon = cfg.icon;
+            return (
+              <div
+                key={remix._id}
+                className="border border-gray-100 rounded-2xl p-4 bg-gray-50"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div className="flex items-start gap-3">
+                  <div className="flex-shrink-0 mt-0.5">
+                    <UserAvatar
+                      author={remix.author}
+                      authorAvatar={remix.authorAvatar}
+                      authorDisplayName={remix.authorDisplayName}
+                      authorUsername={remix.authorUsername}
+                      size={28}
+                    />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1 flex-wrap">
+                      <span className="text-sm font-medium text-gray-900">
+                        {remix.authorDisplayName || remix.authorUsername || "Anonymous"}
+                      </span>
+                      <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${cfg.className}`}>
+                        <Icon width={10} height={10} />
+                        {cfg.label}
+                      </span>
+                      <span className="text-xs text-gray-400">
+                        {new Date(remix.timestamp).toLocaleDateString()}
+                      </span>
+                    </div>
+                    <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">
+                      {remix.content}
+                    </p>
+                    <div className="flex items-center gap-2 mt-2">
+                      <RemixUpvoteButton remix={remix} address={address} />
+                      {address && remix.author === address && (
+                        <button
+                          onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleRemixDelete(remix._id); }}
+                          className="flex items-center justify-center p-1 text-red-400 hover:text-red-600 transition-all duration-200 hover:scale-105"
+                          title="Delete"
+                        >
+                          <Trash width={12} height={12} />
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      ) : (
+        <div className="text-center py-8 text-gray-400 border border-dashed border-gray-200 rounded-2xl">
+          <Flash width={28} height={28} className="mx-auto mb-2 text-gray-300" />
+          <p className="text-sm font-medium">No takes yet</p>
+          <p className="text-xs mt-1">Be the first to add an addition, edit, or comment</p>
+        </div>
+      )}
+    </div>
+  );
+};
+
 export const IdeaDetailModal = ({
   idea,
   isOpen,
@@ -272,13 +377,6 @@ export const IdeaDetailModal = ({
   onProfileClick,
   address,
 }: IdeaDetailModalProps) => {
-  const remixes = useQuery(
-    api.remixes.getRemixesForIdea,
-    idea ? { ideaId: idea._id } : "skip"
-  ) as Remix[] | undefined;
-
-  const deleteRemix = useMutation(api.remixes.deleteRemix);
-
   const [optimisticUpvotes, setOptimisticUpvotes] = useState<number | null>(null);
 
   useEffect(() => {
@@ -296,17 +394,6 @@ export const IdeaDetailModal = ({
       document.body.style.overflow = "unset";
     };
   }, [isOpen, onClose]);
-
-  const handleRemixDelete = async (remixId: Id<"remixes">) => {
-    if (!address) return;
-    if (!window.confirm("Delete this? This cannot be undone.")) return;
-    try {
-      await deleteRemix({ remixId, author: address });
-      toast.success("Deleted.");
-    } catch (error) {
-      handleError(error, { operation: "delete remix", component: "IdeaDetailModal" });
-    }
-  };
 
   if (!isOpen || !idea) return null;
 
@@ -359,10 +446,6 @@ export const IdeaDetailModal = ({
               <div className="flex items-center gap-2">
                 <Heart width={16} height={16} />
                 <span>{optimisticUpvotes ?? idea.upvotes} upvotes</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Flash width={16} height={16} />
-                <span>{remixes?.length || 0} remixes</span>
               </div>
             </div>
 
@@ -440,80 +523,15 @@ export const IdeaDetailModal = ({
             )}
 
             {/* Remixes / Additions / Comments */}
-            <div className="mb-8">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                <Flash width={20} height={20} className="text-yellow-500" />
-                Community Takes ({remixes?.length || 0})
-              </h3>
-
-              {remixes === undefined ? (
-                <div className="text-center py-8 text-gray-400">
-                  <div className="animate-spin w-6 h-6 border-2 border-gray-300 rounded-full border-t-blue-500 mx-auto mb-2" />
-                  <p className="text-sm">Loading...</p>
+            <ErrorBoundary
+              fallback={
+                <div className="mb-8 p-4 bg-gray-50 rounded-2xl text-sm text-gray-500 text-center">
+                  Could not load community takes. Please try again.
                 </div>
-              ) : remixes.length > 0 ? (
-                <div className="space-y-3">
-                  {remixes.map((remix) => {
-                    const cfg = TYPE_CONFIG[remix.type];
-                    const Icon = cfg.icon;
-                    return (
-                      <div
-                        key={remix._id}
-                        className="border border-gray-100 rounded-2xl p-4 bg-gray-50"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        <div className="flex items-start gap-3">
-                          <div className="flex-shrink-0 mt-0.5">
-                            <UserAvatar
-                              author={remix.author}
-                              authorAvatar={remix.authorAvatar}
-                              authorDisplayName={remix.authorDisplayName}
-                              authorUsername={remix.authorUsername}
-                              size={28}
-                            />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2 mb-1 flex-wrap">
-                              <span className="text-sm font-medium text-gray-900">
-                                {remix.authorDisplayName || remix.authorUsername || "Anonymous"}
-                              </span>
-                              <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${cfg.className}`}>
-                                <Icon width={10} height={10} />
-                                {cfg.label}
-                              </span>
-                              <span className="text-xs text-gray-400">
-                                {new Date(remix.timestamp).toLocaleDateString()}
-                              </span>
-                            </div>
-                            <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">
-                              {remix.content}
-                            </p>
-                            <div className="flex items-center gap-2 mt-2">
-                              <RemixUpvoteButton remix={remix} address={address} />
-                              {address && remix.author === address && (
-                                <button
-                                  onClick={(e) => handleButtonClick(e, () => handleRemixDelete(remix._id))}
-                                  className="flex items-center justify-center p-1 text-red-400 hover:text-red-600 transition-all duration-200 hover:scale-105"
-                                  title="Delete"
-                                >
-                                  <Trash width={12} height={12} />
-                                </button>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              ) : (
-                <div className="text-center py-8 text-gray-400 border border-dashed border-gray-200 rounded-2xl">
-                  <Flash width={28} height={28} className="mx-auto mb-2 text-gray-300" />
-                  <p className="text-sm font-medium">No takes yet</p>
-                  <p className="text-xs mt-1">Be the first to add an addition, edit, or comment</p>
-                </div>
-              )}
-            </div>
+              }
+            >
+              <RemixesSection idea={idea} address={address} />
+            </ErrorBoundary>
           </div>
         </div>
 
