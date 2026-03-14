@@ -5,12 +5,13 @@ import { Xmark } from "iconoir-react";
 import { useFarcasterData } from "../hooks/use-farcaster-data";
 import { toast } from "sonner";
 
+type RemixType = "addition" | "edit" | "comment";
+
 interface RemixFormProps {
   originalTitle: string;
-  originalDescription: string;
   onSubmit: (data: {
-    title: string;
-    description: string;
+    content: string;
+    type: RemixType;
     authorFid?: number;
     authorAvatar?: string;
     authorDisplayName?: string;
@@ -19,40 +20,48 @@ interface RemixFormProps {
   onCancel: () => void;
 }
 
-export const RemixForm = ({
-  originalTitle,
-  originalDescription,
-  onSubmit,
-  onCancel,
-}: RemixFormProps) => {
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
+const REMIX_TYPES: { value: RemixType; label: string }[] = [
+  { value: "addition", label: "Addition" },
+  { value: "edit", label: "Edit Suggestion" },
+  { value: "comment", label: "Comment" },
+];
+
+const PLACEHOLDERS: Record<RemixType, string> = {
+  addition: "Describe a feature or capability you'd add to this idea...",
+  edit: "Describe what you'd change or improve...",
+  comment: "Share your thoughts on this idea...",
+};
+
+const LABELS: Record<RemixType, string> = {
+  addition: "What would you add?",
+  edit: "What would you change?",
+  comment: "Your thoughts",
+};
+
+export const RemixForm = ({ originalTitle, onSubmit, onCancel }: RemixFormProps) => {
+  const [content, setContent] = useState("");
+  const [type, setType] = useState<RemixType>("addition");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const farcasterData = useFarcasterData();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    const trimmedTitle = title.trim();
-    const trimmedDescription = description.trim();
-
-    if (!trimmedTitle || !trimmedDescription) {
-      toast.error("Please fill in both title and description");
+    const trimmed = content.trim();
+    if (!trimmed) {
+      toast.error("Please enter your content");
       return;
     }
-
     setIsSubmitting(true);
     try {
       await onSubmit({
-        title: trimmedTitle,
-        description: trimmedDescription,
+        content: trimmed,
+        type,
         authorFid: farcasterData?.fid || undefined,
         authorAvatar: farcasterData?.pfp?.url || undefined,
         authorDisplayName: farcasterData?.displayName || undefined,
         authorUsername: farcasterData?.username || undefined,
       });
-      setTitle("");
-      setDescription("");
+      setContent("");
     } catch (error) {
       throw error;
     } finally {
@@ -66,8 +75,8 @@ export const RemixForm = ({
         <div className="p-6 sm:p-8">
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h2 className="text-2xl font-bold text-gray-900">Create Remix</h2>
-              <p className="text-gray-600 mt-1">Build upon this idea</p>
+              <h2 className="text-2xl font-bold text-gray-900">Add Your Take</h2>
+              <p className="text-gray-500 text-sm mt-1 truncate max-w-xs">on: {originalTitle}</p>
             </div>
             <button
               onClick={onCancel}
@@ -77,46 +86,44 @@ export const RemixForm = ({
             </button>
           </div>
 
-          <div className="bg-gray-50 rounded-xl p-4 mb-6">
-            <h3 className="font-semibold text-gray-900 mb-2">Original Idea:</h3>
-            <h4 className="text-lg font-medium text-gray-800 mb-2">{originalTitle}</h4>
-            <p className="text-gray-600 text-sm leading-relaxed">{originalDescription}</p>
-          </div>
-
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-5">
             <div>
-              <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-2">
-                Remix Title *
-              </label>
-              <input
-                type="text"
-                id="title"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                placeholder="Enter a title for your remix"
-                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-                required
-                disabled={isSubmitting}
-              />
+              <label className="block text-sm font-medium text-gray-700 mb-2">Type</label>
+              <div className="flex gap-2">
+                {REMIX_TYPES.map((t) => (
+                  <button
+                    key={t.value}
+                    type="button"
+                    onClick={() => setType(t.value)}
+                    className={`flex-1 px-3 py-2 rounded-xl text-sm font-medium border transition-all duration-200 ${
+                      type === t.value
+                        ? "bg-blue-500 text-white border-blue-500"
+                        : "bg-white text-gray-700 border-gray-300 hover:border-gray-400"
+                    }`}
+                  >
+                    {t.label}
+                  </button>
+                ))}
+              </div>
             </div>
 
             <div>
-              <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-2">
-                Remix Description *
+              <label htmlFor="content" className="block text-sm font-medium text-gray-700 mb-2">
+                {LABELS[type]}
               </label>
               <textarea
-                id="description"
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                placeholder="Describe your remix and how it builds upon the original idea"
-                rows={4}
+                id="content"
+                value={content}
+                onChange={(e) => setContent(e.target.value)}
+                placeholder={PLACEHOLDERS[type]}
+                rows={5}
                 className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 resize-none"
                 required
                 disabled={isSubmitting}
               />
             </div>
 
-            <div className="flex gap-3 pt-4">
+            <div className="flex gap-3 pt-2">
               <button
                 type="button"
                 onClick={onCancel}
@@ -127,10 +134,10 @@ export const RemixForm = ({
               </button>
               <button
                 type="submit"
-                disabled={isSubmitting || !title.trim() || !description.trim()}
+                disabled={isSubmitting || !content.trim()}
                 className="flex-1 px-6 py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-xl font-medium transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {isSubmitting ? "Creating..." : "Create Remix"}
+                {isSubmitting ? "Submitting..." : "Submit"}
               </button>
             </div>
           </form>
