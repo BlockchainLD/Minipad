@@ -1,4 +1,5 @@
 "use client";
+import React from "react";
 import { Button } from "@worldcoin/mini-apps-ui-kit-react";
 import { Copy, LogOut, CheckCircle, Wallet, LightBulb, Hammer, Tools } from "iconoir-react";
 import { FarcasterProfile } from "../farcaster-profile";
@@ -26,94 +27,103 @@ interface SettingsContentProps {
   onSignOut: () => void;
 }
 
+function IdeaGroup({
+  icon: Icon,
+  iconClass,
+  label,
+  ideas,
+  isLoading,
+  emptyText,
+}: {
+  icon: React.ComponentType<{ width: number; height: number; className: string }>;
+  iconClass: string;
+  label: string;
+  ideas: UserIdea[] | undefined;
+  isLoading: boolean;
+  emptyText: string;
+}) {
+  return (
+    <div className="bg-gray-50 rounded-lg p-4">
+      <div className="flex items-center gap-2 mb-3">
+        <Icon width={20} height={20} className={iconClass} />
+        <p className="text-sm font-semibold text-black">
+          {label} ({ideas?.length ?? 0})
+        </p>
+      </div>
+      {isLoading ? (
+        <div className="animate-pulse space-y-2">
+          {[...Array(2)].map((_, i) => (
+            <div key={i} className="bg-gray-200 h-10 rounded-lg" />
+          ))}
+        </div>
+      ) : ideas && ideas.length > 0 ? (
+        <div className="space-y-2">
+          {ideas.slice(0, IDEAS_PER_SECTION).map((idea: UserIdea) => (
+            <IdeaListItem key={idea._id} idea={idea} />
+          ))}
+          {ideas.length > IDEAS_PER_SECTION && (
+            <p className="text-xs text-gray-500 text-center mt-2">
+              +{ideas.length - IDEAS_PER_SECTION} more
+            </p>
+          )}
+        </div>
+      ) : (
+        <p className="text-sm text-gray-500">{emptyText}</p>
+      )}
+    </div>
+  );
+}
+
 function IdeasSection() {
   const { address } = useAccount();
 
+  // When address is undefined the wallet is still connecting — skip queries and show loading.
+  // This prevents "No ideas submitted yet" from flashing before the wallet is ready.
+  const isWalletReady = !!address;
+
   const submittedIdeas = useQuery(
     api.userIdeas.getUserSubmittedIdeas,
-    address ? { author: address } : "skip"
+    isWalletReady ? { author: address! } : "skip"
   );
   const claimedIdeas = useQuery(
     api.userIdeas.getUserClaimedIdeas,
-    address ? { claimer: address } : "skip"
+    isWalletReady ? { claimer: address! } : "skip"
   );
   const completedIdeas = useQuery(
     api.userIdeas.getUserCompletedIdeas,
-    address ? { claimer: address } : "skip"
+    isWalletReady ? { claimer: address! } : "skip"
   );
+
+  // Show skeleton while wallet connects or while queries are in-flight
+  const isLoading = !isWalletReady || submittedIdeas === undefined;
 
   return (
     <div className="space-y-4">
       <p className="font-semibold text-black">Your Ideas</p>
-
-      <div className="bg-gray-50 rounded-lg p-4">
-        <div className="flex items-center gap-2 mb-3">
-          <LightBulb width={20} height={20} className="text-blue-600" />
-          <p className="text-sm font-semibold text-black">
-            Submitted ({submittedIdeas?.length ?? 0})
-          </p>
-        </div>
-        {submittedIdeas && submittedIdeas.length > 0 ? (
-          <div className="space-y-2">
-            {submittedIdeas.slice(0, IDEAS_PER_SECTION).map((idea: UserIdea) => (
-              <IdeaListItem key={idea._id} idea={idea} />
-            ))}
-            {submittedIdeas.length > IDEAS_PER_SECTION && (
-              <p className="text-xs text-gray-500 text-center mt-2">
-                +{submittedIdeas.length - IDEAS_PER_SECTION} more
-              </p>
-            )}
-          </div>
-        ) : (
-          <p className="text-sm text-gray-500">No ideas submitted yet</p>
-        )}
-      </div>
-
-      <div className="bg-gray-50 rounded-lg p-4">
-        <div className="flex items-center gap-2 mb-3">
-          <Hammer width={20} height={20} className="text-yellow-600" />
-          <p className="text-sm font-semibold text-black">
-            Claimed ({claimedIdeas?.length ?? 0})
-          </p>
-        </div>
-        {claimedIdeas && claimedIdeas.length > 0 ? (
-          <div className="space-y-2">
-            {claimedIdeas.slice(0, IDEAS_PER_SECTION).map((idea: UserIdea) => (
-              <IdeaListItem key={idea._id} idea={idea} />
-            ))}
-            {claimedIdeas.length > IDEAS_PER_SECTION && (
-              <p className="text-xs text-gray-500 text-center mt-2">
-                +{claimedIdeas.length - IDEAS_PER_SECTION} more
-              </p>
-            )}
-          </div>
-        ) : (
-          <p className="text-sm text-gray-500">No ideas claimed yet</p>
-        )}
-      </div>
-
-      <div className="bg-gray-50 rounded-lg p-4">
-        <div className="flex items-center gap-2 mb-3">
-          <Tools width={20} height={20} className="text-green-600" />
-          <p className="text-sm font-semibold text-black">
-            Deployed ({completedIdeas?.length ?? 0})
-          </p>
-        </div>
-        {completedIdeas && completedIdeas.length > 0 ? (
-          <div className="space-y-2">
-            {completedIdeas.slice(0, IDEAS_PER_SECTION).map((idea: UserIdea) => (
-              <IdeaListItem key={idea._id} idea={idea} />
-            ))}
-            {completedIdeas.length > IDEAS_PER_SECTION && (
-              <p className="text-xs text-gray-500 text-center mt-2">
-                +{completedIdeas.length - IDEAS_PER_SECTION} more
-              </p>
-            )}
-          </div>
-        ) : (
-          <p className="text-sm text-gray-500">No ideas deployed yet</p>
-        )}
-      </div>
+      <IdeaGroup
+        icon={LightBulb}
+        iconClass="text-blue-600"
+        label="Submitted"
+        ideas={submittedIdeas as UserIdea[] | undefined}
+        isLoading={isLoading}
+        emptyText="No ideas submitted yet"
+      />
+      <IdeaGroup
+        icon={Hammer}
+        iconClass="text-yellow-600"
+        label="Claimed"
+        ideas={claimedIdeas as UserIdea[] | undefined}
+        isLoading={!isWalletReady || claimedIdeas === undefined}
+        emptyText="No ideas claimed yet"
+      />
+      <IdeaGroup
+        icon={Tools}
+        iconClass="text-green-600"
+        label="Deployed"
+        ideas={completedIdeas as UserIdea[] | undefined}
+        isLoading={!isWalletReady || completedIdeas === undefined}
+        emptyText="No ideas deployed yet"
+      />
     </div>
   );
 }

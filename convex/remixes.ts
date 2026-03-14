@@ -1,6 +1,6 @@
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
-import { remixType } from "./types";
+import { remixType, remixWithUpvoteType } from "./types";
 
 export const createRemix = mutation({
   args: {
@@ -57,14 +57,38 @@ export const deleteRemix = mutation({
 });
 
 export const getRemixesForIdea = query({
-  args: { ideaId: v.id("ideas") },
-  returns: v.array(remixType),
+  args: {
+    ideaId: v.id("ideas"),
+    // Optional voter address — when provided, hasUpvoted is set per remix.
+    // Passing this here eliminates N separate hasUserUpvotedRemix queries on the client.
+    voter: v.optional(v.string()),
+  },
+  returns: v.array(remixWithUpvoteType),
   handler: async (ctx, args) => {
     const results = await ctx.db
       .query("remixes")
       .withIndex("by_idea", (q) => q.eq("ideaId", args.ideaId))
       .collect();
-    return results.sort((a, b) => b.timestamp - a.timestamp);
+    const sorted = results.sort((a, b) => b.timestamp - a.timestamp);
+
+    if (!args.voter) {
+      return sorted.map((r) => ({ ...r, hasUpvoted: false }));
+    }
+
+    // Batch-check upvote status for all remixes in a single round of queries.
+    // This is O(n) where n = remixes for this idea, not N separate subscriptions.
+    const upvoteChecks = await Promise.all(
+      sorted.map((r) =>
+        ctx.db
+          .query("remixUpvotes")
+          .withIndex("by_remix_voter", (q) =>
+            q.eq("remixId", r._id).eq("voter", args.voter!)
+          )
+          .first()
+      )
+    );
+
+    return sorted.map((r, i) => ({ ...r, hasUpvoted: upvoteChecks[i] !== null }));
   },
 });
 
