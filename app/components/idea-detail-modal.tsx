@@ -42,7 +42,6 @@ type Remix = {
   content: string;
   type: "addition" | "edit" | "comment";
   timestamp: number;
-  upvotes: number;
 };
 
 const TYPE_CONFIG = {
@@ -158,87 +157,6 @@ const UpvoteButton = ({
       />
       <span className="text-sm font-semibold">{optimisticUpvotes ?? upvotes}</span>
       {isLoading && <span className="text-xs text-gray-400">...</span>}
-    </button>
-  );
-};
-
-// Upvote button for individual remix entries
-const RemixUpvoteButton = ({
-  remix,
-  address,
-}: {
-  remix: Remix;
-  address: string | undefined;
-}) => {
-  const [optimisticUpvoted, setOptimisticUpvoted] = useState<boolean | null>(null);
-  const [optimisticCount, setOptimisticCount] = useState<number | null>(null);
-  const [isProcessing, setIsProcessing] = useState(false);
-
-  const upvoteRemix = useMutation(api.remixes.upvoteRemix);
-  const removeRemixUpvote = useMutation(api.remixes.removeRemixUpvote);
-
-  const hasUpvoted = useQuery(
-    api.remixes.hasUserUpvotedRemix,
-    address ? { remixId: remix._id, voter: address } : "skip"
-  );
-
-  const currentUpvotedState = optimisticUpvoted !== null ? optimisticUpvoted : hasUpvoted;
-
-  useEffect(() => {
-    if (hasUpvoted !== undefined && optimisticUpvoted !== null) {
-      setOptimisticUpvoted(null);
-      setOptimisticCount(null);
-    }
-  }, [hasUpvoted, optimisticUpvoted]);
-
-  useEffect(() => {
-    if (optimisticUpvoted !== null) {
-      const t = setTimeout(() => { setOptimisticUpvoted(null); setOptimisticCount(null); }, 5000);
-      return () => clearTimeout(t);
-    }
-  }, [optimisticUpvoted]);
-
-  const handleClick = async (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (!address) { toast.error("Please connect your wallet to upvote"); return; }
-    if (isProcessing) return;
-    setIsProcessing(true);
-    try {
-      if (currentUpvotedState === true) {
-        setOptimisticUpvoted(false);
-        setOptimisticCount((optimisticCount ?? remix.upvotes) - 1);
-        await removeRemixUpvote({ remixId: remix._id, voter: address });
-      } else {
-        setOptimisticUpvoted(true);
-        setOptimisticCount((optimisticCount ?? remix.upvotes) + 1);
-        await upvoteRemix({ remixId: remix._id, voter: address });
-      }
-    } catch (error) {
-      handleError(error, { operation: "upvote remix", component: "IdeaDetailModal" });
-      setOptimisticUpvoted(null);
-      setOptimisticCount(null);
-    } finally {
-      setIsProcessing(false);
-    }
-  };
-
-  const isUpvoted = currentUpvotedState === true;
-  const isLoading = (hasUpvoted === undefined && !!address) || isProcessing;
-  const count = optimisticCount ?? remix.upvotes;
-
-  return (
-    <button
-      onClick={handleClick}
-      disabled={!address || isLoading}
-      className={`flex items-center gap-1 px-2 py-1 rounded-lg text-xs transition-all duration-200 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed ${
-        isUpvoted ? "text-red-500 hover:text-red-600" : "text-gray-400 hover:text-gray-600"
-      }`}
-      title={!address ? "Connect wallet to upvote" : isUpvoted ? "Remove upvote" : "Upvote"}
-    >
-      <Heart width={12} height={12} fill={isUpvoted ? "currentColor" : "none"} stroke="currentColor" />
-      {count > 0 && <span>{count}</span>}
-      {isLoading && <span className="text-gray-300">...</span>}
     </button>
   );
 };
@@ -489,7 +407,6 @@ export const IdeaDetailModal = ({
                               {remix.content}
                             </p>
                             <div className="flex items-center gap-2 mt-2">
-                              <RemixUpvoteButton remix={remix} address={address} />
                               {address && remix.author === address && (
                                 <button
                                   onClick={(e) => handleButtonClick(e, () => handleRemixDelete(remix._id))}

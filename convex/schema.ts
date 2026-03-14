@@ -43,21 +43,10 @@ const schema = defineSchema({
     content: v.string(),
     type: v.union(v.literal("addition"), v.literal("edit"), v.literal("comment")),
     timestamp: v.number(),
-    upvotes: v.number(),
   })
     .index("by_idea", ["ideaId"])
     .index("by_author", ["author"])
     .index("by_timestamp", ["timestamp"]),
-
-  // Upvotes for remixes
-  remixUpvotes: defineTable({
-    remixId: v.id("remixes"),
-    voter: v.string(),
-    timestamp: v.number(),
-  })
-    .index("by_remix", ["remixId"])
-    .index("by_voter", ["voter"])
-    .index("by_remix_voter", ["remixId", "voter"]),
 
   // Upvotes for ideas (no EAS attestations)
   upvotes: defineTable({
