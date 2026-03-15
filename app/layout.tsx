@@ -5,6 +5,7 @@ import { Provider as WagmiProvider } from './providers/wagmi-provider';
 import { ConvexClientProvider } from "./providers/convex-client-provider";
 import { Toaster } from "@worldcoin/mini-apps-ui-kit-react";
 import { APP_METADATA } from "./lib/utils";
+import { SdkReady } from "./components/sdk-ready";
 
 const appUrl = process.env.SITE_URL || 'https://minipad-app.vercel.app';
 
@@ -39,6 +40,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
+        <SdkReady />
         <WagmiProvider>
           <ConvexClientProvider>
             {children}
