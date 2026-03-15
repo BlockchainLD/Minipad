@@ -1,12 +1,9 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import "@worldcoin/mini-apps-ui-kit-react/styles.css";
 import { Provider as WagmiProvider } from './providers/wagmi-provider';
 import { ConvexClientProvider } from "./providers/convex-client-provider";
-import { Toaster } from "@worldcoin/mini-apps-ui-kit-react";
 import { Toaster as SonnerToaster } from "sonner";
 import { APP_METADATA } from "./lib/utils";
-import { SdkReady } from "./components/sdk-ready";
 
 const appUrl = process.env.SITE_URL || 'https://minipad-app.vercel.app';
 
@@ -41,11 +38,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <SdkReady />
         <WagmiProvider>
           <ConvexClientProvider>
             {children}
-            <Toaster />
             <SonnerToaster position="top-center" richColors />
           </ConvexClientProvider>
         </WagmiProvider>

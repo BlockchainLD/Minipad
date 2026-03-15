@@ -1,5 +1,5 @@
 export const COPY_NOTIFICATION_TIMEOUT = 2000;
-export const AUTO_CONNECT_TIMEOUT = 7000;
+export const AUTO_CONNECT_TIMEOUT = 3000;
 export const IDEAS_PER_SECTION = 3;
 export const DEFAULT_IDEAS_LIMIT = 50;
 

@@ -3,25 +3,26 @@
 import { SignInForm } from "./components/sign-in-form";
 import { LoggedIn } from "./components/logged-in";
 import { AutoConnectWrapper, useFarcaster } from "./components/auto-connect-wrapper";
-import { SafeAreaView } from "@worldcoin/mini-apps-ui-kit-react";
 import { useAccount } from "wagmi";
 
 function AppContent() {
   const { isConnected } = useAccount();
   const { isInMiniApp, isCheckingContext, connectingTimedOut } = useFarcaster();
 
-  // Still determining whether we're inside a Farcaster mini app.
-  // Render nothing to avoid a flash of the wrong UI.
+  // Still determining context — show a white screen with a spinner so the
+  // transition from the Farcaster splash isn't a jarring white flash.
   if (isCheckingContext) {
-    return null;
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-white">
+        <div className="animate-spin w-8 h-8 border-2 border-gray-200 rounded-full border-t-gray-500" />
+      </div>
+    );
   }
 
   // Inside Farcaster mini app: the farcasterMiniApp connector auto-connects.
   // Never show WalletConnect or the Base sign-in button here.
-  // Show a spinner while connecting; the connector resolves in <1s on mobile.
   if (isInMiniApp && !isConnected) {
     if (connectingTimedOut) {
-      // Auto-connect failed — let the user know without showing WalletConnect.
       return (
         <div className="flex min-h-screen items-center justify-center p-4">
           <div className="text-center space-y-2">
@@ -31,17 +32,16 @@ function AppContent() {
         </div>
       );
     }
-    // Auto-connect in progress — show a minimal spinner, not a sign-in form.
     return (
-      <div className="flex min-h-screen items-center justify-center">
-        <div className="animate-spin w-8 h-8 border-4 border-blue-500 rounded-full border-t-transparent" />
+      <div className="flex min-h-screen items-center justify-center bg-white">
+        <div className="animate-spin w-8 h-8 border-2 border-gray-200 rounded-full border-t-gray-500" />
       </div>
     );
   }
 
   // Outside Farcaster (regular browser): show sign-in or app content.
   return (
-    <SafeAreaView className="min-h-screen bg-white">
+    <div className="min-h-screen bg-white">
       {isConnected ? (
         <LoggedIn />
       ) : (
@@ -51,7 +51,7 @@ function AppContent() {
           </div>
         </div>
       )}
-    </SafeAreaView>
+    </div>
   );
 }
 

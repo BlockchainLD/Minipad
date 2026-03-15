@@ -1,6 +1,5 @@
 "use client";
 import React from "react";
-import { Button } from "@worldcoin/mini-apps-ui-kit-react";
 import { Copy, LogOut, CheckCircle, Wallet } from "iconoir-react";
 import { FarcasterProfile } from "../farcaster-profile";
 import { ErrorBoundary } from "../error-boundary";
@@ -106,15 +105,13 @@ export const SettingsContent = ({
           </div>
         </div>
         <div className="pt-2">
-          <Button
-            variant="secondary"
-            fullWidth
+          <button
             onClick={onSignOut}
-            className="!bg-red-500 !text-white hover:!bg-red-600 flex items-center justify-center space-x-2"
+            className="w-full bg-red-500 text-white hover:bg-red-600 flex items-center justify-center space-x-2 rounded-xl py-3 font-medium transition-colors"
           >
             <LogOut width={18} height={18} />
             <span>Sign Out</span>
-          </Button>
+          </button>
         </div>
       </div>
     </div>
