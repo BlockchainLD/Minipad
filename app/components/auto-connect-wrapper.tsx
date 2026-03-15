@@ -1,6 +1,6 @@
 "use client";
 
-import { ReactNode, useEffect, useState, createContext, useContext, useRef } from "react";
+import { ReactNode, useEffect, useRef, useState, createContext, useContext } from "react";
 import { useAccount, useConnect } from "wagmi";
 import { sdk } from "@farcaster/miniapp-sdk";
 import { AUTO_CONNECT_TIMEOUT } from "../lib/constants";
@@ -37,53 +37,29 @@ export function AutoConnectWrapper({ children }: AutoConnectWrapperProps) {
   const { connectAsync, connectors } = useConnect();
   const [isInMiniApp, setIsInMiniApp] = useState(false);
   const [isCheckingContext, setIsCheckingContext] = useState(true);
-  const [autoConnectAttempted, setAutoConnectAttempted] = useState(false);
   const [fid, setFid] = useState<number | null>(null);
   const [sdkUser, setSdkUser] = useState<FarcasterContextType["sdkUser"]>(null);
   const [connectingTimedOut, setConnectingTimedOut] = useState(false);
-  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Stable refs so the one-shot effect always sees the latest wagmi values
+  const connectAsyncRef = useRef(connectAsync);
+  const connectorsRef = useRef(connectors);
+  connectAsyncRef.current = connectAsync;
+  connectorsRef.current = connectors;
+
+  const hasInitialized = useRef(false);
 
   useEffect(() => {
-    if (isConnected) {
-      setConnectingTimedOut(false);
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
-        timeoutRef.current = null;
-      }
-    }
-  }, [isConnected]);
+    if (hasInitialized.current) return;
+    hasInitialized.current = true;
 
-  useEffect(() => {
-    if (!isConnected && autoConnectAttempted) {
-      const checkAndReset = async () => {
-        try {
-          const inMiniApp = await sdk.isInMiniApp();
-          if (inMiniApp) {
-            setAutoConnectAttempted(false);
-            setConnectingTimedOut(false);
-          }
-        } catch {
-          // ignore
-        }
-      };
-      checkAndReset();
-    }
-  }, [isConnected, autoConnectAttempted]);
-
-  // Call ready() exactly once on mount to dismiss the Farcaster splash screen.
-  useEffect(() => {
-    sdk.actions
-      .ready()
-      .catch((e) => console.error("[MiniApp] sdk.actions.ready() failed (AutoConnectWrapper):", e));
-  }, []);
-
-  useEffect(() => {
-    const checkMiniApp = async () => {
+    const init = async () => {
       try {
         const inMiniApp = await sdk.isInMiniApp();
         setIsInMiniApp(inMiniApp);
 
         if (inMiniApp) {
+          // Fetch Farcaster user context
           try {
             const context = await sdk.context;
             if (context?.user?.fid) {
@@ -98,35 +74,23 @@ export function AutoConnectWrapper({ children }: AutoConnectWrapperProps) {
           } catch {
             // ignore
           }
-        }
 
-        if (inMiniApp && !isConnected && !autoConnectAttempted) {
-          setAutoConnectAttempted(true);
-
-          const farcasterConnector = connectors.find(
+          // Auto-connect the Farcaster wallet connector
+          const farcasterConnector = connectorsRef.current.find(
             (c) => c.type === "farcasterMiniApp" || c.name.toLowerCase().includes("farcaster")
           );
 
           if (farcasterConnector) {
+            const timeoutId = setTimeout(() => {
+              setConnectingTimedOut(true);
+            }, AUTO_CONNECT_TIMEOUT);
+
             try {
-              if (timeoutRef.current) clearTimeout(timeoutRef.current);
-              timeoutRef.current = setTimeout(() => {
-                setConnectingTimedOut(true);
-                timeoutRef.current = null;
-              }, AUTO_CONNECT_TIMEOUT);
-
-              await connectAsync({ connector: farcasterConnector });
-
-              if (timeoutRef.current) {
-                clearTimeout(timeoutRef.current);
-                timeoutRef.current = null;
-              }
+              await connectAsyncRef.current({ connector: farcasterConnector });
             } catch {
               setConnectingTimedOut(true);
-              if (timeoutRef.current) {
-                clearTimeout(timeoutRef.current);
-                timeoutRef.current = null;
-              }
+            } finally {
+              clearTimeout(timeoutId);
             }
           } else {
             setConnectingTimedOut(true);
@@ -135,19 +99,24 @@ export function AutoConnectWrapper({ children }: AutoConnectWrapperProps) {
       } catch {
         setIsInMiniApp(false);
       } finally {
+        // Call ready() here — after we know what to show — so the Farcaster
+        // splash screen is dismissed only when the app UI is actually ready.
+        sdk.actions
+          .ready()
+          .catch((e) => console.error("[MiniApp] sdk.actions.ready() failed:", e));
         setIsCheckingContext(false);
       }
     };
 
-    checkMiniApp();
+    init();
+  }, []); // Run exactly once on mount
 
-    return () => {
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
-        timeoutRef.current = null;
-      }
-    };
-  }, [isConnected, autoConnectAttempted, connectAsync, connectors]);
+  // Clear timeout state if user connects (e.g. reconnects externally)
+  useEffect(() => {
+    if (isConnected) {
+      setConnectingTimedOut(false);
+    }
+  }, [isConnected]);
 
   return (
     <FarcasterContext.Provider
