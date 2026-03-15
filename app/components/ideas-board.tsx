@@ -4,7 +4,6 @@ import React, { useState, useEffect } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { useAccount } from "wagmi";
-import { Button } from "@worldcoin/mini-apps-ui-kit-react";
 import { toast } from "sonner";
 import { Id } from "../../convex/_generated/dataModel";
 import { Heart, Flash, Hammer, LightBulb, OpenNewWindow } from "iconoir-react";
@@ -12,7 +11,7 @@ import { IdeaFilter, FilterOption } from "./idea-filter";
 import { CompletionForm } from "./completion-form";
 import { UserAvatar } from "./ui/user-avatar";
 import { StatusBadge } from "./ui/status-badge";
-import { ClaimButton, SubmitBuildButton } from "./ui/standard-button";
+import { StandardButton, ClaimButton, SubmitBuildButton } from "./ui/standard-button";
 import { handleError } from "../lib/error-handler";
 import { IdeaDetailModal } from "./idea-detail-modal";
 import { ErrorBoundary } from "./error-boundary";
@@ -301,19 +300,18 @@ export const IdeasBoard = ({ onViewChange, onProfileClick, openIdeaId, onIdeaOpe
       <div className="mb-5">
         <div className="flex justify-between items-center mb-4">
           <h1 className="text-xl font-bold text-gray-900">Ideas</h1>
-          <Button
+          <StandardButton
             variant="primary"
+            size="sm"
             onClick={() => {
               onViewChange?.("submit");
               if (typeof window !== "undefined") {
                 window.scrollTo({ top: 0, behavior: "smooth" });
               }
             }}
-            size="sm"
-            className="rounded-xl"
           >
             + New Idea
-          </Button>
+          </StandardButton>
         </div>
         <IdeaFilter currentFilter={currentFilter} onFilterChange={setCurrentFilter} />
       </div>
@@ -323,7 +321,7 @@ export const IdeasBoard = ({ onViewChange, onProfileClick, openIdeaId, onIdeaOpe
           <div
             key={idea._id}
             onClick={() => openModal(idea as Idea)}
-            className="bg-white border border-gray-200 rounded-2xl p-6 sm:p-8 hover:shadow-xl hover:border-gray-300 transition-all duration-300 cursor-pointer hover:scale-[1.02] hover:-translate-y-1 group"
+            className="bg-white border border-gray-200 rounded-2xl p-5 sm:p-6 hover:shadow-md hover:border-violet-200 transition-all duration-200 cursor-pointer group"
           >
             <div className="flex flex-col sm:flex-row justify-between items-start mb-4 gap-3">
               <div className="flex-1 min-w-0">
@@ -405,7 +403,7 @@ export const IdeasBoard = ({ onViewChange, onProfileClick, openIdeaId, onIdeaOpe
 
         {filteredAndSortedIdeas.length === 0 && (
           <div className="text-center py-16">
-            <div className="bg-gray-50 rounded-3xl p-12 border border-gray-100">
+            <div className="bg-slate-50 rounded-3xl p-12 border border-gray-100">
               {currentFilter === "claimed" ? (
                 <>
                   <div className="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -424,8 +422,8 @@ export const IdeasBoard = ({ onViewChange, onProfileClick, openIdeaId, onIdeaOpe
                 </>
               ) : (
                 <>
-                  <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <LightBulb width={32} height={32} className="text-black" />
+                  <div className="w-16 h-16 bg-violet-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <LightBulb width={32} height={32} className="text-violet-600" />
                   </div>
                   <p className="text-gray-600 text-lg font-medium mb-2">No ideas submitted yet</p>
                   <p className="text-gray-500">Be the first to submit a miniapp idea!</p>

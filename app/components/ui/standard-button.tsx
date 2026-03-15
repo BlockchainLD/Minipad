@@ -27,7 +27,7 @@ export const StandardButton = ({
   fullWidth = false,
 }: StandardButtonProps) => {
   const baseClasses =
-    "rounded-xl font-medium shadow-md hover:shadow-lg transition-all duration-200 hover:scale-105 active:scale-95 cursor-pointer";
+    "rounded-xl font-medium transition-all duration-200 active:scale-95 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed";
 
   const sizeClasses = {
     sm: "px-3 py-2 text-sm min-h-[36px]",
@@ -36,11 +36,11 @@ export const StandardButton = ({
   };
 
   const variantClasses = {
-    primary: "bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white",
-    secondary: "bg-gradient-to-r from-gray-500 to-gray-600 hover:from-gray-600 hover:to-gray-700 text-white",
-    danger: "bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white",
-    success: "bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white",
-    warning: "bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-white",
+    primary: "bg-violet-600 hover:bg-violet-700 text-white shadow-sm hover:shadow-md",
+    secondary: "bg-gray-100 text-slate-700 hover:bg-gray-200",
+    danger: "bg-red-500 hover:bg-red-600 text-white shadow-sm",
+    success: "bg-green-500 hover:bg-green-600 text-white shadow-sm",
+    warning: "bg-amber-500 hover:bg-amber-600 text-white shadow-sm",
   };
 
   const widthClasses = fullWidth ? "w-full justify-center" : "";

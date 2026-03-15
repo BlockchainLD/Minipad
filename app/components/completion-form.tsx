@@ -4,7 +4,6 @@ import { useState } from "react";
 import { useMutation } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { useAccount } from "wagmi";
-import { Input } from "@worldcoin/mini-apps-ui-kit-react";
 import { toast } from "sonner";
 import { handleError, handleSuccess } from "../lib/error-handler";
 import { Id } from "../../convex/_generated/dataModel";
@@ -100,12 +99,14 @@ export const CompletionForm = ({ ideaId, onSuccess, onCancel }: CompletionFormPr
           <label htmlFor="githubUrl" className="block text-sm font-medium text-gray-700 mb-2">
             GitHub Repository URL
           </label>
-          <Input
+          <input
             id="githubUrl"
             type="text"
             value={githubUrl}
             onChange={(e) => setGithubUrl(e.target.value)}
             required
+            placeholder="https://github.com/username/repo"
+            className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-colors"
           />
           <p className="mt-1 text-xs text-gray-400">e.g. https://github.com/username/repo</p>
         </div>
@@ -114,12 +115,14 @@ export const CompletionForm = ({ ideaId, onSuccess, onCancel }: CompletionFormPr
           <label htmlFor="deploymentUrl" className="block text-sm font-medium text-gray-700 mb-2">
             Live App URL
           </label>
-          <Input
+          <input
             id="deploymentUrl"
             type="text"
             value={deploymentUrl}
             onChange={(e) => setDeploymentUrl(e.target.value)}
             required
+            placeholder="https://your-app.vercel.app"
+            className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-colors"
           />
           <p className="mt-1 text-xs text-gray-400">e.g. https://your-app.vercel.app</p>
         </div>

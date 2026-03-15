@@ -290,7 +290,7 @@ const RemixesSection = ({
 
       {remixes === undefined ? (
         <div className="text-center py-8 text-gray-400">
-          <div className="animate-spin w-6 h-6 border-2 border-gray-300 rounded-full border-t-blue-500 mx-auto mb-2" />
+          <div className="animate-spin w-6 h-6 border-2 border-gray-200 rounded-full border-t-violet-500 mx-auto mb-2" />
           <p className="text-sm">Loading...</p>
         </div>
       ) : remixes.length > 0 ? (
@@ -444,8 +444,8 @@ export const IdeaDetailModal = ({
     >
       <div className="relative w-full max-w-3xl max-h-[90vh] bg-white rounded-3xl shadow-2xl overflow-hidden animate-in fade-in-0 zoom-in-95 duration-300 flex flex-col border border-gray-100">
         {/* Fixed Header */}
-        <div className="flex items-center justify-between p-8 border-b border-gray-100 flex-shrink-0 bg-gradient-to-r from-gray-50 to-white">
-          <h2 className="text-2xl font-bold text-gray-900">Idea Details</h2>
+        <div className="flex items-center justify-between p-6 border-b border-violet-100 flex-shrink-0 bg-white">
+          <h2 className="text-xl font-bold text-slate-900">Idea Details</h2>
           <button
             onClick={onClose}
             className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-xl transition-all duration-200 group"
@@ -456,8 +456,8 @@ export const IdeaDetailModal = ({
 
         {/* Scrollable Content */}
         <div className="flex-1 overflow-y-auto">
-          <div className="p-8">
-            <h1 className="text-3xl font-bold text-gray-900 mb-4">{idea.title}</h1>
+          <div className="p-6">
+            <h1 className="text-2xl font-bold text-slate-900 mb-4">{idea.title}</h1>
 
             {/* Author */}
             <div className="flex items-center gap-3 mb-6">
@@ -570,7 +570,7 @@ export const IdeaDetailModal = ({
         </div>
 
         {/* Fixed Bottom Action Bar */}
-        <div className="flex-shrink-0 border-t border-gray-100 bg-gradient-to-r from-white to-gray-50 p-6">
+        <div className="flex-shrink-0 border-t border-violet-100 bg-white p-6">
           <div className="flex items-center justify-center gap-2 flex-wrap">
             <UpvoteButton
               ideaId={idea._id}
