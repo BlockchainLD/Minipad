@@ -4,6 +4,7 @@ import "@worldcoin/mini-apps-ui-kit-react/styles.css";
 import { Provider as WagmiProvider } from './providers/wagmi-provider';
 import { ConvexClientProvider } from "./providers/convex-client-provider";
 import { Toaster } from "@worldcoin/mini-apps-ui-kit-react";
+import { Toaster as SonnerToaster } from "sonner";
 import { APP_METADATA } from "./lib/utils";
 import { SdkReady } from "./components/sdk-ready";
 
@@ -45,6 +46,7 @@ export default function RootLayout({
           <ConvexClientProvider>
             {children}
             <Toaster />
+            <SonnerToaster position="top-center" richColors />
           </ConvexClientProvider>
         </WagmiProvider>
       </body>
