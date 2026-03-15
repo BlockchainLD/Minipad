@@ -1,24 +1,14 @@
 "use client";
 import React from "react";
 import { Button } from "@worldcoin/mini-apps-ui-kit-react";
-import { Copy, LogOut, CheckCircle, Wallet, LightBulb, Hammer, Tools } from "iconoir-react";
+import { Copy, LogOut, CheckCircle, Wallet } from "iconoir-react";
 import { FarcasterProfile } from "../farcaster-profile";
 import { ErrorBoundary } from "../error-boundary";
 import { useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { useAccount } from "wagmi";
-import { IdeaListItem } from "./idea-list-item";
+import { StatusBadge } from "../ui/status-badge";
 import { Id } from "../../../convex/_generated/dataModel";
-import { IDEAS_PER_SECTION } from "../../lib/constants";
-
-type UserIdea = {
-  _id: Id<"ideas">;
-  title: string;
-  description: string;
-  status: "open" | "claimed" | "completed";
-  timestamp: number;
-  deploymentUrl?: string;
-};
 
 interface SettingsContentProps {
   walletAddress: string;
@@ -28,114 +18,42 @@ interface SettingsContentProps {
   onIdeaClick: (ideaId: Id<"ideas">) => void;
 }
 
-function IdeaGroup({
-  icon: Icon,
-  iconClass,
-  label,
-  ideas,
-  isLoading,
-  emptyText,
-  onIdeaClick,
-}: {
-  icon: React.ComponentType<{ width: number; height: number; className: string }>;
-  iconClass: string;
-  label: string;
-  ideas: UserIdea[] | undefined;
-  isLoading: boolean;
-  emptyText: string;
-  onIdeaClick: (ideaId: Id<"ideas">) => void;
-}) {
-  return (
-    <div className="bg-gray-50 rounded-lg p-4">
-      <div className="flex items-center gap-2 mb-3">
-        <Icon width={20} height={20} className={iconClass} />
-        <p className="text-sm font-semibold text-black">
-          {label} ({ideas?.length ?? 0})
-        </p>
-      </div>
-      {isLoading ? (
-        <div className="animate-pulse space-y-2">
-          {[...Array(2)].map((_, i) => (
-            <div key={i} className="bg-gray-200 h-10 rounded-lg" />
-          ))}
-        </div>
-      ) : ideas && ideas.length > 0 ? (
-        <div className="space-y-2">
-          {ideas.slice(0, IDEAS_PER_SECTION).map((idea: UserIdea) => (
-            <IdeaListItem key={idea._id} idea={idea} onIdeaClick={onIdeaClick} />
-          ))}
-          {ideas.length > IDEAS_PER_SECTION && (
-            <p className="text-xs text-gray-500 text-center mt-2">
-              +{ideas.length - IDEAS_PER_SECTION} more
-            </p>
-          )}
-        </div>
-      ) : (
-        <p className="text-sm text-gray-500">{emptyText}</p>
-      )}
-    </div>
-  );
-}
-
-function IdeasSection({ onIdeaClick }: { onIdeaClick: (ideaId: Id<"ideas">) => void }) {
+// useQuery lives inside this component so the ErrorBoundary wrapping it
+// can actually catch Convex server errors.
+function ProfileIdeas({ onIdeaClick }: { onIdeaClick: (id: Id<"ideas">) => void }) {
   const { address } = useAccount();
 
-  // When address is undefined the wallet is still connecting — skip queries and show loading.
-  // This prevents "No ideas submitted yet" from flashing before the wallet is ready.
-  const isWalletReady = !!address;
-
-  const submittedIdeas = useQuery(
+  const ideas = useQuery(
     api.userIdeas.getUserSubmittedIdeas,
-    isWalletReady ? { author: address! } : "skip"
-  );
-  const claimedIdeas = useQuery(
-    api.userIdeas.getUserClaimedIdeas,
-    isWalletReady ? { claimer: address! } : "skip"
-  );
-  const completedIdeas = useQuery(
-    api.userIdeas.getUserCompletedIdeas,
-    isWalletReady ? { claimer: address! } : "skip"
+    address ? { author: address } : "skip"
   );
 
-  // Show skeleton while wallet connects or while queries are in-flight
-  const isLoading = !isWalletReady || submittedIdeas === undefined;
+  if (!address || ideas === undefined) {
+    return (
+      <div className="space-y-2 animate-pulse">
+        {[0, 1].map((i) => (
+          <div key={i} className="bg-gray-200 h-10 rounded-lg" />
+        ))}
+      </div>
+    );
+  }
+
+  if (ideas.length === 0) {
+    return <p className="text-sm text-gray-500">No ideas submitted yet.</p>;
+  }
 
   return (
-    <div className="space-y-4">
-      <p className="font-semibold text-black">Your Ideas</p>
-      <ErrorBoundary fallback={<p className="text-xs text-gray-400 px-1">Could not load submitted ideas.</p>}>
-        <IdeaGroup
-          icon={LightBulb}
-          iconClass="text-blue-600"
-          label="Submitted"
-          ideas={submittedIdeas as UserIdea[] | undefined}
-          isLoading={isLoading}
-          emptyText="No ideas submitted yet"
-          onIdeaClick={onIdeaClick}
-        />
-      </ErrorBoundary>
-      <ErrorBoundary fallback={<p className="text-xs text-gray-400 px-1">Could not load claimed ideas.</p>}>
-        <IdeaGroup
-          icon={Hammer}
-          iconClass="text-yellow-600"
-          label="Claimed"
-          ideas={claimedIdeas as UserIdea[] | undefined}
-          isLoading={!isWalletReady || claimedIdeas === undefined}
-          emptyText="No ideas claimed yet"
-          onIdeaClick={onIdeaClick}
-        />
-      </ErrorBoundary>
-      <ErrorBoundary fallback={<p className="text-xs text-gray-400 px-1">Could not load deployed ideas.</p>}>
-        <IdeaGroup
-          icon={Tools}
-          iconClass="text-green-600"
-          label="Deployed"
-          ideas={completedIdeas as UserIdea[] | undefined}
-          isLoading={!isWalletReady || completedIdeas === undefined}
-          emptyText="No ideas deployed yet"
-          onIdeaClick={onIdeaClick}
-        />
-      </ErrorBoundary>
+    <div className="space-y-2">
+      {ideas.map((idea) => (
+        <button
+          key={idea._id}
+          onClick={() => onIdeaClick(idea._id as Id<"ideas">)}
+          className="w-full text-left bg-white rounded-lg px-3 py-2.5 border border-gray-200 hover:border-gray-300 hover:shadow-sm transition-all duration-150 flex items-center justify-between gap-2"
+        >
+          <span className="font-medium text-gray-900 text-sm truncate">{idea.title}</span>
+          <StatusBadge status={idea.status} className="px-2 py-0.5 text-xs flex-shrink-0" />
+        </button>
+      ))}
     </div>
   );
 }
@@ -153,7 +71,12 @@ export const SettingsContent = ({
         <FarcasterProfile />
       </ErrorBoundary>
 
-      <IdeasSection onIdeaClick={onIdeaClick} />
+      <div className="space-y-3">
+        <p className="font-semibold text-black">Your Ideas</p>
+        <ErrorBoundary fallback={<p className="text-sm text-gray-500">Could not load ideas.</p>}>
+          <ProfileIdeas onIdeaClick={onIdeaClick} />
+        </ErrorBoundary>
+      </div>
 
       <div className="space-y-3">
         <p className="font-semibold text-black">Wallet</p>
