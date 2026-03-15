@@ -34,16 +34,16 @@ const schema = defineSchema({
 
   // Remixes / additions / edits / comments on ideas
   remixes: defineTable({
-    ideaId: v.id("ideas"),
-    author: v.string(), // wallet address
+    ideaId: v.optional(v.id("ideas")),
+    author: v.optional(v.string()), // wallet address
     authorFid: v.optional(v.number()),
     authorAvatar: v.optional(v.string()),
     authorDisplayName: v.optional(v.string()),
     authorUsername: v.optional(v.string()),
-    content: v.string(),
-    type: v.union(v.literal("addition"), v.literal("edit"), v.literal("comment")),
+    content: v.optional(v.string()),
+    type: v.optional(v.union(v.literal("addition"), v.literal("edit"), v.literal("comment"))),
     timestamp: v.number(),
-    upvotes: v.number(),
+    upvotes: v.optional(v.number()),
   })
     .index("by_idea", ["ideaId"])
     .index("by_author", ["author"])
