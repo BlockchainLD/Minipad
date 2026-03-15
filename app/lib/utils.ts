@@ -6,7 +6,7 @@ export const APP_METADATA = {
     description: 'Submit and vote on miniapp ideas for Base',
     imageUrl: 'https://i.imgur.com/2bsV8mV.png',
     splash: {
-        imageUrl: `${APP_URL}/icon.svg`,
+        imageUrl: `${APP_URL}/api/icon`,
         backgroundColor: '#FFFFFF',
     },
     url: process.env.SITE_URL || (typeof window !== 'undefined' ? window.location.origin : 'https://minipad-app.vercel.app'),
