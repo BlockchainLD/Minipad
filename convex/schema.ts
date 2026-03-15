@@ -44,6 +44,11 @@ const schema = defineSchema({
     type: v.optional(v.union(v.literal("addition"), v.literal("edit"), v.literal("comment"))),
     timestamp: v.number(),
     upvotes: v.optional(v.number()),
+    // Legacy fields from old schema — present in old documents, cleaned up via migration
+    attestationUid: v.optional(v.string()),
+    originalIdeaId: v.optional(v.string()),
+    remixIdeaId: v.optional(v.string()),
+    remixer: v.optional(v.string()),
   })
     .index("by_idea", ["ideaId"])
     .index("by_author", ["author"])
