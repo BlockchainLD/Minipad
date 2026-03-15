@@ -90,7 +90,7 @@ export const upvoteRemix = mutation({
       timestamp: Date.now(),
     });
     const remix = await ctx.db.get(args.remixId);
-    if (remix) await ctx.db.patch(args.remixId, { upvotes: remix.upvotes + 1 });
+    if (remix) await ctx.db.patch(args.remixId, { upvotes: (remix.upvotes ?? 0) + 1 });
     return null;
   },
 });
@@ -110,7 +110,7 @@ export const removeRemixUpvote = mutation({
 
     await ctx.db.delete(existing._id);
     const remix = await ctx.db.get(args.remixId);
-    if (remix) await ctx.db.patch(args.remixId, { upvotes: Math.max(0, remix.upvotes - 1) });
+    if (remix) await ctx.db.patch(args.remixId, { upvotes: Math.max(0, (remix.upvotes ?? 0) - 1) });
     return null;
   },
 });
