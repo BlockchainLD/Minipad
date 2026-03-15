@@ -1,8 +1,12 @@
+const siteUrl = process.env.CONVEX_SITE_URL || process.env.SITE_URL;
+
 export default {
-  providers: [
-    {
-      domain: process.env.CONVEX_SITE_URL,
-      applicationID: "convex",
-    },
-  ],
+  providers: siteUrl
+    ? [
+        {
+          domain: siteUrl,
+          applicationID: "convex",
+        },
+      ]
+    : [],
 };
