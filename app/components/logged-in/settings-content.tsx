@@ -8,37 +8,35 @@ import { useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { useAccount } from "wagmi";
 import { StatusBadge } from "../ui/status-badge";
-import { Id } from "../../../convex/_generated/dataModel";
 
 interface SettingsContentProps {
   walletAddress: string;
   copied: boolean;
   onCopyAddress: () => void;
   onSignOut: () => void;
-  onIdeaClick: (ideaId: Id<"ideas">) => void;
+  onIdeaClick: (ideaId: string) => void;
 }
 
-// useQuery lives inside this component so the ErrorBoundary wrapping it
-// can actually catch Convex server errors.
-function ProfileIdeas({ onIdeaClick }: { onIdeaClick: (id: Id<"ideas">) => void }) {
+// Uses api.ideas.getIdeas — the same proven query the board uses —
+// and filters by address client-side. No separate Convex function needed.
+// useQuery lives inside this component so the ErrorBoundary above it catches errors.
+function ProfileIdeas({ onIdeaClick }: { onIdeaClick: (id: string) => void }) {
   const { address } = useAccount();
+  const allIdeas = useQuery(api.ideas.getIdeas, { limit: 50 });
 
-  const ideas = useQuery(
-    api.userIdeas.getUserSubmittedIdeas,
-    address ? { author: address } : "skip"
+  const ideas = allIdeas?.filter(
+    (idea) => idea.author === address && !idea.isRemix
   );
 
-  if (!address || ideas === undefined) {
+  if (!address || allIdeas === undefined) {
     return (
       <div className="space-y-2 animate-pulse">
-        {[0, 1].map((i) => (
-          <div key={i} className="bg-gray-200 h-10 rounded-lg" />
-        ))}
+        {[0, 1].map((i) => <div key={i} className="bg-gray-200 h-10 rounded-lg" />)}
       </div>
     );
   }
 
-  if (ideas.length === 0) {
+  if (!ideas || ideas.length === 0) {
     return <p className="text-sm text-gray-500">No ideas submitted yet.</p>;
   }
 
@@ -47,7 +45,7 @@ function ProfileIdeas({ onIdeaClick }: { onIdeaClick: (id: Id<"ideas">) => void 
       {ideas.map((idea) => (
         <button
           key={idea._id}
-          onClick={() => onIdeaClick(idea._id as Id<"ideas">)}
+          onClick={() => onIdeaClick(idea._id)}
           className="w-full text-left bg-white rounded-lg px-3 py-2.5 border border-gray-200 hover:border-gray-300 hover:shadow-sm transition-all duration-150 flex items-center justify-between gap-2"
         >
           <span className="font-medium text-gray-900 text-sm truncate">{idea.title}</span>

@@ -143,7 +143,7 @@ const CardUpvoteButton = ({
 interface IdeasBoardProps {
   onViewChange?: (view: "board" | "submit" | "complete" | "confirmation") => void;
   onProfileClick?: (authorAddress: string) => void;
-  openIdeaId?: Id<"ideas"> | null;
+  openIdeaId?: string | null;
   onIdeaOpened?: () => void;
 }
 

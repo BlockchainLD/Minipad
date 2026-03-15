@@ -9,7 +9,6 @@ import { IdeaSubmissionForm } from "../idea-submission-form";
 import { IdeaSubmissionConfirmation } from "../idea-submission-confirmation";
 import { Header } from "./header";
 import { TABS, VIEWS } from "../../lib/constants";
-import { Id } from "../../../convex/_generated/dataModel";
 
 export const LoggedIn = () => {
   const {
@@ -25,7 +24,7 @@ export const LoggedIn = () => {
   const [currentView, setCurrentView] = useState<"board" | "submit" | "complete" | "confirmation">(
     VIEWS.BOARD
   );
-  const [pendingOpenIdeaId, setPendingOpenIdeaId] = useState<Id<"ideas"> | null>(null);
+  const [pendingOpenIdeaId, setPendingOpenIdeaId] = useState<string | null>(null);
   const farcasterData = useFarcasterData();
   const avatarUrl = farcasterData?.pfp?.url || null;
 
@@ -38,7 +37,7 @@ export const LoggedIn = () => {
     setActiveTab(TABS.SETTINGS);
   };
 
-  const handleIdeaClick = (ideaId: Id<"ideas">) => {
+  const handleIdeaClick = (ideaId: string) => {
     setPendingOpenIdeaId(ideaId);
     setActiveTab(TABS.HOME);
     setCurrentView(VIEWS.BOARD);
