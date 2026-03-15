@@ -65,7 +65,7 @@ export const getRemixesForIdea = query({
       .collect();
     return results
       .map(({ _creationTime, ...r }) => ({ ...r, upvotes: r.upvotes ?? 0 }))
-      .sort((a, b) => b.timestamp - a.timestamp);
+      .sort((a, b) => b.upvotes - a.upvotes || b.timestamp - a.timestamp);
   },
 });
 
