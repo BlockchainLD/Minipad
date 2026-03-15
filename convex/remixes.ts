@@ -1,5 +1,6 @@
 import { mutation, query } from "./_generated/server";
 import { ConvexError, v } from "convex/values";
+import { remixType } from "./types";
 
 export const createRemix = mutation({
   args: {
@@ -58,6 +59,7 @@ export const getRemixesForIdea = query({
   args: {
     ideaId: v.id("ideas"),
   },
+  returns: v.array(remixType),
   handler: async (ctx, args) => {
     const results = await ctx.db
       .query("remixes")

@@ -1,10 +1,12 @@
 import { query } from "./_generated/server";
 import { v } from "convex/values";
+import { ideaType } from "./types";
 
 export const getUserSubmittedIdeas = query({
   args: {
     author: v.string(),
   },
+  returns: v.array(ideaType),
   handler: async (ctx, args) => {
     return await ctx.db
       .query("ideas")
