@@ -1,5 +1,5 @@
 import { mutation } from "./_generated/server";
-import { v } from "convex/values";
+import { ConvexError, v } from "convex/values";
 
 export const claimIdea = mutation({
   args: {
@@ -7,11 +7,10 @@ export const claimIdea = mutation({
     claimer: v.string(),
     attestationUid: v.optional(v.string()),
   },
-  returns: v.null(),
   handler: async (ctx, args) => {
     const idea = await ctx.db.get(args.ideaId);
-    if (!idea) throw new Error("Idea not found");
-    if (idea.status !== "open") throw new Error("Idea is not available for claiming");
+    if (!idea) throw new ConvexError("Idea not found");
+    if (idea.status !== "open") throw new ConvexError("Idea is not available for claiming");
 
     await ctx.db.insert("claims", {
       ideaId: args.ideaId,
@@ -37,12 +36,11 @@ export const completeIdea = mutation({
     deploymentUrl: v.string(),
     attestationUid: v.optional(v.string()),
   },
-  returns: v.null(),
   handler: async (ctx, args) => {
     const idea = await ctx.db.get(args.ideaId);
-    if (!idea) throw new Error("Idea not found");
+    if (!idea) throw new ConvexError("Idea not found");
     if (idea.status !== "claimed" || idea.claimedBy !== args.claimer) {
-      throw new Error("Idea is not claimed by this user");
+      throw new ConvexError("Idea is not claimed by this user");
     }
 
     await ctx.db.patch(args.ideaId, {
@@ -60,12 +58,11 @@ export const unclaimIdea = mutation({
     ideaId: v.id("ideas"),
     claimer: v.string(),
   },
-  returns: v.union(v.string(), v.null()),
   handler: async (ctx, args) => {
     const idea = await ctx.db.get(args.ideaId);
-    if (!idea) throw new Error("Idea not found");
+    if (!idea) throw new ConvexError("Idea not found");
     if (idea.status !== "claimed" || idea.claimedBy !== args.claimer) {
-      throw new Error("Idea is not claimed by this user");
+      throw new ConvexError("Idea is not claimed by this user");
     }
 
     const claim = await ctx.db

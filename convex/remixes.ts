@@ -1,6 +1,5 @@
 import { mutation, query } from "./_generated/server";
-import { v } from "convex/values";
-import { remixType } from "./types";
+import { ConvexError, v } from "convex/values";
 
 export const createRemix = mutation({
   args: {
@@ -13,23 +12,24 @@ export const createRemix = mutation({
     authorDisplayName: v.optional(v.string()),
     authorUsername: v.optional(v.string()),
   },
-  returns: v.id("remixes"),
   handler: async (ctx, args) => {
     const idea = await ctx.db.get(args.ideaId);
-    if (!idea) throw new Error("Idea not found");
+    if (!idea) throw new ConvexError("Idea not found");
 
-    return await ctx.db.insert("remixes", {
+    const doc: Record<string, unknown> = {
       ideaId: args.ideaId,
       author: args.author,
-      authorFid: args.authorFid,
-      authorAvatar: args.authorAvatar,
-      authorDisplayName: args.authorDisplayName,
-      authorUsername: args.authorUsername,
       content: args.content,
       type: args.type,
       timestamp: Date.now(),
       upvotes: 0,
-    });
+    };
+    if (args.authorFid !== undefined) doc.authorFid = args.authorFid;
+    if (args.authorAvatar !== undefined) doc.authorAvatar = args.authorAvatar;
+    if (args.authorDisplayName !== undefined) doc.authorDisplayName = args.authorDisplayName;
+    if (args.authorUsername !== undefined) doc.authorUsername = args.authorUsername;
+
+    return await ctx.db.insert("remixes", doc as any);
   },
 });
 
@@ -38,11 +38,10 @@ export const deleteRemix = mutation({
     remixId: v.id("remixes"),
     author: v.string(),
   },
-  returns: v.null(),
   handler: async (ctx, args) => {
     const remix = await ctx.db.get(args.remixId);
-    if (!remix) throw new Error("Remix not found");
-    if (remix.author !== args.author) throw new Error("Only the author can delete their remix");
+    if (!remix) throw new ConvexError("Remix not found");
+    if (remix.author !== args.author) throw new ConvexError("Only the author can delete their remix");
 
     const upvotes = await ctx.db
       .query("remixUpvotes")
@@ -52,7 +51,6 @@ export const deleteRemix = mutation({
       await ctx.db.delete(upvote._id);
     }
     await ctx.db.delete(args.remixId);
-    return null;
   },
 });
 
@@ -76,13 +74,12 @@ export const upvoteRemix = mutation({
     remixId: v.id("remixes"),
     voter: v.string(),
   },
-  returns: v.null(),
   handler: async (ctx, args) => {
     const existing = await ctx.db
       .query("remixUpvotes")
       .withIndex("by_remix_voter", (q) => q.eq("remixId", args.remixId).eq("voter", args.voter))
       .first();
-    if (existing) throw new Error("Already upvoted this remix");
+    if (existing) throw new ConvexError("Already upvoted this remix");
 
     await ctx.db.insert("remixUpvotes", {
       remixId: args.remixId,
@@ -91,7 +88,6 @@ export const upvoteRemix = mutation({
     });
     const remix = await ctx.db.get(args.remixId);
     if (remix) await ctx.db.patch(args.remixId, { upvotes: (remix.upvotes ?? 0) + 1 });
-    return null;
   },
 });
 
@@ -100,18 +96,16 @@ export const removeRemixUpvote = mutation({
     remixId: v.id("remixes"),
     voter: v.string(),
   },
-  returns: v.null(),
   handler: async (ctx, args) => {
     const existing = await ctx.db
       .query("remixUpvotes")
       .withIndex("by_remix_voter", (q) => q.eq("remixId", args.remixId).eq("voter", args.voter))
       .first();
-    if (!existing) throw new Error("No upvote found");
+    if (!existing) throw new ConvexError("No upvote found");
 
     await ctx.db.delete(existing._id);
     const remix = await ctx.db.get(args.remixId);
     if (remix) await ctx.db.patch(args.remixId, { upvotes: Math.max(0, (remix.upvotes ?? 0) - 1) });
-    return null;
   },
 });
 
@@ -120,7 +114,6 @@ export const hasUserUpvotedRemix = query({
     remixId: v.id("remixes"),
     voter: v.string(),
   },
-  returns: v.boolean(),
   handler: async (ctx, args) => {
     const existing = await ctx.db
       .query("remixUpvotes")

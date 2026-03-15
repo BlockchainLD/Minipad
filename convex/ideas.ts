@@ -1,6 +1,5 @@
 import { mutation, query } from "./_generated/server";
-import { v } from "convex/values";
-import { ideaType } from "./types";
+import { ConvexError, v } from "convex/values";
 
 export const submitIdea = mutation({
   args: {
@@ -13,21 +12,22 @@ export const submitIdea = mutation({
     authorUsername: v.optional(v.string()),
     attestationUid: v.optional(v.string()),
   },
-  returns: v.id("ideas"),
   handler: async (ctx, args) => {
-    return await ctx.db.insert("ideas", {
+    const doc: Record<string, unknown> = {
       title: args.title,
       description: args.description,
       author: args.author,
-      authorFid: args.authorFid,
-      authorAvatar: args.authorAvatar,
-      authorDisplayName: args.authorDisplayName,
-      authorUsername: args.authorUsername,
-      attestationUid: args.attestationUid,
       timestamp: Date.now(),
       upvotes: 0,
-      status: "open",
-    });
+      status: "open" as const,
+    };
+    if (args.authorFid !== undefined) doc.authorFid = args.authorFid;
+    if (args.authorAvatar !== undefined) doc.authorAvatar = args.authorAvatar;
+    if (args.authorDisplayName !== undefined) doc.authorDisplayName = args.authorDisplayName;
+    if (args.authorUsername !== undefined) doc.authorUsername = args.authorUsername;
+    if (args.attestationUid !== undefined) doc.attestationUid = args.attestationUid;
+
+    return await ctx.db.insert("ideas", doc as any);
   },
 });
 
@@ -35,11 +35,12 @@ export const getIdeas = query({
   args: {
     limit: v.optional(v.number()),
   },
-  returns: v.array(ideaType),
   handler: async (ctx, args) => {
     const limit = args.limit ?? 50;
     const ideas = await ctx.db.query("ideas").order("desc").take(limit);
-    return ideas.filter(idea => !idea.isRemix);
+    return ideas
+      .filter(idea => !idea.isRemix)
+      .map(idea => ({ ...idea, upvotes: idea.upvotes ?? 0 }));
   },
 });
 
@@ -48,7 +49,6 @@ export const updateIdeaAttestation = mutation({
     ideaId: v.id("ideas"),
     attestationUid: v.string(),
   },
-  returns: v.null(),
   handler: async (ctx, args) => {
     await ctx.db.patch(args.ideaId, { attestationUid: args.attestationUid });
   },
@@ -59,11 +59,10 @@ export const deleteIdea = mutation({
     ideaId: v.id("ideas"),
     author: v.string(),
   },
-  returns: v.null(),
   handler: async (ctx, args) => {
     const idea = await ctx.db.get(args.ideaId);
-    if (!idea) throw new Error("Idea not found");
-    if (idea.author !== args.author) throw new Error("Only the author can delete their idea");
+    if (!idea) throw new ConvexError("Idea not found");
+    if (idea.author !== args.author) throw new ConvexError("Only the author can delete their idea");
 
     const upvotes = await ctx.db
       .query("upvotes")

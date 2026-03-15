@@ -1,3 +1,4 @@
+import { ConvexError } from "convex/values";
 import { toast } from "sonner";
 
 export interface ErrorContext {
@@ -5,35 +6,44 @@ export interface ErrorContext {
   component: string;
 }
 
+function getErrorMessage(error: unknown): string {
+  // ConvexError stores the user-facing message in .data
+  if (error instanceof ConvexError) {
+    return typeof error.data === "string" ? error.data : JSON.stringify(error.data);
+  }
+  if (error instanceof Error) {
+    return error.message;
+  }
+  return String(error);
+}
+
 export const handleError = (error: unknown, context: ErrorContext) => {
   console.error(`Error in ${context.component} during ${context.operation}:`, error);
 
-  if (error instanceof Error) {
-    if (error.message === "Idea not found") {
-      toast.error("Idea not found");
-    } else if (error.message === "Idea is not available for claiming") {
-      toast.error("This idea has already been claimed");
-    } else if (error.message === "Idea is not claimed by this user") {
-      toast.error("You can only unclaim ideas you have claimed");
-    } else if (error.message === "Only the author can delete their idea") {
-      toast.error("You can only delete your own ideas");
-    } else if (error.message === "Only the author can delete their remix") {
-      toast.error("You can only delete your own remixes");
-    } else if (error.message === "Cannot upvote your own idea") {
-      toast.error("You cannot upvote your own idea");
-    } else if (error.message.includes("EAS schemas not configured")) {
-      toast.error("EAS not properly configured. Please contact support.");
-    } else if (error.message.includes("User rejected") || error.message.includes("rejected")) {
-      toast.error("Transaction was rejected. Please try again.");
-    } else if (error.message.includes("insufficient funds")) {
-      toast.error("Insufficient funds for transaction. Please add ETH to your wallet.");
-    } else if (error.message.includes("network")) {
-      toast.error("Network error. Please check your connection and try again.");
-    } else {
-      toast.error(`Failed to ${context.operation}: ${error.message}`);
-    }
+  const msg = getErrorMessage(error);
+
+  if (msg === "Idea not found") {
+    toast.error("Idea not found");
+  } else if (msg === "Idea is not available for claiming") {
+    toast.error("This idea has already been claimed");
+  } else if (msg === "Idea is not claimed by this user") {
+    toast.error("You can only unclaim ideas you have claimed");
+  } else if (msg === "Only the author can delete their idea") {
+    toast.error("You can only delete your own ideas");
+  } else if (msg === "Only the author can delete their remix") {
+    toast.error("You can only delete your own remixes");
+  } else if (msg === "Cannot upvote your own idea") {
+    toast.error("You cannot upvote your own idea");
+  } else if (msg.includes("EAS schemas not configured")) {
+    toast.error("EAS not properly configured. Please contact support.");
+  } else if (msg.includes("User rejected") || msg.includes("rejected")) {
+    toast.error("Transaction was rejected. Please try again.");
+  } else if (msg.includes("insufficient funds")) {
+    toast.error("Insufficient funds for transaction. Please add ETH to your wallet.");
+  } else if (msg.includes("network")) {
+    toast.error("Network error. Please check your connection and try again.");
   } else {
-    toast.error(`Failed to ${context.operation}. Please try again.`);
+    toast.error(`Failed to ${context.operation}: ${msg}`);
   }
 };
 
