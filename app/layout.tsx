@@ -4,10 +4,31 @@ import "@worldcoin/mini-apps-ui-kit-react/styles.css";
 import { Provider as WagmiProvider } from './providers/wagmi-provider';
 import { ConvexClientProvider } from "./providers/convex-client-provider";
 import { Toaster } from "@worldcoin/mini-apps-ui-kit-react";
+import { APP_METADATA } from "./lib/utils";
+
+const appUrl = process.env.SITE_URL || 'https://minipad-app.vercel.app';
+
+const frameEmbed = {
+  version: "next",
+  imageUrl: APP_METADATA.imageUrl,
+  button: {
+    title: "Open Minipad",
+    action: {
+      type: "launch_frame",
+      name: APP_METADATA.title,
+      url: appUrl,
+      splashImageUrl: `${appUrl}/icon.svg`,
+      splashBackgroundColor: APP_METADATA.splash.backgroundColor,
+    },
+  },
+};
 
 export const metadata: Metadata = {
   title: "Minipad",
   description: "Submit and vote on miniapp ideas for Base",
+  other: {
+    "fc:frame": JSON.stringify(frameEmbed),
+  },
 };
 
 export default function RootLayout({

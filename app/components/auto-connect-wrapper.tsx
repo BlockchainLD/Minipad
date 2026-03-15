@@ -65,14 +65,14 @@ export function AutoConnectWrapper({ children }: AutoConnectWrapperProps) {
     }
   }, [isConnected, autoConnectAttempted]);
 
+  // Call ready() exactly once on mount to dismiss the splash screen.
+  // This must happen as early as possible regardless of wallet/auth state.
+  useEffect(() => {
+    sdk.actions.ready({ disableNativeGestures: true }).catch(() => {});
+  }, []);
+
   useEffect(() => {
     const checkMiniApp = async () => {
-      try {
-        await sdk.actions.ready({ disableNativeGestures: true });
-      } catch {
-        // ignore
-      }
-
       try {
         const inMiniApp = await sdk.isInMiniApp();
         setIsInMiniApp(inMiniApp);
