@@ -7,7 +7,7 @@ import { useAccount } from "wagmi";
 import { Button } from "@worldcoin/mini-apps-ui-kit-react";
 import { toast } from "sonner";
 import { Id } from "../../convex/_generated/dataModel";
-import { Heart, Flash, Hammer, LightBulb } from "iconoir-react";
+import { Heart, Flash, Hammer, LightBulb, OpenNewWindow } from "iconoir-react";
 import { IdeaFilter, FilterOption } from "./idea-filter";
 import { CompletionForm } from "./completion-form";
 import { UserAvatar } from "./ui/user-avatar";
@@ -341,13 +341,29 @@ export const IdeasBoard = ({ onViewChange, onProfileClick }: IdeasBoardProps) =>
                 address={address}
               />
 
-              <button
-                onClick={(e) => handleButtonClick(e, () => handleRemix(idea._id))}
-                className="flex items-center justify-center p-2 text-yellow-500 hover:text-yellow-600 hover:bg-yellow-50 rounded-xl transition-all duration-200 hover:scale-105 group"
-                title="Remix this idea"
-              >
-                <Flash width={18} height={18} className="group-hover:scale-110 transition-transform" />
-              </button>
+              {idea.status !== "completed" && (
+                <button
+                  onClick={(e) => handleButtonClick(e, () => handleRemix(idea._id))}
+                  className="flex items-center justify-center p-2 text-yellow-500 hover:text-yellow-600 hover:bg-yellow-50 rounded-xl transition-all duration-200 hover:scale-105 group"
+                  title="Add your take"
+                >
+                  <Flash width={18} height={18} className="group-hover:scale-110 transition-transform" />
+                </button>
+              )}
+
+              {idea.status === "completed" && idea.deploymentUrl && (
+                <a
+                  href={idea.deploymentUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={(e) => e.stopPropagation()}
+                  className="flex items-center gap-1.5 px-3 py-1.5 bg-green-50 text-green-700 hover:bg-green-100 border border-green-200 rounded-xl text-sm font-medium transition-all duration-200 hover:scale-105"
+                  title="View live app"
+                >
+                  <OpenNewWindow width={14} height={14} />
+                  View App
+                </a>
+              )}
 
               {idea.status === "open" && (
                 <ClaimButton onClick={(e) => handleButtonClick(e, () => handleClaim(idea._id))} />
