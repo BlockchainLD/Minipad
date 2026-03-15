@@ -1,12 +1,10 @@
 import { query } from "./_generated/server";
 import { v } from "convex/values";
-import { ideaType } from "./types";
 
 export const getUserSubmittedIdeas = query({
   args: {
     author: v.string(),
   },
-  returns: v.array(ideaType),
   handler: async (ctx, args) => {
     const all = await ctx.db
       .query("ideas")
@@ -22,7 +20,6 @@ export const getUserClaimedIdeas = query({
   args: {
     claimer: v.string(),
   },
-  returns: v.array(ideaType),
   handler: async (ctx, args) => {
     const claims = await ctx.db
       .query("claims")
@@ -43,7 +40,6 @@ export const getUserCompletedIdeas = query({
   args: {
     claimer: v.string(),
   },
-  returns: v.array(ideaType),
   handler: async (ctx, args) => {
     const claims = await ctx.db
       .query("claims")

@@ -103,33 +103,39 @@ function IdeasSection({ onIdeaClick }: { onIdeaClick: (ideaId: Id<"ideas">) => v
   return (
     <div className="space-y-4">
       <p className="font-semibold text-black">Your Ideas</p>
-      <IdeaGroup
-        icon={LightBulb}
-        iconClass="text-blue-600"
-        label="Submitted"
-        ideas={submittedIdeas as UserIdea[] | undefined}
-        isLoading={isLoading}
-        emptyText="No ideas submitted yet"
-        onIdeaClick={onIdeaClick}
-      />
-      <IdeaGroup
-        icon={Hammer}
-        iconClass="text-yellow-600"
-        label="Claimed"
-        ideas={claimedIdeas as UserIdea[] | undefined}
-        isLoading={!isWalletReady || claimedIdeas === undefined}
-        emptyText="No ideas claimed yet"
-        onIdeaClick={onIdeaClick}
-      />
-      <IdeaGroup
-        icon={Tools}
-        iconClass="text-green-600"
-        label="Deployed"
-        ideas={completedIdeas as UserIdea[] | undefined}
-        isLoading={!isWalletReady || completedIdeas === undefined}
-        emptyText="No ideas deployed yet"
-        onIdeaClick={onIdeaClick}
-      />
+      <ErrorBoundary fallback={<p className="text-xs text-gray-400 px-1">Could not load submitted ideas.</p>}>
+        <IdeaGroup
+          icon={LightBulb}
+          iconClass="text-blue-600"
+          label="Submitted"
+          ideas={submittedIdeas as UserIdea[] | undefined}
+          isLoading={isLoading}
+          emptyText="No ideas submitted yet"
+          onIdeaClick={onIdeaClick}
+        />
+      </ErrorBoundary>
+      <ErrorBoundary fallback={<p className="text-xs text-gray-400 px-1">Could not load claimed ideas.</p>}>
+        <IdeaGroup
+          icon={Hammer}
+          iconClass="text-yellow-600"
+          label="Claimed"
+          ideas={claimedIdeas as UserIdea[] | undefined}
+          isLoading={!isWalletReady || claimedIdeas === undefined}
+          emptyText="No ideas claimed yet"
+          onIdeaClick={onIdeaClick}
+        />
+      </ErrorBoundary>
+      <ErrorBoundary fallback={<p className="text-xs text-gray-400 px-1">Could not load deployed ideas.</p>}>
+        <IdeaGroup
+          icon={Tools}
+          iconClass="text-green-600"
+          label="Deployed"
+          ideas={completedIdeas as UserIdea[] | undefined}
+          isLoading={!isWalletReady || completedIdeas === undefined}
+          emptyText="No ideas deployed yet"
+          onIdeaClick={onIdeaClick}
+        />
+      </ErrorBoundary>
     </div>
   );
 }
@@ -147,15 +153,7 @@ export const SettingsContent = ({
         <FarcasterProfile />
       </ErrorBoundary>
 
-      <ErrorBoundary
-        fallback={
-          <div className="bg-gray-50 rounded-lg p-4 text-sm text-gray-500">
-            Could not load your ideas. Please try again.
-          </div>
-        }
-      >
-        <IdeasSection onIdeaClick={onIdeaClick} />
-      </ErrorBoundary>
+      <IdeasSection onIdeaClick={onIdeaClick} />
 
       <div className="space-y-3">
         <p className="font-semibold text-black">Wallet</p>
