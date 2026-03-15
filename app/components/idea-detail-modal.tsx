@@ -255,32 +255,18 @@ interface IdeaDetailModalProps {
   autoOpenRemixForm?: boolean;
 }
 
-// Isolated component so useQuery errors are caught by ErrorBoundary
+// Isolated component so useQuery errors are caught by ErrorBoundary.
+// remixes and onDeleteRemix are hoisted to IdeaDetailModal so the
+// subscription outlives any internal re-renders or form overlays.
 const RemixesSection = ({
-  idea,
+  remixes,
+  onDeleteRemix,
   address,
 }: {
-  idea: Idea;
+  remixes: Remix[] | undefined;
+  onDeleteRemix: (remixId: Id<"remixes">) => void;
   address: string | undefined;
 }) => {
-  const remixes = useQuery(
-    api.remixes.getRemixesForIdea,
-    { ideaId: idea._id }
-  ) as Remix[] | undefined;
-
-  const deleteRemix = useMutation(api.remixes.deleteRemix);
-
-  const handleRemixDelete = async (remixId: Id<"remixes">) => {
-    if (!address) return;
-    if (!window.confirm("Delete this? This cannot be undone.")) return;
-    try {
-      await deleteRemix({ remixId, author: address });
-      toast.success("Deleted.");
-    } catch (error) {
-      handleError(error, { operation: "delete remix", component: "IdeaDetailModal" });
-    }
-  };
-
   return (
     <div className="mb-8">
       <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
@@ -334,7 +320,7 @@ const RemixesSection = ({
                       <RemixUpvoteButton remix={remix} address={address} />
                       {address && remix.author === address && (
                         <button
-                          onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleRemixDelete(remix._id); }}
+                          onClick={(e) => { e.preventDefault(); e.stopPropagation(); onDeleteRemix(remix._id); }}
                           className="flex items-center justify-center p-1 text-red-400 hover:text-red-600 transition-all duration-200 hover:scale-105"
                           title="Delete"
                         >
@@ -375,10 +361,28 @@ export const IdeaDetailModal = ({
 }: IdeaDetailModalProps) => {
   const [optimisticUpvotes, setOptimisticUpvotes] = useState<number | null>(null);
   // Inline remix form — rendered as an overlay ON TOP of this modal so
-  // RemixesSection stays mounted and its Convex subscription stays alive.
-  // When createRemix completes, the subscription delivers the new remix
-  // automatically — no modal unmount/remount cycle needed.
+  // the Convex subscription below stays alive when the form is visible.
   const [showRemixForm, setShowRemixForm] = useState(false);
+
+  // Subscription hoisted here (not inside RemixesSection) so its lifetime
+  // is tied to the modal, not to any child component that could re-mount.
+  const remixes = useQuery(
+    api.remixes.getRemixesForIdea,
+    { ideaId: idea._id }
+  ) as Remix[] | undefined;
+
+  const deleteRemix = useMutation(api.remixes.deleteRemix);
+
+  const handleRemixDelete = async (remixId: Id<"remixes">) => {
+    if (!address) return;
+    if (!window.confirm("Delete this? This cannot be undone.")) return;
+    try {
+      await deleteRemix({ remixId, author: address });
+      toast.success("Deleted.");
+    } catch (error) {
+      handleError(error, { operation: "delete remix", component: "IdeaDetailModal" });
+    }
+  };
 
   const createRemix = useMutation(api.remixes.createRemix).withOptimisticUpdate(
     (localStore, args) => {
@@ -600,7 +604,7 @@ export const IdeaDetailModal = ({
                 </div>
               }
             >
-              <RemixesSection idea={idea} address={address} />
+              <RemixesSection remixes={remixes} onDeleteRemix={handleRemixDelete} address={address} />
             </ErrorBoundary>
           </div>
         </div>
