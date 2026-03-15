@@ -17,7 +17,7 @@ export function Provider({ children }: { children: React.ReactNode }) {
     },
   }));
 
-  const config = createConfig({
+  const [config] = useState(() => createConfig({
     chains: [base],
     transports: {
       [base.id]: http('https://mainnet.base.org', {
@@ -30,7 +30,7 @@ export function Provider({ children }: { children: React.ReactNode }) {
       farcasterMiniApp(),
     ],
     ssr: true,
-  });
+  }));
 
   return (
     <WagmiProvider config={config}>
