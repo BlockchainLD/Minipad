@@ -101,7 +101,7 @@ export const RemixForm = ({ originalTitle, onSubmit, onCancel }: RemixFormProps)
                     onClick={() => setType(t.value)}
                     className={`flex-1 px-3 py-2 rounded-xl text-sm font-medium border transition-all duration-200 ${
                       type === t.value
-                        ? "bg-blue-500 text-white border-blue-500"
+                        ? "bg-violet-600 text-white border-violet-600"
                         : "bg-white text-gray-700 border-gray-300 hover:border-gray-400"
                     }`}
                   >
@@ -121,7 +121,7 @@ export const RemixForm = ({ originalTitle, onSubmit, onCancel }: RemixFormProps)
                 onChange={(e) => setContent(e.target.value)}
                 placeholder={PLACEHOLDERS[type]}
                 rows={5}
-                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 resize-none"
+                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-all duration-200 resize-none"
                 required
                 disabled={isSubmitting}
               />
@@ -145,7 +145,7 @@ export const RemixForm = ({ originalTitle, onSubmit, onCancel }: RemixFormProps)
               <button
                 type="submit"
                 disabled={isSubmitting || !content.trim()}
-                className="flex-1 px-6 py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-xl font-medium transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex-1 px-6 py-3 bg-violet-600 hover:bg-violet-700 text-white rounded-xl font-medium transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isSubmitting ? "Submitting..." : "Submit"}
               </button>
