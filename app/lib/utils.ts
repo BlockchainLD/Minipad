@@ -1,11 +1,13 @@
 
+const APP_URL = process.env.SITE_URL || 'https://minipad-app.vercel.app';
+
 export const APP_METADATA = {
     title: 'Minipad',
     description: 'Submit and vote on miniapp ideas for Base',
     imageUrl: 'https://i.imgur.com/2bsV8mV.png',
     splash: {
-        imageUrl: 'https://i.imgur.com/brcnijg.png',
-        backgroundColor: '#FFFFFF' 
+        imageUrl: `${APP_URL}/icon.svg`,
+        backgroundColor: '#FFFFFF',
     },
     url: process.env.SITE_URL || (typeof window !== 'undefined' ? window.location.origin : 'https://minipad-app.vercel.app'),
     baseBuilder: {
