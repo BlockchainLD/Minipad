@@ -32,19 +32,17 @@ const nextConfig: NextConfig = {
     ],
   },
   async headers() {
-    // Allow embedding inside Base App and Farcaster webviews/frames
     return [
       {
         source: '/:path*',
         headers: [
-          // Permit framing in Base App and Warpcast; include self and Vercel previews
+          // Allow any Farcaster client to embed this mini app.
+          // Farcaster is an open protocol — restricting to specific domains
+          // would break the app in any client not explicitly listed.
           {
             key: 'Content-Security-Policy',
-            value:
-              "frame-ancestors 'self' https://base.app https://*.base.org https://warpcast.com https://*.warpcast.com https://farcaster.xyz https://*.farcaster.xyz https://*.vercel.app;",
+            value: "frame-ancestors *;",
           },
-          // Explicitly allow framing (older UAs)
-          { key: 'X-Frame-Options', value: 'ALLOWALL' },
           // Basic hardening
           { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
         ],
