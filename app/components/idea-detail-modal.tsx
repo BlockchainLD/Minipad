@@ -377,16 +377,16 @@ export const IdeaDetailModal = ({
   const createRemix = useMutation(api.remixes.createRemix);
   const farcasterData = useFarcasterData();
 
-  // Open remix form immediately when requested (e.g. Flash button on card)
-  useEffect(() => {
-    if (isOpen && autoOpenRemixForm) setShowRemixForm(true);
-  }, [isOpen, autoOpenRemixForm]);
-
-  // Reset remix form and optimistic upvotes when the idea changes
+  // Reset remix form and optimistic upvotes when the idea changes (runs first)
   useEffect(() => {
     setShowRemixForm(false);
     setOptimisticUpvotes(null);
   }, [idea?._id]);
+
+  // Open remix form immediately when requested — declared after reset so it wins on mount
+  useEffect(() => {
+    if (isOpen && autoOpenRemixForm) setShowRemixForm(true);
+  }, [isOpen, autoOpenRemixForm]);
 
   const handleSubmitRemix = async (data: {
     content: string;
@@ -414,6 +414,7 @@ export const IdeaDetailModal = ({
       // auto-delivers the new remix because it never unmounted.
     } catch (error) {
       handleError(error, { operation: "create remix", component: "IdeaDetailModal" });
+      throw error; // rethrow so RemixForm knows submission failed and keeps the text
     }
   };
 
