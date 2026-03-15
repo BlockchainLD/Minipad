@@ -348,13 +348,7 @@ const RemixesSection = ({
             );
           })}
         </div>
-      ) : (
-        <div className="text-center py-8 text-gray-400 border border-dashed border-gray-200 rounded-2xl">
-          <Flash width={28} height={28} className="mx-auto mb-2 text-gray-300" />
-          <p className="text-sm font-medium">No takes yet</p>
-          <p className="text-xs mt-1">Be the first to add an addition, edit, or comment</p>
-        </div>
-      )}
+      ) : null}
     </div>
   );
 };
@@ -568,13 +562,7 @@ export const IdeaDetailModal = ({
             )}
 
             {/* Remixes / Additions / Comments */}
-            <ErrorBoundary
-              fallback={
-                <div className="mb-8 p-4 bg-gray-50 rounded-2xl text-sm text-gray-500 text-center">
-                  Could not load community takes. Please try again.
-                </div>
-              }
-            >
+            <ErrorBoundary fallback={null}>
               <RemixesSection idea={idea} address={address} />
             </ErrorBoundary>
           </div>
