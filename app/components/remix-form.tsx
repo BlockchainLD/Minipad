@@ -61,9 +61,10 @@ export const RemixForm = ({ originalTitle, onSubmit, onCancel }: RemixFormProps)
         authorDisplayName: farcasterData?.displayName || undefined,
         authorUsername: farcasterData?.username || undefined,
       });
+      // Only clear on success — error toast already shown by handleSubmitRemix
       setContent("");
-    } catch (error) {
-      throw error;
+    } catch {
+      // Error already displayed; preserve content so user can retry
     } finally {
       setIsSubmitting(false);
     }
