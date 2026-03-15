@@ -275,6 +275,10 @@ export const IdeasBoard = ({ onViewChange, onProfileClick, openIdeaId, onIdeaOpe
         return filtered
           .filter((idea) => idea.status === "claimed")
           .sort((a, b) => b.timestamp - a.timestamp);
+      case "completed":
+        return filtered
+          .filter((idea) => idea.status === "completed")
+          .sort((a, b) => b.timestamp - a.timestamp);
       default:
         return filtered;
     }
@@ -409,6 +413,14 @@ export const IdeasBoard = ({ onViewChange, onProfileClick, openIdeaId, onIdeaOpe
                   </div>
                   <p className="text-gray-600 text-lg font-medium mb-2">No claimed ideas found</p>
                   <p className="text-gray-500">Try a different filter or submit a new idea!</p>
+                </>
+              ) : currentFilter === "completed" ? (
+                <>
+                  <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <OpenNewWindow width={32} height={32} className="text-green-600" />
+                  </div>
+                  <p className="text-gray-600 text-lg font-medium mb-2">No completed ideas yet</p>
+                  <p className="text-gray-500">Ideas that have been built and deployed will appear here.</p>
                 </>
               ) : (
                 <>

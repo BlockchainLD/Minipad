@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import { Button } from "@worldcoin/mini-apps-ui-kit-react";
 import { ArrowDown } from "iconoir-react";
 
-export type FilterOption = "newest" | "most-popular" | "claimed";
+export type FilterOption = "newest" | "most-popular" | "claimed" | "completed";
 
 interface IdeaFilterProps {
   currentFilter: FilterOption;
@@ -15,6 +15,7 @@ const filterLabels: Record<FilterOption, string> = {
   newest: "Newest",
   "most-popular": "Most Popular",
   claimed: "Claimed",
+  completed: "Completed",
 };
 
 export const IdeaFilter = ({ currentFilter, onFilterChange }: IdeaFilterProps) => {
