@@ -25,6 +25,7 @@ interface SettingsContentProps {
   copied: boolean;
   onCopyAddress: () => void;
   onSignOut: () => void;
+  onIdeaClick: (ideaId: Id<"ideas">) => void;
 }
 
 function IdeaGroup({
@@ -34,6 +35,7 @@ function IdeaGroup({
   ideas,
   isLoading,
   emptyText,
+  onIdeaClick,
 }: {
   icon: React.ComponentType<{ width: number; height: number; className: string }>;
   iconClass: string;
@@ -41,6 +43,7 @@ function IdeaGroup({
   ideas: UserIdea[] | undefined;
   isLoading: boolean;
   emptyText: string;
+  onIdeaClick: (ideaId: Id<"ideas">) => void;
 }) {
   return (
     <div className="bg-gray-50 rounded-lg p-4">
@@ -59,7 +62,7 @@ function IdeaGroup({
       ) : ideas && ideas.length > 0 ? (
         <div className="space-y-2">
           {ideas.slice(0, IDEAS_PER_SECTION).map((idea: UserIdea) => (
-            <IdeaListItem key={idea._id} idea={idea} />
+            <IdeaListItem key={idea._id} idea={idea} onIdeaClick={onIdeaClick} />
           ))}
           {ideas.length > IDEAS_PER_SECTION && (
             <p className="text-xs text-gray-500 text-center mt-2">
@@ -74,7 +77,7 @@ function IdeaGroup({
   );
 }
 
-function IdeasSection() {
+function IdeasSection({ onIdeaClick }: { onIdeaClick: (ideaId: Id<"ideas">) => void }) {
   const { address } = useAccount();
 
   // When address is undefined the wallet is still connecting — skip queries and show loading.
@@ -107,6 +110,7 @@ function IdeasSection() {
         ideas={submittedIdeas as UserIdea[] | undefined}
         isLoading={isLoading}
         emptyText="No ideas submitted yet"
+        onIdeaClick={onIdeaClick}
       />
       <IdeaGroup
         icon={Hammer}
@@ -115,6 +119,7 @@ function IdeasSection() {
         ideas={claimedIdeas as UserIdea[] | undefined}
         isLoading={!isWalletReady || claimedIdeas === undefined}
         emptyText="No ideas claimed yet"
+        onIdeaClick={onIdeaClick}
       />
       <IdeaGroup
         icon={Tools}
@@ -123,6 +128,7 @@ function IdeasSection() {
         ideas={completedIdeas as UserIdea[] | undefined}
         isLoading={!isWalletReady || completedIdeas === undefined}
         emptyText="No ideas deployed yet"
+        onIdeaClick={onIdeaClick}
       />
     </div>
   );
@@ -133,6 +139,7 @@ export const SettingsContent = ({
   copied,
   onCopyAddress,
   onSignOut,
+  onIdeaClick,
 }: SettingsContentProps) => {
   return (
     <div className="space-y-6">
@@ -147,7 +154,7 @@ export const SettingsContent = ({
           </div>
         }
       >
-        <IdeasSection />
+        <IdeasSection onIdeaClick={onIdeaClick} />
       </ErrorBoundary>
 
       <div className="space-y-3">

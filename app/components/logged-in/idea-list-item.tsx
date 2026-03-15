@@ -14,26 +14,17 @@ type UserIdea = {
 
 interface IdeaListItemProps {
   idea: UserIdea;
+  onIdeaClick: (ideaId: Id<"ideas">) => void;
 }
 
-export const IdeaListItem = ({ idea }: IdeaListItemProps) => (
-  <div className="bg-white rounded-lg p-3 border border-gray-200">
-    <div className="flex items-start justify-between gap-2">
-      <div className="flex-1 min-w-0">
-        <h4 className="font-medium text-gray-900 text-sm truncate">{idea.title}</h4>
-        <p className="text-xs text-gray-600 mt-1 line-clamp-2">{idea.description}</p>
-        {idea.deploymentUrl && (
-          <a
-            href={idea.deploymentUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-xs text-blue-600 hover:underline mt-1 block"
-          >
-            View Deployment →
-          </a>
-        )}
-      </div>
+export const IdeaListItem = ({ idea, onIdeaClick }: IdeaListItemProps) => (
+  <button
+    onClick={() => onIdeaClick(idea._id)}
+    className="w-full text-left bg-white rounded-lg px-3 py-2.5 border border-gray-200 hover:border-gray-300 hover:shadow-sm transition-all duration-150"
+  >
+    <div className="flex items-center justify-between gap-2">
+      <span className="font-medium text-gray-900 text-sm truncate">{idea.title}</span>
       <StatusBadge status={idea.status} className="px-2 py-0.5 text-xs flex-shrink-0" />
     </div>
-  </div>
+  </button>
 );

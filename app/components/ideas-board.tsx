@@ -143,9 +143,11 @@ const CardUpvoteButton = ({
 interface IdeasBoardProps {
   onViewChange?: (view: "board" | "submit" | "complete" | "confirmation") => void;
   onProfileClick?: (authorAddress: string) => void;
+  openIdeaId?: Id<"ideas"> | null;
+  onIdeaOpened?: () => void;
 }
 
-export const IdeasBoard = ({ onViewChange, onProfileClick }: IdeasBoardProps) => {
+export const IdeasBoard = ({ onViewChange, onProfileClick, openIdeaId, onIdeaOpened }: IdeasBoardProps) => {
   const { address } = useAccount();
 
   const [selectedIdea, setSelectedIdea] = useState<Idea | null>(null);
@@ -170,6 +172,20 @@ export const IdeasBoard = ({ onViewChange, onProfileClick }: IdeasBoardProps) =>
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ideas, selectedIdea?._id]);
+
+  // Open modal for a specific idea when navigated from another view (e.g. profile)
+  useEffect(() => {
+    if (openIdeaId && ideas) {
+      const idea = ideas.find((i) => i._id === openIdeaId);
+      if (idea) {
+        setSelectedIdea(idea as Idea);
+        setIsModalOpen(true);
+        setAutoOpenRemixForm(false);
+        onIdeaOpened?.();
+      }
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [openIdeaId, ideas]);
 
   const handleUpvote = async (ideaId: Id<"ideas">) => {
     if (!address) { toast.error("Please connect your wallet"); return; }
