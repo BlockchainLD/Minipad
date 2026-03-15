@@ -618,14 +618,16 @@ export const IdeaDetailModal = ({
               onOptimisticUpvoteChange={setOptimisticUpvotes}
             />
 
-            <button
-              onClick={(e) => { e.preventDefault(); e.stopPropagation(); setShowRemixForm(true); }}
-              className="flex items-center gap-1.5 px-3 py-2 text-yellow-600 hover:text-yellow-700 hover:bg-yellow-50 rounded-xl transition-all duration-200 hover:scale-105 text-sm font-medium"
-              title="Add your take"
-            >
-              <Flash width={16} height={16} />
-              Add Take
-            </button>
+            {idea.status !== "completed" && (
+              <button
+                onClick={(e) => { e.preventDefault(); e.stopPropagation(); setShowRemixForm(true); }}
+                className="flex items-center gap-1.5 px-3 py-2 text-yellow-600 hover:text-yellow-700 hover:bg-yellow-50 rounded-xl transition-all duration-200 hover:scale-105 text-sm font-medium"
+                title="Add your take"
+              >
+                <Flash width={16} height={16} />
+                Add Take
+              </button>
+            )}
 
             {idea.status === "open" && (
               <ClaimButton onClick={(e) => handleButtonClick(e, () => onClaim(idea._id))} />
