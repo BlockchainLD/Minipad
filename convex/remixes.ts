@@ -60,13 +60,14 @@ export const getRemixesForIdea = query({
   args: {
     ideaId: v.id("ideas"),
   },
-  returns: v.array(remixType),
   handler: async (ctx, args) => {
     const results = await ctx.db
       .query("remixes")
       .withIndex("by_idea", (q) => q.eq("ideaId", args.ideaId))
       .collect();
-    return results.sort((a, b) => b.timestamp - a.timestamp);
+    return results
+      .map((r) => ({ ...r, upvotes: r.upvotes ?? 0 }))
+      .sort((a, b) => b.timestamp - a.timestamp);
   },
 });
 
