@@ -8,6 +8,8 @@ import { AUTO_CONNECT_TIMEOUT } from "../lib/constants";
 interface FarcasterContextType {
   fid: number | null;
   isInMiniApp: boolean;
+  isCheckingContext: boolean;
+  connectingTimedOut: boolean;
   sdkUser: {
     fid: number;
     username?: string;
@@ -19,6 +21,8 @@ interface FarcasterContextType {
 const FarcasterContext = createContext<FarcasterContextType>({
   fid: null,
   isInMiniApp: false,
+  isCheckingContext: true,
+  connectingTimedOut: false,
   sdkUser: null,
 });
 
@@ -29,9 +33,10 @@ interface AutoConnectWrapperProps {
 }
 
 export function AutoConnectWrapper({ children }: AutoConnectWrapperProps) {
-  const { isConnected, isConnecting } = useAccount();
+  const { isConnected } = useAccount();
   const { connectAsync, connectors } = useConnect();
   const [isInMiniApp, setIsInMiniApp] = useState(false);
+  const [isCheckingContext, setIsCheckingContext] = useState(true);
   const [autoConnectAttempted, setAutoConnectAttempted] = useState(false);
   const [fid, setFid] = useState<number | null>(null);
   const [sdkUser, setSdkUser] = useState<FarcasterContextType["sdkUser"]>(null);
@@ -65,10 +70,11 @@ export function AutoConnectWrapper({ children }: AutoConnectWrapperProps) {
     }
   }, [isConnected, autoConnectAttempted]);
 
-  // Call ready() exactly once on mount to dismiss the splash screen.
-  // This must happen as early as possible regardless of wallet/auth state.
+  // Call ready() exactly once on mount to dismiss the Farcaster splash screen.
   useEffect(() => {
-    sdk.actions.ready().catch((e) => console.error('[MiniApp] sdk.actions.ready() failed (AutoConnectWrapper):', e));
+    sdk.actions
+      .ready()
+      .catch((e) => console.error("[MiniApp] sdk.actions.ready() failed (AutoConnectWrapper):", e));
   }, []);
 
   useEffect(() => {
@@ -103,7 +109,6 @@ export function AutoConnectWrapper({ children }: AutoConnectWrapperProps) {
 
           if (farcasterConnector) {
             try {
-              setConnectingTimedOut(false);
               if (timeoutRef.current) clearTimeout(timeoutRef.current);
               timeoutRef.current = setTimeout(() => {
                 setConnectingTimedOut(true);
@@ -129,6 +134,8 @@ export function AutoConnectWrapper({ children }: AutoConnectWrapperProps) {
         }
       } catch {
         setIsInMiniApp(false);
+      } finally {
+        setIsCheckingContext(false);
       }
     };
 
@@ -142,27 +149,11 @@ export function AutoConnectWrapper({ children }: AutoConnectWrapperProps) {
     };
   }, [isConnected, autoConnectAttempted, connectAsync, connectors]);
 
-  if (isInMiniApp && isConnecting && !connectingTimedOut) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center p-4">
-        <div className="bg-white rounded-3xl shadow-2xl p-7 space-y-7 text-center">
-          <div className="space-y-3">
-            <div className="animate-spin w-8 h-8 border-4 border-blue-500 rounded-full border-t-transparent mx-auto" />
-            <h2 className="font-sans antialiased font-semibold leading-narrow tracking-[-0.01em] text-2xl text-gray-900">
-              Connecting Wallet...
-            </h2>
-            <p className="font-sans antialiased font-normal leading-compact text-base text-gray-600">
-              Auto-connecting to your wallet in the Mini App
-            </p>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <FarcasterContext.Provider value={{ fid, isInMiniApp, sdkUser }}>
-      <div>{children}</div>
+    <FarcasterContext.Provider
+      value={{ fid, isInMiniApp, isCheckingContext, connectingTimedOut, sdkUser }}
+    >
+      {children}
     </FarcasterContext.Provider>
   );
 }
