@@ -41,7 +41,7 @@ const nextConfig: NextConfig = {
           {
             key: 'Content-Security-Policy',
             value:
-              "frame-ancestors 'self' https://base.app https://*.base.org https://warpcast.com https://*.warpcast.com https://*.vercel.app;",
+              "frame-ancestors 'self' https://base.app https://*.base.org https://warpcast.com https://*.warpcast.com https://farcaster.xyz https://*.farcaster.xyz https://*.vercel.app;",
           },
           // Explicitly allow framing (older UAs)
           { key: 'X-Frame-Options', value: 'ALLOWALL' },
