@@ -260,7 +260,10 @@ export const IdeasBoard = ({ onViewChange, onProfileClick, openIdeaId, onIdeaOpe
     setIsModalOpen(false);
     setAutoOpenRemixForm(false);
     setShowCompletionForm(false);
-    setSelectedIdea(null);
+    // selectedIdea is intentionally kept so IdeaDetailModal stays mounted
+    // (rendered but invisible via isOpen=false) and its hoisted Convex
+    // subscription can still receive the real document from any in-flight
+    // createRemix call. selectedIdea is overwritten when the next idea opens.
   };
 
   const filteredAndSortedIdeas = React.useMemo(() => {
