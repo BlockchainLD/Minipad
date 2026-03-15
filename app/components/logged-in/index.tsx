@@ -82,7 +82,7 @@ export const LoggedIn = () => {
   if (isMobile) {
     return (
       <>
-        <div className="bg-slate-50 min-h-screen mb-20 flex flex-col">
+        <div className="bg-slate-50 min-h-dvh flex flex-col">
           <Header
             avatarUrl={avatarUrl}
             onLogoClick={handleLogoClick}
@@ -93,7 +93,7 @@ export const LoggedIn = () => {
             {activeTab === TABS.SETTINGS && settingsContent}
           </div>
         </div>
-        <CopyNotification show={copied} isMobile />
+        <CopyNotification show={copied} />
       </>
     );
   }

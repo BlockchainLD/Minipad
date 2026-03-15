@@ -119,7 +119,7 @@ const CardUpvoteButton = ({
     <button
       onClick={handleClick}
       disabled={!address || isLoading}
-      className={`relative flex items-center gap-2 px-3 py-2 rounded-xl transition-all duration-200 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed group ${
+      className={`relative flex items-center gap-2 px-3 py-2 rounded-xl transition-colors duration-150 disabled:opacity-50 disabled:cursor-not-allowed ${
         isUpvoted
           ? "text-red-500 hover:text-red-600 hover:bg-red-50"
           : "text-gray-500 hover:text-gray-700 hover:bg-gray-50"
@@ -131,7 +131,7 @@ const CardUpvoteButton = ({
         height={18}
         fill={isUpvoted ? "currentColor" : "none"}
         stroke="currentColor"
-        className={`group-hover:scale-110 transition-transform ${isUpvoted ? "text-red-500" : "text-gray-500"}`}
+        className={isUpvoted ? "text-red-500" : "text-gray-500"}
       />
       <span className="text-sm font-semibold">{optimisticCount ?? upvotes}</span>
       {isLoading && <span className="text-xs text-gray-400">...</span>}
@@ -228,7 +228,6 @@ export const IdeasBoard = ({ onViewChange, onProfileClick, openIdeaId, onIdeaOpe
 
   const handleUnclaim = async (ideaId: Id<"ideas">) => {
     if (!address) { toast.error("Please connect your wallet"); return; }
-    if (!window.confirm("Unclaim this idea? It will become available for others to claim.")) return;
     try {
       await unclaimIdea({ ideaId, claimer: address });
       toast.success("Idea unclaimed.");
@@ -239,7 +238,6 @@ export const IdeasBoard = ({ onViewChange, onProfileClick, openIdeaId, onIdeaOpe
 
   const handleDelete = async (ideaId: Id<"ideas">) => {
     if (!address) { toast.error("Please connect your wallet"); return; }
-    if (!window.confirm("Delete this idea? This cannot be undone.")) return;
     try {
       await deleteIdea({ ideaId, author: address });
       toast.success("Idea deleted.");
@@ -362,10 +360,10 @@ export const IdeasBoard = ({ onViewChange, onProfileClick, openIdeaId, onIdeaOpe
               {idea.status !== "completed" && (
                 <button
                   onClick={(e) => handleButtonClick(e, () => handleRemix(idea._id))}
-                  className="flex items-center justify-center p-2 text-yellow-500 hover:text-yellow-600 hover:bg-yellow-50 rounded-xl transition-all duration-200 hover:scale-105 group"
+                  className="flex items-center justify-center p-2 text-yellow-500 hover:text-yellow-600 hover:bg-yellow-50 rounded-xl transition-colors"
                   title="Add your take"
                 >
-                  <Flash width={18} height={18} className="group-hover:scale-110 transition-transform" />
+                  <Flash width={18} height={18} />
                 </button>
               )}
 
@@ -375,7 +373,7 @@ export const IdeasBoard = ({ onViewChange, onProfileClick, openIdeaId, onIdeaOpe
                   target="_blank"
                   rel="noopener noreferrer"
                   onClick={(e) => e.stopPropagation()}
-                  className="flex items-center gap-1.5 px-3 py-1.5 bg-green-50 text-green-700 hover:bg-green-100 border border-green-200 rounded-xl text-sm font-medium transition-all duration-200 hover:scale-105"
+                  className="flex items-center gap-1.5 px-3 py-1.5 bg-green-50 text-green-700 hover:bg-green-100 border border-green-200 rounded-xl text-sm font-medium transition-colors"
                   title="View live app"
                 >
                   <OpenNewWindow width={14} height={14} />

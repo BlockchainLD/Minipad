@@ -7,7 +7,7 @@ import { useAccount } from "wagmi";
 import { toast } from "sonner";
 import { handleError, handleSuccess } from "../lib/error-handler";
 import { Id } from "../../convex/_generated/dataModel";
-import { Tools } from "iconoir-react";
+import { Tools, Xmark } from "iconoir-react";
 import { StandardButton } from "./ui/standard-button";
 
 interface CompletionFormProps {
@@ -82,9 +82,9 @@ export const CompletionForm = ({ ideaId, onSuccess, onCancel }: CompletionFormPr
         <button
           aria-label="Close"
           onClick={onCancel}
-          className="absolute right-6 top-6 p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-xl transition-all duration-200 group"
+          className="absolute right-6 top-6 p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-xl transition-colors"
         >
-          <span className="text-lg group-hover:scale-110 transition-transform">✕</span>
+          <Xmark width={18} height={18} />
         </button>
       )}
       <div className="mb-6">

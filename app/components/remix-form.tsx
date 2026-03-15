@@ -74,7 +74,7 @@ export const RemixForm = ({ originalTitle, onSubmit, onCancel }: RemixFormProps)
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center p-4 z-[60]">
+    <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center p-4 z-[60]">
       <div className="bg-white rounded-3xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
         <div className="p-6 sm:p-8">
           <div className="flex items-center justify-between mb-6">
@@ -121,7 +121,7 @@ export const RemixForm = ({ originalTitle, onSubmit, onCancel }: RemixFormProps)
                 onChange={(e) => setContent(e.target.value)}
                 placeholder={PLACEHOLDERS[type]}
                 rows={5}
-                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-all duration-200 resize-none"
+                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-colors resize-none"
                 required
                 disabled={isSubmitting}
               />

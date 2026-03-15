@@ -146,7 +146,7 @@ const UpvoteButton = ({
     <button
       onClick={handleClick}
       disabled={!address || isLoading}
-      className={`relative flex items-center gap-2 px-3 py-2 rounded-xl transition-all duration-200 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed group ${
+      className={`relative flex items-center gap-2 px-3 py-2 rounded-xl transition-colors duration-150 disabled:opacity-50 disabled:cursor-not-allowed ${
         isUpvoted
           ? "text-red-500 hover:text-red-600 hover:bg-red-50"
           : "text-gray-500 hover:text-gray-700 hover:bg-gray-50"
@@ -158,7 +158,7 @@ const UpvoteButton = ({
         height={18}
         fill={isUpvoted ? "currentColor" : "none"}
         stroke="currentColor"
-        className={`group-hover:scale-110 transition-transform ${isUpvoted ? "text-red-500" : "text-gray-500"}`}
+        className={isUpvoted ? "text-red-500" : "text-gray-500"}
       />
       <span className="text-sm font-semibold">{optimisticUpvotes ?? upvotes}</span>
       {isLoading && <span className="text-xs text-gray-400">...</span>}
@@ -227,7 +227,7 @@ const RemixUpvoteButton = ({
     <button
       onClick={handleClick}
       disabled={!address || isProcessing}
-      className={`flex items-center gap-1 px-2 py-1 rounded-lg text-xs transition-all duration-200 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed ${
+      className={`flex items-center gap-1 px-2 py-1 rounded-lg text-xs transition-colors duration-150 disabled:opacity-50 disabled:cursor-not-allowed ${
         isUpvoted ? "text-red-500 hover:text-red-600" : "text-gray-400 hover:text-gray-600"
       }`}
       title={!address ? "Connect wallet to upvote" : isUpvoted ? "Remove upvote" : "Upvote"}
@@ -269,10 +269,11 @@ const RemixesSection = ({
   ) as Remix[] | undefined;
 
   const deleteRemix = useMutation(api.remixes.deleteRemix);
+  const [deleteConfirmingRemixId, setDeleteConfirmingRemixId] = useState<Id<"remixes"> | null>(null);
 
   const handleRemixDelete = async (remixId: Id<"remixes">) => {
     if (!address) return;
-    if (!window.confirm("Delete this? This cannot be undone.")) return;
+    setDeleteConfirmingRemixId(null);
     try {
       await deleteRemix({ remixId, author: address });
       toast.success("Deleted.");
@@ -333,13 +334,31 @@ const RemixesSection = ({
                     <div className="flex items-center gap-2 mt-2">
                       <RemixUpvoteButton remix={remix} address={address} />
                       {address && remix.author === address && (
-                        <button
-                          onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleRemixDelete(remix._id); }}
-                          className="flex items-center justify-center p-1 text-red-400 hover:text-red-600 transition-all duration-200 hover:scale-105"
-                          title="Delete"
-                        >
-                          <Trash width={12} height={12} />
-                        </button>
+                        deleteConfirmingRemixId === remix._id ? (
+                          <div className="flex items-center gap-1.5" onClick={(e) => e.stopPropagation()}>
+                            <span className="text-xs text-red-600">Delete?</span>
+                            <button
+                              onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleRemixDelete(remix._id); }}
+                              className="text-xs px-2 py-0.5 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+                            >
+                              Yes
+                            </button>
+                            <button
+                              onClick={(e) => { e.preventDefault(); e.stopPropagation(); setDeleteConfirmingRemixId(null); }}
+                              className="text-xs px-2 py-0.5 bg-gray-100 text-gray-600 rounded-lg hover:bg-gray-200 transition-colors"
+                            >
+                              No
+                            </button>
+                          </div>
+                        ) : (
+                          <button
+                            onClick={(e) => { e.preventDefault(); e.stopPropagation(); setDeleteConfirmingRemixId(remix._id); }}
+                            className="flex items-center justify-center p-1 text-red-400 hover:text-red-600 transition-colors"
+                            title="Delete"
+                          >
+                            <Trash width={12} height={12} />
+                          </button>
+                        )
                       )}
                     </div>
                   </div>
@@ -368,19 +387,19 @@ export const IdeaDetailModal = ({
   autoOpenRemixForm = false,
 }: IdeaDetailModalProps) => {
   const [optimisticUpvotes, setOptimisticUpvotes] = useState<number | null>(null);
-  // Inline remix form — rendered as an overlay ON TOP of this modal so
-  // RemixesSection stays mounted and its Convex subscription stays alive.
-  // When createRemix completes, the subscription delivers the new remix
-  // automatically — no modal unmount/remount cycle needed.
   const [showRemixForm, setShowRemixForm] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [showUnclaimConfirm, setShowUnclaimConfirm] = useState(false);
 
   const createRemix = useMutation(api.remixes.createRemix);
   const farcasterData = useFarcasterData();
 
-  // Reset remix form and optimistic upvotes when the idea changes (runs first)
+  // Reset all transient UI state when the idea changes
   useEffect(() => {
     setShowRemixForm(false);
     setOptimisticUpvotes(null);
+    setShowDeleteConfirm(false);
+    setShowUnclaimConfirm(false);
   }, [idea?._id]);
 
   // Open remix form immediately when requested — declared after reset so it wins on mount
@@ -422,6 +441,8 @@ export const IdeaDetailModal = ({
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
         if (showRemixForm) { setShowRemixForm(false); return; }
+        if (showDeleteConfirm) { setShowDeleteConfirm(false); return; }
+        if (showUnclaimConfirm) { setShowUnclaimConfirm(false); return; }
         onClose();
       }
     };
@@ -433,7 +454,7 @@ export const IdeaDetailModal = ({
       document.removeEventListener("keydown", handleEscape);
       document.body.style.overflow = "unset";
     };
-  }, [isOpen, onClose, showRemixForm]);
+  }, [isOpen, onClose, showRemixForm, showDeleteConfirm, showUnclaimConfirm]);
 
   if (!isOpen || !idea) return null;
 
@@ -448,9 +469,9 @@ export const IdeaDetailModal = ({
           <h2 className="text-xl font-bold text-slate-900">Idea Details</h2>
           <button
             onClick={onClose}
-            className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-xl transition-all duration-200 group"
+            className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-xl transition-colors"
           >
-            <Xmark width={18} height={18} className="group-hover:scale-110 transition-transform" />
+            <Xmark width={18} height={18} />
           </button>
         </div>
 
@@ -524,7 +545,7 @@ export const IdeaDetailModal = ({
                         href={idea.deploymentUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-xl font-medium transition-all duration-200 hover:scale-105"
+                        className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-xl font-medium transition-colors"
                       >
                         View App
                       </a>
@@ -552,7 +573,7 @@ export const IdeaDetailModal = ({
                         href={idea.githubUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-xl font-medium transition-all duration-200 hover:scale-105"
+                        className="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-xl font-medium transition-colors"
                       >
                         View Code
                       </a>
@@ -585,7 +606,7 @@ export const IdeaDetailModal = ({
             {idea.status !== "completed" && (
               <button
                 onClick={(e) => { e.preventDefault(); e.stopPropagation(); setShowRemixForm(true); }}
-                className="flex items-center gap-1.5 px-3 py-2 text-yellow-600 hover:text-yellow-700 hover:bg-yellow-50 rounded-xl transition-all duration-200 hover:scale-105 text-sm font-medium"
+                className="flex items-center gap-1.5 px-3 py-2 text-yellow-600 hover:text-yellow-700 hover:bg-yellow-50 rounded-xl transition-colors text-sm font-medium"
                 title="Add your take"
               >
                 <Flash width={16} height={16} />
@@ -606,18 +627,54 @@ export const IdeaDetailModal = ({
                     onOpenCompletionForm();
                   }}
                 />
-                <UnclaimButton onClick={(e) => handleButtonClick(e, () => onUnclaim(idea._id))} />
+                {showUnclaimConfirm ? (
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-sm text-amber-700">Unclaim?</span>
+                    <button
+                      onClick={(e) => handleButtonClick(e, () => onUnclaim(idea._id))}
+                      className="text-sm px-3 py-1.5 bg-amber-500 text-white rounded-xl hover:bg-amber-600 transition-colors font-medium"
+                    >
+                      Unclaim
+                    </button>
+                    <button
+                      onClick={(e) => handleButtonClick(e, () => setShowUnclaimConfirm(false))}
+                      className="text-sm px-3 py-1.5 bg-gray-100 text-gray-600 rounded-xl hover:bg-gray-200 transition-colors"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                ) : (
+                  <UnclaimButton onClick={(e) => handleButtonClick(e, () => setShowUnclaimConfirm(true))} />
+                )}
               </>
             )}
 
             {address && idea.author === address && (
-              <button
-                onClick={(e) => handleButtonClick(e, () => onDelete(idea._id))}
-                className="flex items-center justify-center p-2 text-red-500 hover:text-red-600 transition-all duration-200 hover:scale-105"
-                title="Delete this idea"
-              >
-                <Trash width={20} height={20} />
-              </button>
+              showDeleteConfirm ? (
+                <div className="flex items-center gap-1.5">
+                  <span className="text-sm text-red-600">Delete idea?</span>
+                  <button
+                    onClick={(e) => handleButtonClick(e, () => onDelete(idea._id))}
+                    className="text-sm px-3 py-1.5 bg-red-500 text-white rounded-xl hover:bg-red-600 transition-colors font-medium"
+                  >
+                    Delete
+                  </button>
+                  <button
+                    onClick={(e) => handleButtonClick(e, () => setShowDeleteConfirm(false))}
+                    className="text-sm px-3 py-1.5 bg-gray-100 text-gray-600 rounded-xl hover:bg-gray-200 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              ) : (
+                <button
+                  onClick={(e) => handleButtonClick(e, () => setShowDeleteConfirm(true))}
+                  className="flex items-center justify-center p-2 text-red-500 hover:text-red-600 hover:bg-red-50 rounded-xl transition-colors"
+                  title="Delete this idea"
+                >
+                  <Trash width={20} height={20} />
+                </button>
+              )
             )}
           </div>
         </div>

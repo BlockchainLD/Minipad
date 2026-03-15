@@ -7,6 +7,7 @@ import { useAccount } from "wagmi";
 import { useFarcasterData } from "../hooks/use-farcaster-data";
 import { handleError } from "../lib/error-handler";
 import { StandardButton } from "./ui/standard-button";
+import { Xmark } from "iconoir-react";
 import { toast } from "sonner";
 
 interface IdeaSubmissionFormProps {
@@ -67,9 +68,9 @@ export const IdeaSubmissionForm = ({ onSuccess, onCancel }: IdeaSubmissionFormPr
         <button
           aria-label="Close"
           onClick={onCancel}
-          className="absolute right-6 top-6 p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-xl transition-all duration-200 group"
+          className="absolute right-6 top-6 p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-xl transition-colors"
         >
-          <span className="text-lg group-hover:scale-110 transition-transform">✕</span>
+          <Xmark width={18} height={18} />
         </button>
       )}
       <div className="mb-6">
