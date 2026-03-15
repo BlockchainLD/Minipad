@@ -269,20 +269,20 @@ const RemixesSection = ({
   ) as Remix[] | undefined;
 
   const deleteRemix = useMutation(api.remixes.deleteRemix);
-  const [confirmDeleteId, setConfirmDeleteId] = useState<Id<"remixes"> | null>(null);
+  const [deletingId, setDeletingId] = useState<Id<"remixes"> | null>(null);
 
-  const handleRemixDelete = async (remixId: Id<"remixes">) => {
-    if (!address) return;
-    if (confirmDeleteId !== remixId) {
-      setConfirmDeleteId(remixId);
-      return;
-    }
-    setConfirmDeleteId(null);
+  const handleRemixDelete = async (e: React.MouseEvent, remixId: Id<"remixes">) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!address || deletingId) return;
+    setDeletingId(remixId);
     try {
       await deleteRemix({ remixId, author: address });
       toast.success("Deleted.");
     } catch (error) {
       handleError(error, { operation: "delete remix", component: "IdeaDetailModal" });
+    } finally {
+      setDeletingId(null);
     }
   };
 
@@ -337,31 +337,15 @@ const RemixesSection = ({
                     </p>
                     <div className="flex items-center gap-2 mt-2">
                       <RemixUpvoteButton remix={remix} address={address} />
-                      {address && remix.author === address && (
-                        confirmDeleteId === remix._id ? (
-                          <div className="flex items-center gap-1">
-                            <button
-                              onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleRemixDelete(remix._id); }}
-                              className="px-2 py-0.5 text-xs text-white bg-red-500 hover:bg-red-600 rounded-md transition-colors"
-                            >
-                              Delete
-                            </button>
-                            <button
-                              onClick={(e) => { e.preventDefault(); e.stopPropagation(); setConfirmDeleteId(null); }}
-                              className="px-2 py-0.5 text-xs text-gray-500 hover:text-gray-700 rounded-md transition-colors"
-                            >
-                              Cancel
-                            </button>
-                          </div>
-                        ) : (
-                          <button
-                            onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleRemixDelete(remix._id); }}
-                            className="flex items-center justify-center p-1 text-red-400 hover:text-red-600 transition-all duration-200 hover:scale-105"
-                            title="Delete"
-                          >
-                            <Trash width={12} height={12} />
-                          </button>
-                        )
+                      {address && remix.author.toLowerCase() === address.toLowerCase() && (
+                        <button
+                          onClick={(e) => handleRemixDelete(e, remix._id)}
+                          disabled={deletingId === remix._id}
+                          className="flex items-center justify-center p-1 text-red-400 hover:text-red-600 transition-all duration-200 hover:scale-105 disabled:opacity-40"
+                          title="Delete"
+                        >
+                          <Trash width={12} height={12} />
+                        </button>
                       )}
                     </div>
                   </div>

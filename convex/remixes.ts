@@ -41,7 +41,7 @@ export const deleteRemix = mutation({
   handler: async (ctx, args) => {
     const remix = await ctx.db.get(args.remixId);
     if (!remix) throw new ConvexError("Remix not found");
-    if (remix.author !== args.author) throw new ConvexError("Only the author can delete their remix");
+    if (remix.author.toLowerCase() !== args.author.toLowerCase()) throw new ConvexError("Only the author can delete their remix");
 
     const upvotes = await ctx.db
       .query("remixUpvotes")
