@@ -1,5 +1,6 @@
 import { mutation, query } from "./_generated/server";
 import { ConvexError, v } from "convex/values";
+import { ideaType } from "./types";
 
 export const submitIdea = mutation({
   args: {
@@ -35,6 +36,7 @@ export const getIdeas = query({
   args: {
     limit: v.optional(v.number()),
   },
+  returns: v.array(ideaType),
   handler: async (ctx, args) => {
     const limit = args.limit ?? 50;
     const ideas = await ctx.db.query("ideas").order("desc").take(limit);
