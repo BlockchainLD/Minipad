@@ -42,6 +42,7 @@ export const RemixForm = ({ originalTitle, onSubmit, onCancel }: RemixFormProps)
   const [content, setContent] = useState("");
   const [type, setType] = useState<RemixType>("addition");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
   const farcasterData = useFarcasterData();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -52,6 +53,7 @@ export const RemixForm = ({ originalTitle, onSubmit, onCancel }: RemixFormProps)
       return;
     }
     setIsSubmitting(true);
+    setSubmitError(null);
     try {
       await onSubmit({
         content: trimmed,
@@ -63,8 +65,9 @@ export const RemixForm = ({ originalTitle, onSubmit, onCancel }: RemixFormProps)
       });
       // Only clear on success — error toast already shown by handleSubmitRemix
       setContent("");
-    } catch {
-      // Error already displayed; preserve content so user can retry
+    } catch (err) {
+      // Show the error inline so it's visible even if the toast is obscured
+      setSubmitError(err instanceof Error ? err.message : "Submission failed. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
@@ -123,6 +126,12 @@ export const RemixForm = ({ originalTitle, onSubmit, onCancel }: RemixFormProps)
                 disabled={isSubmitting}
               />
             </div>
+
+            {submitError && (
+              <div className="rounded-xl bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700">
+                {submitError}
+              </div>
+            )}
 
             <div className="flex gap-3 pt-2">
               <button
