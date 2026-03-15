@@ -18,7 +18,7 @@ const miniAppEmbed = {
       type: "launch_miniapp",
       name: APP_METADATA.title,
       url: appUrl,
-      splashImageUrl: `${appUrl}/icon.svg`,
+      splashImageUrl: `${appUrl}/api/icon`,
       splashBackgroundColor: APP_METADATA.splash.backgroundColor,
     },
   },
