@@ -15,6 +15,7 @@ import { StandardButton, ClaimButton, SubmitBuildButton } from "./ui/standard-bu
 import { handleError } from "../lib/error-handler";
 import { IdeaDetailModal } from "./idea-detail-modal";
 import { ErrorBoundary } from "./error-boundary";
+import { useFarcasterData } from "../hooks/use-farcaster-data";
 
 type Idea = {
   _id: Id<"ideas">;
@@ -29,6 +30,10 @@ type Idea = {
   upvotes: number;
   status: "open" | "claimed" | "completed";
   claimedBy?: string;
+  claimedByFid?: number;
+  claimedByAvatar?: string;
+  claimedByDisplayName?: string;
+  claimedByUsername?: string;
   isRemix?: boolean;
   originalIdeaId?: Id<"ideas">;
   attestationUid?: string;
@@ -147,6 +152,7 @@ interface IdeasBoardProps {
 
 export const IdeasBoard = ({ onViewChange, onProfileClick, openIdeaId, onIdeaOpened }: IdeasBoardProps) => {
   const { address } = useAccount();
+  const farcasterData = useFarcasterData();
 
   const [selectedIdea, setSelectedIdea] = useState<Idea | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -218,7 +224,14 @@ export const IdeasBoard = ({ onViewChange, onProfileClick, openIdeaId, onIdeaOpe
   const handleClaim = async (ideaId: Id<"ideas">) => {
     if (!address) { toast.error("Please connect your wallet"); return; }
     try {
-      await claimIdea({ ideaId, claimer: address });
+      await claimIdea({
+        ideaId,
+        claimer: address,
+        claimerFid: farcasterData?.fid,
+        claimerAvatar: farcasterData?.pfp?.url,
+        claimerDisplayName: farcasterData?.displayName,
+        claimerUsername: farcasterData?.username,
+      });
       toast.success("Idea claimed! Start building.");
     } catch (error) {
       handleError(error, { operation: "claim idea", component: "IdeasBoard" });
@@ -347,7 +360,18 @@ export const IdeasBoard = ({ onViewChange, onProfileClick, openIdeaId, onIdeaOpe
                 <h3 className="text-lg font-semibold text-gray-900 line-clamp-1 flex-1 min-w-0">
                   {idea.title}
                 </h3>
-                <StatusBadge status={idea.status} className="flex-shrink-0" />
+                <div className="flex items-center gap-1.5 flex-shrink-0">
+                  {(idea.status === "claimed" || idea.status === "completed") && idea.claimedBy && (
+                    <UserAvatar
+                      author={idea.claimedBy}
+                      authorAvatar={idea.claimedByAvatar}
+                      authorDisplayName={idea.claimedByDisplayName}
+                      authorUsername={idea.claimedByUsername}
+                      size={24}
+                    />
+                  )}
+                  <StatusBadge status={idea.status} />
+                </div>
               </div>
               <div className="flex items-center gap-2 mb-3">
                 <button

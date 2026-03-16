@@ -27,6 +27,10 @@ type Idea = {
   upvotes: number;
   status: "open" | "claimed" | "completed";
   claimedBy?: string;
+  claimedByFid?: number;
+  claimedByAvatar?: string;
+  claimedByDisplayName?: string;
+  claimedByUsername?: string;
   isRemix?: boolean;
   originalIdeaId?: Id<"ideas">;
   attestationUid?: string;
@@ -474,7 +478,16 @@ export const IdeaDetailModal = ({
       <div className="relative w-full max-w-3xl max-h-[90vh] bg-white rounded-3xl shadow-2xl overflow-hidden animate-in fade-in-0 zoom-in-95 duration-300 flex flex-col border border-gray-100">
         {/* Fixed Header */}
         <div className="flex items-center justify-between p-6 border-b border-violet-100 flex-shrink-0 bg-white">
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
+            {(idea.status === "claimed" || idea.status === "completed") && idea.claimedBy && (
+              <UserAvatar
+                author={idea.claimedBy}
+                authorAvatar={idea.claimedByAvatar}
+                authorDisplayName={idea.claimedByDisplayName}
+                authorUsername={idea.claimedByUsername}
+                size={28}
+              />
+            )}
             <StatusBadge status={idea.status} />
           </div>
           <button
