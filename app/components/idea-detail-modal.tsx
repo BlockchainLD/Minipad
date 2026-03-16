@@ -621,7 +621,7 @@ export const IdeaDetailModal = ({
             {idea.status !== "completed" && (
               <button
                 onClick={(e) => { e.preventDefault(); e.stopPropagation(); setShowRemixForm(true); }}
-                className={`flex items-center gap-1 bg-yellow-500 hover:bg-yellow-600 text-white border border-yellow-500 rounded-xl transition-all duration-200 font-medium cursor-pointer shadow-sm active:scale-95 ${
+                className={`flex items-center gap-1 text-yellow-500 bg-transparent hover:bg-yellow-50 border border-transparent hover:border-yellow-200 rounded-xl transition-all duration-200 font-medium cursor-pointer active:scale-95 ${
                   isClaimedByMe ? "px-2 py-1 text-xs" : "px-3 py-2 text-sm"
                 }`}
                 title="Remix this idea"
