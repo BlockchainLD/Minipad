@@ -7,6 +7,11 @@ import { APP_METADATA } from "./lib/utils";
 
 const appUrl = process.env.SITE_URL || 'https://minipad-app.vercel.app';
 
+const splashConfig = {
+  splashImageUrl: APP_METADATA.splash.imageUrl,
+  splashBackgroundColor: APP_METADATA.splash.backgroundColor,
+};
+
 const miniAppEmbed = {
   version: "1",
   imageUrl: APP_METADATA.imageUrl,
@@ -16,8 +21,21 @@ const miniAppEmbed = {
       type: "launch_miniapp",
       name: APP_METADATA.title,
       url: appUrl,
-      splashImageUrl: `${appUrl}/api/icon`,
-      splashBackgroundColor: APP_METADATA.splash.backgroundColor,
+      ...splashConfig,
+    },
+  },
+};
+
+const frameEmbed = {
+  version: "next",
+  imageUrl: APP_METADATA.imageUrl,
+  button: {
+    title: "Open Minipad",
+    action: {
+      type: "launch_frame",
+      name: APP_METADATA.title,
+      url: appUrl,
+      ...splashConfig,
     },
   },
 };
@@ -27,6 +45,7 @@ export const metadata: Metadata = {
   description: "Submit and vote on miniapp ideas for Base",
   other: {
     "fc:miniapp": JSON.stringify(miniAppEmbed),
+    "fc:frame": JSON.stringify(frameEmbed),
   },
 };
 
