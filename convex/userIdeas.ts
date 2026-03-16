@@ -15,3 +15,19 @@ export const getUserSubmittedIdeas = query({
     return ideas.map(({ _creationTime, ...idea }) => idea);
   },
 });
+
+export const getUserClaimedIdeas = query({
+  args: { claimer: v.string() },
+  handler: async (ctx, args) => {
+    const claims = await ctx.db
+      .query("claims")
+      .withIndex("by_claimer", (q) => q.eq("claimer", args.claimer))
+      .collect();
+
+    const ideas = await Promise.all(
+      claims.map((claim) => ctx.db.get(claim.ideaId))
+    );
+
+    return ideas.filter((idea): idea is NonNullable<typeof idea> => idea !== null);
+  },
+});
