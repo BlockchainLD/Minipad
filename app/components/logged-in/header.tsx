@@ -1,5 +1,5 @@
 "use client";
-import { LightBulb, Trophy } from "iconoir-react";
+import { LightBulb, Medal1stSolid } from "iconoir-react";
 
 interface HeaderProps {
   avatarUrl: string | null;
@@ -26,7 +26,7 @@ export const Header = ({ avatarUrl, onLogoClick, onAvatarClick, onTrophyClick }:
           aria-label="Leaderboard"
           title="Leaderboard"
         >
-          <Trophy width={22} height={22} className="text-yellow-500" />
+          <Medal1stSolid width={22} height={22} className="text-yellow-500" />
         </button>
 
         {avatarUrl && (
