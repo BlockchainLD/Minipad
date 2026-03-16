@@ -109,6 +109,7 @@ export const LoggedIn = () => {
           avatarUrl={avatarUrl}
           onLogoClick={handleLogoClick}
           onAvatarClick={handleAvatarClick}
+          onTrophyClick={() => setShowLeaderboard(true)}
         />
         <div className="p-6 pt-4">
           {activeTab === TABS.HOME && homeContent}
