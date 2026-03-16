@@ -81,16 +81,15 @@ export const ClaimButton = ({
   disabled?: boolean;
   loading?: boolean;
 }) => (
-  <StandardButton
+  <button
+    type="button"
     onClick={onClick}
-    disabled={disabled}
-    loading={loading}
-    variant="black"
-    size="sm"
-    icon={<Hammer width={16} height={16} strokeWidth={2} />}
+    disabled={disabled || loading}
+    className="flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-xl text-gray-900 bg-transparent hover:bg-white border border-transparent hover:border-gray-200 hover:shadow-sm transition-all duration-200 active:scale-95 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
   >
-    Claim
-  </StandardButton>
+    <Hammer width={16} height={16} strokeWidth={2} />
+    <span>{loading ? "..." : "Claim"}</span>
+  </button>
 );
 
 export const SubmitBuildButton = ({
