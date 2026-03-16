@@ -359,7 +359,7 @@ export const IdeasBoard = ({ onViewChange, onProfileClick, openIdeaId, onIdeaOpe
               {idea.status !== "completed" && (
                 <button
                   onClick={(e) => handleButtonClick(e, () => handleRemix(idea._id))}
-                  className="flex items-center gap-1.5 px-3 py-2 hover:bg-yellow-50 rounded-xl transition-colors cursor-pointer"
+                  className="flex items-center gap-1.5 transition-colors cursor-pointer text-gray-500 hover:text-yellow-500"
                   title="Remix this idea"
                 >
                   <Flash width={18} height={18} className="text-yellow-500" />

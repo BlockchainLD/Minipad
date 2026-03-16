@@ -464,6 +464,8 @@ export const IdeaDetailModal = ({
 
   if (!isOpen || !idea) return null;
 
+  const isClaimedByMe = idea.status === "claimed" && !!address && idea.claimedBy === address;
+
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50 backdrop-blur-sm"
@@ -597,7 +599,7 @@ export const IdeaDetailModal = ({
         <div className="flex-shrink-0 border-t border-violet-100 bg-white p-6">
           <div className="flex items-center justify-center gap-2 flex-wrap">
             {/* Upvote: first unless idea is claimed by current user (moved to right side there) */}
-            {!(idea.status === "claimed" && address && idea.claimedBy === address) && (
+            {!isClaimedByMe && (
               <UpvoteButton
                 ideaId={idea._id}
                 upvotes={idea.upvotes}
@@ -612,10 +614,12 @@ export const IdeaDetailModal = ({
             {idea.status !== "completed" && (
               <button
                 onClick={(e) => { e.preventDefault(); e.stopPropagation(); setShowRemixForm(true); }}
-                className="flex items-center gap-1.5 px-3 py-2 bg-yellow-500 hover:bg-yellow-600 text-white border border-yellow-500 rounded-xl transition-all duration-200 text-sm font-medium cursor-pointer shadow-sm active:scale-95"
+                className={`flex items-center gap-1 bg-yellow-500 hover:bg-yellow-600 text-white border border-yellow-500 rounded-xl transition-all duration-200 font-medium cursor-pointer shadow-sm active:scale-95 ${
+                  isClaimedByMe ? "px-2 py-1 text-xs" : "px-3 py-2 text-sm"
+                }`}
                 title="Remix this idea"
               >
-                <Flash width={16} height={16} />
+                <Flash width={isClaimedByMe ? 12 : 16} height={isClaimedByMe ? 12 : 16} />
                 Remix
               </button>
             )}
@@ -624,9 +628,10 @@ export const IdeaDetailModal = ({
               <ClaimButton onClick={(e) => handleButtonClick(e, () => onClaim(idea._id))} />
             )}
 
-            {idea.status === "claimed" && address && idea.claimedBy === address && (
+            {isClaimedByMe && (
               <>
                 <SubmitBuildButton
+                  size="xs"
                   onClick={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
@@ -650,7 +655,7 @@ export const IdeaDetailModal = ({
                     </button>
                   </div>
                 ) : (
-                  <UnclaimButton onClick={(e) => handleButtonClick(e, () => setShowUnclaimConfirm(true))} />
+                  <UnclaimButton size="xs" onClick={(e) => handleButtonClick(e, () => setShowUnclaimConfirm(true))} />
                 )}
                 {/* Upvote moved here so Remix+SubmitBuild+Unclaim share one line */}
                 <UpvoteButton

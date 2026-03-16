@@ -7,7 +7,7 @@ interface StandardButtonProps {
   disabled?: boolean;
   loading?: boolean;
   variant?: "primary" | "secondary" | "danger" | "success" | "warning";
-  size?: "sm" | "md" | "lg";
+  size?: "xs" | "sm" | "md" | "lg";
   className?: string;
   type?: "button" | "submit" | "reset";
   icon?: React.ReactNode;
@@ -30,6 +30,7 @@ export const StandardButton = ({
     "rounded-xl font-medium transition-all duration-200 active:scale-95 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed";
 
   const sizeClasses = {
+    xs: "px-2 py-1 text-xs min-h-[28px]",
     sm: "px-3 py-2 text-sm min-h-[36px]",
     md: "px-4 py-2.5 text-sm min-h-[44px]",
     lg: "px-6 py-3 text-base min-h-[52px]",
@@ -96,20 +97,22 @@ export const SubmitBuildButton = ({
   disabled = false,
   loading = false,
   fullWidth = false,
+  size = "sm",
 }: {
   onClick: (e: React.MouseEvent) => void;
   disabled?: boolean;
   loading?: boolean;
   fullWidth?: boolean;
+  size?: "xs" | "sm" | "md" | "lg";
 }) => (
   <StandardButton
     onClick={onClick}
     disabled={disabled}
     loading={loading}
     variant="success"
-    size="sm"
+    size={size}
     fullWidth={fullWidth}
-    icon={<Tools width={16} height={16} strokeWidth={2} />}
+    icon={<Tools width={size === "xs" ? 12 : 16} height={size === "xs" ? 12 : 16} strokeWidth={2} />}
   >
     Submit Build
   </StandardButton>
@@ -119,18 +122,20 @@ export const UnclaimButton = ({
   onClick,
   disabled = false,
   loading = false,
+  size = "sm",
 }: {
   onClick: (e: React.MouseEvent) => void;
   disabled?: boolean;
   loading?: boolean;
+  size?: "xs" | "sm" | "md" | "lg";
 }) => (
   <StandardButton
     onClick={onClick}
     disabled={disabled}
     loading={loading}
     variant="warning"
-    size="sm"
-    icon={<Hammer width={16} height={16} strokeWidth={2} />}
+    size={size}
+    icon={<Hammer width={size === "xs" ? 12 : 16} height={size === "xs" ? 12 : 16} strokeWidth={2} />}
   >
     Unclaim
   </StandardButton>
