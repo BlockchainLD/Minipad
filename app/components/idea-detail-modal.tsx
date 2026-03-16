@@ -538,17 +538,17 @@ export const IdeaDetailModal = ({
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">Build Links</h3>
                 <div className="space-y-3">
                   {idea.deploymentUrl && (
-                    <div className="flex items-center gap-3 p-4 bg-gray-900 border border-gray-800 rounded-2xl">
-                      <div className="w-10 h-10 bg-gray-800 rounded-full flex items-center justify-center">
-                        <Flash width={20} height={20} className="text-gray-200" />
+                    <div className="flex items-center gap-3 p-4 bg-gray-50 border border-gray-200 rounded-2xl">
+                      <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center">
+                        <Flash width={20} height={20} className="text-gray-600" />
                       </div>
                       <div className="flex-1">
-                        <p className="font-medium text-gray-100">Live App</p>
+                        <p className="font-medium text-gray-900">Live App</p>
                         <a
                           href={idea.deploymentUrl}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-gray-400 hover:text-gray-200 text-sm break-all"
+                          className="text-gray-600 hover:text-gray-700 text-sm break-all"
                         >
                           {idea.deploymentUrl}
                         </a>
@@ -557,7 +557,7 @@ export const IdeaDetailModal = ({
                         href={idea.deploymentUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="px-4 py-2 bg-white hover:bg-gray-100 text-gray-900 rounded-xl font-medium transition-colors"
+                        className="px-4 py-2 bg-gray-900 hover:bg-gray-800 text-white rounded-xl font-medium transition-colors"
                       >
                         View App
                       </a>
