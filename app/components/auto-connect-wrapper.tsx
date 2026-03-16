@@ -48,6 +48,7 @@ export function AutoConnectWrapper({ children }: AutoConnectWrapperProps) {
   connectorsRef.current = connectors;
 
   const hasInitialized = useRef(false);
+  const sdkReadyCalledRef = useRef(false);
 
   useEffect(() => {
     if (hasInitialized.current) return;
@@ -99,17 +100,27 @@ export function AutoConnectWrapper({ children }: AutoConnectWrapperProps) {
       } catch {
         setIsInMiniApp(false);
       } finally {
-        // Call ready() here — after we know what to show — so the Farcaster
-        // splash screen is dismissed only when the app UI is actually ready.
-        sdk.actions
-          .ready()
-          .catch((e) => console.error("[MiniApp] sdk.actions.ready() failed:", e));
+        // Signal that context checking is done. sdk.actions.ready() is called
+        // by the effect below, which runs *after* React re-renders with the
+        // actual app content — ensuring the splash dismisses into content, not
+        // into the loading spinner.
         setIsCheckingContext(false);
       }
     };
 
     init();
   }, []); // Run exactly once on mount
+
+  // Call sdk.actions.ready() after isCheckingContext becomes false so the
+  // Farcaster splash dismisses into the rendered app content, not the spinner.
+  useEffect(() => {
+    if (!isCheckingContext && !sdkReadyCalledRef.current) {
+      sdkReadyCalledRef.current = true;
+      sdk.actions
+        .ready()
+        .catch((e) => console.error("[MiniApp] sdk.actions.ready() failed:", e));
+    }
+  }, [isCheckingContext]);
 
   // Clear timeout state if user connects (e.g. reconnects externally)
   useEffect(() => {
