@@ -20,8 +20,9 @@ export const Header = ({ avatarUrl, onLogoClick, onAvatarClick }: HeaderProps) =
       {avatarUrl && (
         <button
           onClick={onAvatarClick}
-          className="rounded-full focus:outline-none focus:ring-2 focus:ring-violet-300"
-          aria-label="Open profile"
+          className="rounded-full focus:outline-none focus:ring-2 focus:ring-violet-300 hover:ring-2 hover:ring-violet-300 transition-all"
+          aria-label="Open settings"
+          title="Settings"
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
