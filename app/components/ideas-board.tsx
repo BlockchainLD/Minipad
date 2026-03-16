@@ -1,13 +1,13 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { useAccount } from "wagmi";
 import { toast } from "sonner";
 import { Id } from "../../convex/_generated/dataModel";
-import { Heart, Flash, Hammer, LightBulb, OpenNewWindow } from "iconoir-react";
-import { IdeaFilter, SectionOption } from "./idea-filter";
+import { Heart, Flash, Hammer, LightBulb, OpenNewWindow, NavArrowDown } from "iconoir-react";
+import { SectionOption } from "./idea-filter";
 import { CompletionForm } from "./completion-form";
 import { UserAvatar } from "./ui/user-avatar";
 import { StatusBadge } from "./ui/status-badge";
@@ -161,6 +161,8 @@ export const IdeasBoard = ({ onViewChange, onProfileClick, openIdeaId, onIdeaOpe
   const [autoOpenRemixForm, setAutoOpenRemixForm] = useState(false);
   const [currentSection, setCurrentSection] = useState<SectionOption>("ideasboard");
   const [currentSort, setCurrentSort] = useState<"newest" | "most-popular">("most-popular");
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   const ideas = useQuery(api.ideas.getIdeas, { limit: 50 });
   const upvoteIdea = useMutation(api.upvotes.upvoteIdea);
@@ -273,6 +275,16 @@ export const IdeasBoard = ({ onViewChange, onProfileClick, openIdeaId, onIdeaOpe
     setSelectedIdea(null);
   };
 
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setDropdownOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
   const handleClaimIdeaRandom = () => {
     if (!ideas) return;
     const open = ideas.filter((i) => !i.isRemix && i.status === "open");
@@ -282,6 +294,14 @@ export const IdeasBoard = ({ onViewChange, onProfileClick, openIdeaId, onIdeaOpe
       ? [...withUpvotes].sort((a, b) => b.upvotes - a.upvotes).slice(0, 10)
       : [...open].sort((a, b) => b.timestamp - a.timestamp).slice(0, 10);
     openModal(pool[Math.floor(Math.random() * pool.length)] as Idea);
+  };
+
+  const handleTestRandom = () => {
+    if (!ideas) return;
+    const completed = ideas.filter((i) => !i.isRemix && i.status === "completed");
+    if (!completed.length) { toast.error("No completed miniapps yet"); return; }
+    const top10 = [...completed].sort((a, b) => b.upvotes - a.upvotes).slice(0, 10);
+    openModal(top10[Math.floor(Math.random() * top10.length)] as Idea);
   };
 
   const filteredAndSortedIdeas = React.useMemo(() => {
@@ -331,14 +351,42 @@ export const IdeasBoard = ({ onViewChange, onProfileClick, openIdeaId, onIdeaOpe
 
   return (
     <div className="w-full max-w-4xl mx-auto p-6 sm:p-8">
-      <div className="mb-5">
-        <div className="flex items-center justify-between mb-3">
-          <h1 className="text-xl font-bold text-gray-900">
+      <div className="flex items-center justify-between mb-5">
+        {/* Section dropdown */}
+        <div className="relative" ref={dropdownRef}>
+          <button
+            onClick={() => setDropdownOpen((o) => !o)}
+            className="flex items-center gap-1 text-xl font-bold text-gray-900 hover:text-gray-600 transition-colors"
+          >
             {currentSection === "ideasboard" ? "Ideasboard"
               : currentSection === "buildboard" ? "Buildboard"
               : "Miniapps"}
-          </h1>
+            <NavArrowDown
+              width={18}
+              height={18}
+              className={`transition-transform duration-150 ${dropdownOpen ? "rotate-180" : ""}`}
+            />
+          </button>
 
+          {dropdownOpen && (
+            <div className="absolute top-full left-0 mt-1.5 bg-white border border-gray-200 rounded-xl shadow-lg z-20 min-w-[140px] overflow-hidden">
+              {(["ideasboard", "buildboard", "miniapps"] as SectionOption[])
+                .filter((s) => s !== currentSection)
+                .map((s) => (
+                  <button
+                    key={s}
+                    onClick={() => { setCurrentSection(s); setDropdownOpen(false); }}
+                    className="w-full text-left px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-slate-50 transition-colors capitalize"
+                  >
+                    {s === "ideasboard" ? "Ideasboard" : s === "buildboard" ? "Buildboard" : "Miniapps"}
+                  </button>
+                ))}
+            </div>
+          )}
+        </div>
+
+        {/* Sort toggle + action button */}
+        <div className="flex items-center gap-2">
           <button
             onClick={() => setCurrentSort((s) => s === "most-popular" ? "newest" : "most-popular")}
             className="text-xs font-medium px-2.5 py-1 rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200 transition-colors"
@@ -365,9 +413,12 @@ export const IdeasBoard = ({ onViewChange, onProfileClick, openIdeaId, onIdeaOpe
               Claim Idea
             </StandardButton>
           )}
-          {currentSection === "miniapps" && <div />}
+          {currentSection === "miniapps" && (
+            <StandardButton variant="primary" size="sm" onClick={handleTestRandom}>
+              Test
+            </StandardButton>
+          )}
         </div>
-        <IdeaFilter currentSection={currentSection} onSectionChange={setCurrentSection} />
       </div>
 
       <div className="space-y-4">
