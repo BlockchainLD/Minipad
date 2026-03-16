@@ -474,7 +474,10 @@ export const IdeaDetailModal = ({
       <div className="relative w-full max-w-3xl max-h-[90vh] bg-white rounded-3xl shadow-2xl overflow-hidden animate-in fade-in-0 zoom-in-95 duration-300 flex flex-col border border-gray-100">
         {/* Fixed Header */}
         <div className="flex items-center justify-between p-6 border-b border-violet-100 flex-shrink-0 bg-white">
-          <h2 className="text-xl font-bold text-slate-900">Idea Details</h2>
+          <div className="flex items-center gap-3">
+            <h2 className="text-xl font-bold text-slate-900">Idetails</h2>
+            <StatusBadge status={idea.status} />
+          </div>
           <button
             onClick={onClose}
             className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-xl transition-colors cursor-pointer"
@@ -489,7 +492,7 @@ export const IdeaDetailModal = ({
             <h1 className="text-2xl font-bold text-slate-900 mb-4">{idea.title}</h1>
 
             {/* Author */}
-            <div className="flex items-center gap-3 mb-6">
+            <div className="flex items-center gap-3 mb-4">
               <button
                 onClick={(e) => { e.stopPropagation(); onProfileClick?.(idea.author); }}
                 className="hover:opacity-80 transition-opacity cursor-pointer"
@@ -508,10 +511,6 @@ export const IdeaDetailModal = ({
               >
                 {idea.authorDisplayName || idea.authorUsername || "Anonymous"}
               </button>
-            </div>
-
-            <div className="mb-8">
-              <StatusBadge status={idea.status} className="px-4 py-2 text-sm" />
             </div>
 
             {/* Description */}
