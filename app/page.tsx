@@ -9,12 +9,12 @@ function AppContent() {
   const { isConnected } = useAccount();
   const { isInMiniApp, isCheckingContext, connectingTimedOut } = useFarcaster();
 
-  // Still determining context — show a white screen with a spinner so the
-  // transition from the Farcaster splash isn't a jarring white flash.
+  // Still determining context — show the app icon so branding is visible
+  // and the transition from the Farcaster splash into app content is seamless.
   if (isCheckingContext) {
     return (
       <div className="flex min-h-dvh items-center justify-center bg-white">
-        <div className="animate-spin w-8 h-8 border-2 border-gray-200 rounded-full border-t-gray-500" />
+        <img src="/icon.svg" alt="Minipad" className="w-20 h-20 animate-pulse" />
       </div>
     );
   }
@@ -34,7 +34,7 @@ function AppContent() {
     }
     return (
       <div className="flex min-h-dvh items-center justify-center bg-white">
-        <div className="animate-spin w-8 h-8 border-2 border-gray-200 rounded-full border-t-gray-500" />
+        <img src="/icon.svg" alt="Minipad" className="w-20 h-20 animate-pulse" />
       </div>
     );
   }
