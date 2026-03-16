@@ -121,7 +121,7 @@ const CardUpvoteButton = ({
       onClick={handleClick}
       disabled={!address || isLoading}
       className={`relative flex items-center gap-2 transition-colors duration-150 disabled:opacity-50 disabled:cursor-not-allowed ${
-        isUpvoted ? "text-red-500" : "text-gray-500 hover:text-gray-700"
+        isUpvoted ? "text-red-500 hover:text-red-400" : "text-gray-400 hover:text-red-400"
       }`}
       title={!address ? "Connect wallet to upvote" : isUpvoted ? "Remove upvote" : "Add upvote"}
     >
@@ -359,11 +359,11 @@ export const IdeasBoard = ({ onViewChange, onProfileClick, openIdeaId, onIdeaOpe
               {idea.status !== "completed" && (
                 <button
                   onClick={(e) => handleButtonClick(e, () => handleRemix(idea._id))}
-                  className="flex items-center gap-1.5 transition-colors cursor-pointer text-gray-500 hover:text-yellow-500"
+                  className="flex items-center gap-1.5 transition-colors cursor-pointer text-gray-400 hover:text-yellow-500"
                   title="Remix this idea"
                 >
-                  <Flash width={18} height={18} className="text-yellow-500" />
-                  <span className="text-sm font-semibold text-gray-500">{idea.remixCount ?? 0}</span>
+                  <Flash width={18} height={18} />
+                  <span className="text-sm font-semibold">{idea.remixCount ?? 0}</span>
                 </button>
               )}
 
@@ -382,7 +382,9 @@ export const IdeasBoard = ({ onViewChange, onProfileClick, openIdeaId, onIdeaOpe
               )}
 
               {idea.status === "open" && (
-                <ClaimButton onClick={(e) => handleButtonClick(e, () => handleClaim(idea._id))} />
+                <div className="ml-auto">
+                  <ClaimButton onClick={(e) => handleButtonClick(e, () => handleClaim(idea._id))} />
+                </div>
               )}
 
               {idea.status === "claimed" && idea.claimedBy === address && (
