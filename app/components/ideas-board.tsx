@@ -282,10 +282,32 @@ export const IdeasBoard = ({ onViewChange, onProfileClick, openIdeaId, onIdeaOpe
 
   if (!ideas) {
     return (
-      <div className="w-full max-w-4xl mx-auto p-6">
-        <div className="animate-pulse space-y-4">
+      <div className="w-full max-w-4xl mx-auto p-6 sm:p-8 animate-pulse">
+        <div className="space-y-4">
           {[...Array(3)].map((_, i) => (
-            <div key={i} className="bg-gray-200 h-32 rounded-lg" />
+            <div key={i} className="bg-white border border-gray-200 rounded-2xl p-5 sm:p-6">
+              {/* Title + badge row */}
+              <div className="flex items-start justify-between gap-3 mb-2">
+                <div className="h-5 bg-gray-200 rounded-md w-3/5" />
+                <div className="h-6 bg-gray-200 rounded-full w-20 flex-shrink-0" />
+              </div>
+              {/* Author row */}
+              <div className="flex items-center gap-2 mb-4">
+                <div className="w-6 h-6 bg-gray-200 rounded-full flex-shrink-0" />
+                <div className="h-3.5 bg-gray-200 rounded-md w-28" />
+              </div>
+              {/* Description lines */}
+              <div className="space-y-2 mb-5">
+                <div className="h-3.5 bg-gray-200 rounded-md w-full" />
+                <div className="h-3.5 bg-gray-200 rounded-md w-5/6" />
+                <div className="h-3.5 bg-gray-200 rounded-md w-2/3" />
+              </div>
+              {/* Action row */}
+              <div className="flex items-center gap-3">
+                <div className="h-4 bg-gray-200 rounded-md w-8" />
+                <div className="h-4 bg-gray-200 rounded-md w-8" />
+              </div>
+            </div>
           ))}
         </div>
       </div>
