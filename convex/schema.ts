@@ -27,6 +27,7 @@ const schema = defineSchema({
     remixAttestationUid: v.optional(v.string()), // EAS attestation UID for remix
   })
     .index("by_author", ["author"])
+    .index("by_claimed_by", ["claimedBy"])
     .index("by_status", ["status"])
     .index("by_timestamp", ["timestamp"])
     .index("by_upvotes", ["upvotes"])
