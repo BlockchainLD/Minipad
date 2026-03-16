@@ -15,7 +15,7 @@ export const Header = ({ avatarUrl, onLogoClick, onAvatarClick }: HeaderProps) =
         className="flex items-center gap-3 hover:opacity-80 transition-opacity cursor-pointer"
       >
         <LightBulb width={24} height={24} className="text-violet-600" />
-        <span className="text-xl font-bold text-slate-900">Minipad</span>
+        <span className="text-xl font-bold text-violet-600">Minipad</span>
       </button>
       {avatarUrl && (
         <button
