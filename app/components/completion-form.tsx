@@ -31,29 +31,18 @@ export const CompletionForm = ({ ideaId, onSuccess, onCancel }: CompletionFormPr
       return;
     }
 
-    const trimmedGithubUrl = githubUrl.trim();
     const trimmedDeploymentUrl = deploymentUrl.trim();
+    const trimmedGithubUrl = githubUrl.trim();
 
-    if (!trimmedGithubUrl || !trimmedDeploymentUrl) {
-      toast.error("Please provide both GitHub and deployment URLs");
-      return;
-    }
-
-    if (!trimmedGithubUrl.startsWith("http://") && !trimmedGithubUrl.startsWith("https://")) {
-      toast.error("GitHub URL must start with http:// or https://");
-      return;
-    }
-
-    if (!trimmedDeploymentUrl.startsWith("http://") && !trimmedDeploymentUrl.startsWith("https://")) {
-      toast.error("Deployment URL must start with http:// or https://");
+    if (!trimmedDeploymentUrl) {
+      toast.error("Please provide a live app URL");
       return;
     }
 
     try {
-      new URL(trimmedGithubUrl);
       new URL(trimmedDeploymentUrl);
     } catch {
-      toast.error("Please enter valid URLs");
+      toast.error("Please enter a valid deployment URL");
       return;
     }
 
@@ -96,22 +85,6 @@ export const CompletionForm = ({ ideaId, onSuccess, onCancel }: CompletionFormPr
 
       <form onSubmit={handleSubmit} className="space-y-5">
         <div>
-          <label htmlFor="githubUrl" className="block text-sm font-medium text-gray-700 mb-2">
-            GitHub Repository URL
-          </label>
-          <input
-            id="githubUrl"
-            type="text"
-            value={githubUrl}
-            onChange={(e) => setGithubUrl(e.target.value)}
-            required
-            placeholder="https://github.com/username/repo"
-            className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-          />
-          <p className="mt-1 text-xs text-gray-400">e.g. https://github.com/username/repo</p>
-        </div>
-
-        <div>
           <label htmlFor="deploymentUrl" className="block text-sm font-medium text-gray-700 mb-2">
             Live App URL
           </label>
@@ -127,10 +100,25 @@ export const CompletionForm = ({ ideaId, onSuccess, onCancel }: CompletionFormPr
           <p className="mt-1 text-xs text-gray-400">e.g. https://your-app.vercel.app</p>
         </div>
 
+        <div>
+          <label htmlFor="githubUrl" className="block text-sm font-medium text-gray-700 mb-2">
+            GitHub Repository URL <span className="text-gray-400 font-normal">(optional)</span>
+          </label>
+          <input
+            id="githubUrl"
+            type="text"
+            value={githubUrl}
+            onChange={(e) => setGithubUrl(e.target.value)}
+            placeholder="https://github.com/username/repo"
+            className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          />
+          <p className="mt-1 text-xs text-gray-400">e.g. https://github.com/username/repo — leave blank if repo is private</p>
+        </div>
+
         <div className="flex gap-3 pt-2">
           <StandardButton
             type="submit"
-            disabled={isSubmitting || !githubUrl.trim() || !deploymentUrl.trim()}
+            disabled={isSubmitting || !deploymentUrl.trim()}
             loading={isSubmitting}
             variant="success"
             size="md"
