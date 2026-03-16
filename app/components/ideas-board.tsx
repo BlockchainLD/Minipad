@@ -297,7 +297,7 @@ export const IdeasBoard = ({ onViewChange, onProfileClick, openIdeaId, onIdeaOpe
     <div className="w-full max-w-4xl mx-auto p-6 sm:p-8">
       <div className="mb-5">
         <div className="flex justify-between items-center mb-4">
-          <h1 className="text-xl font-bold text-gray-900">Ideas</h1>
+          <h1 className="text-xl font-bold text-gray-900">Ideasboard</h1>
           <StandardButton
             variant="primary"
             size="sm"
@@ -373,7 +373,7 @@ export const IdeasBoard = ({ onViewChange, onProfileClick, openIdeaId, onIdeaOpe
                   target="_blank"
                   rel="noopener noreferrer"
                   onClick={(e) => e.stopPropagation()}
-                  className="flex items-center gap-1.5 px-3 py-1.5 bg-green-50 text-green-700 hover:bg-green-100 border border-green-200 rounded-xl text-sm font-medium transition-colors"
+                  className="ml-auto flex items-center gap-1.5 px-3 py-1.5 bg-green-50 text-green-700 hover:bg-green-100 border border-green-200 rounded-xl text-sm font-medium transition-colors"
                   title="View live app"
                 >
                   <OpenNewWindow width={14} height={14} />
