@@ -475,7 +475,6 @@ export const IdeaDetailModal = ({
         {/* Fixed Header */}
         <div className="flex items-center justify-between p-6 border-b border-violet-100 flex-shrink-0 bg-white">
           <div className="flex items-center gap-3">
-            <h2 className="text-xl font-bold text-slate-900">Idetails</h2>
             <StatusBadge status={idea.status} />
           </div>
           <button
