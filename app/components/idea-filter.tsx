@@ -1,8 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
-import { Button } from "@worldcoin/mini-apps-ui-kit-react";
-import { ArrowDown } from "iconoir-react";
+import React from "react";
 
 export type FilterOption = "newest" | "most-popular" | "claimed" | "completed";
 
@@ -11,59 +9,29 @@ interface IdeaFilterProps {
   onFilterChange: (filter: FilterOption) => void;
 }
 
-const filterLabels: Record<FilterOption, string> = {
-  newest: "Newest",
-  "most-popular": "Most Popular",
-  claimed: "Claimed",
-  completed: "Completed",
-};
+const filters: { value: FilterOption; label: string }[] = [
+  { value: "newest", label: "Newest" },
+  { value: "most-popular", label: "Popular" },
+  { value: "claimed", label: "Claimed" },
+  { value: "completed", label: "Built" },
+];
 
 export const IdeaFilter = ({ currentFilter, onFilterChange }: IdeaFilterProps) => {
-  const [isOpen, setIsOpen] = useState(false);
-
-  const handleSelect = (filter: FilterOption) => {
-    onFilterChange(filter);
-    setIsOpen(false);
-  };
-
   return (
-    <div className="relative">
-      <Button
-        variant="secondary"
-        size="sm"
-        onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-2 min-w-[140px] justify-between rounded-xl hover:shadow-md transition-all duration-200"
-      >
-        <span>{filterLabels[currentFilter]}</span>
-        <ArrowDown
-          width={16}
-          height={16}
-          className={`transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`}
-        />
-      </Button>
-
-      {isOpen && (
-        <>
-          <div className="fixed inset-0 z-10" onClick={() => setIsOpen(false)} />
-          <div className="absolute right-0 top-full mt-3 w-52 bg-white border border-gray-200 rounded-2xl shadow-xl z-20 overflow-hidden">
-            <div className="py-1">
-              {Object.entries(filterLabels).map(([value, label]) => (
-                <button
-                  key={value}
-                  onClick={() => handleSelect(value as FilterOption)}
-                  className={`w-full text-left px-4 py-3 text-sm hover:bg-gray-50 transition-all duration-200 ${
-                    currentFilter === value
-                      ? "bg-blue-50 text-blue-600 font-semibold"
-                      : "text-gray-700 hover:text-gray-900"
-                  }`}
-                >
-                  {label}
-                </button>
-              ))}
-            </div>
-          </div>
-        </>
-      )}
+    <div className="flex gap-1 bg-slate-100 rounded-xl p-1">
+      {filters.map(({ value, label }) => (
+        <button
+          key={value}
+          onClick={() => onFilterChange(value)}
+          className={`flex-1 px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-150 ${
+            currentFilter === value
+              ? "bg-white text-violet-700 shadow-sm"
+              : "text-slate-500 hover:text-slate-700"
+          }`}
+        >
+          {label}
+        </button>
+      ))}
     </div>
   );
 };

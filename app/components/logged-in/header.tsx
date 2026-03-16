@@ -8,19 +8,19 @@ interface HeaderProps {
 }
 
 export const Header = ({ avatarUrl, onLogoClick, onAvatarClick }: HeaderProps) => (
-  <div className="flex items-center justify-center p-6 border-b border-gray-100 bg-gradient-to-r from-gray-50 to-white">
+  <div className="flex items-center justify-center px-6 py-4 border-b border-violet-100 bg-white">
     <div className="flex items-center gap-3 w-full justify-between">
       <button
         onClick={onLogoClick}
         className="flex items-center gap-3 hover:opacity-80 transition-opacity cursor-pointer"
       >
-        <LightBulb width={24} height={24} className="text-black" />
-        <span className="text-xl font-bold text-gray-900">Minipad</span>
+        <LightBulb width={24} height={24} className="text-violet-600" />
+        <span className="text-xl font-bold text-slate-900">Minipad</span>
       </button>
       {avatarUrl && (
         <button
           onClick={onAvatarClick}
-          className="rounded-full focus:outline-none focus:ring-2 focus:ring-blue-300"
+          className="rounded-full focus:outline-none focus:ring-2 focus:ring-violet-300"
           aria-label="Open profile"
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Button } from "@worldcoin/mini-apps-ui-kit-react";
+import { StandardButton } from "./ui/standard-button";
 
 interface IdeaSubmissionConfirmationProps {
   onReturnHome: () => void;
@@ -23,9 +23,9 @@ export const IdeaSubmissionConfirmation = ({ onReturnHome }: IdeaSubmissionConfi
         }`}
       >
         <div className="mb-6">
-          <div className="inline-flex items-center justify-center w-20 h-20 bg-green-100 rounded-full mb-4 animate-pulse">
+          <div className="inline-flex items-center justify-center w-20 h-20 bg-violet-100 rounded-full mb-4">
             <svg
-              className="w-10 h-10 text-green-600"
+              className="w-10 h-10 text-violet-600"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -40,41 +40,37 @@ export const IdeaSubmissionConfirmation = ({ onReturnHome }: IdeaSubmissionConfi
           </div>
         </div>
 
-        <h1 className="text-3xl font-bold text-gray-900 mb-4">
-          🎉 Idea Submitted Successfully!
+        <h1 className="text-3xl font-bold text-slate-900 mb-4">
+          Idea Submitted!
         </h1>
 
-        <p className="text-lg text-gray-600 mb-6 leading-relaxed">
-          Your idea has been submitted and attested to the blockchain.
-          It&apos;s now live and ready for the community to vote on and claim!
+        <p className="text-lg text-slate-600 mb-6 leading-relaxed">
+          Your idea is live and ready for the community to vote on and claim.
         </p>
 
-        <div className="bg-gradient-to-r from-green-50 to-blue-50 border border-green-200 rounded-xl p-6 mb-8">
-          <h3 className="font-semibold text-gray-900 mb-3 text-left">What happens next?</h3>
-          <div className="space-y-2 text-left">
+        <div className="bg-violet-50 border border-violet-200 rounded-xl p-6 mb-8 text-left">
+          <h3 className="font-semibold text-slate-900 mb-3">What happens next?</h3>
+          <div className="space-y-2">
             {[
               "Community members can vote on your idea",
               "Developers can claim your idea to build it",
               "You can track progress and engage with builders",
             ].map((text, i) => (
               <div key={i} className="flex items-start space-x-3">
-                <div className="flex-shrink-0 w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center mt-0.5">
-                  <span className="text-xs font-bold text-blue-600">{i + 1}</span>
+                <div className="flex-shrink-0 w-6 h-6 bg-violet-100 rounded-full flex items-center justify-center mt-0.5">
+                  <span className="text-xs font-bold text-violet-600">{i + 1}</span>
                 </div>
-                <p className="text-sm text-gray-700">{text}</p>
+                <p className="text-sm text-slate-700">{text}</p>
               </div>
             ))}
           </div>
         </div>
 
-        <Button
-          onClick={onReturnHome}
-          className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-200 transform hover:scale-105"
-        >
-          Return to Ideas Board
-        </Button>
+        <StandardButton onClick={onReturnHome} variant="primary" fullWidth>
+          Back to Ideas
+        </StandardButton>
 
-        <p className="text-xs text-gray-500 mt-4">
+        <p className="text-xs text-slate-400 mt-4">
           Your idea is now part of the decentralized miniapp ecosystem on Base
         </p>
       </div>

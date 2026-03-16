@@ -6,13 +6,17 @@ import { api } from "../../convex/_generated/api";
 import { useAccount } from "wagmi";
 import { useFarcasterData } from "../hooks/use-farcaster-data";
 import { handleError } from "../lib/error-handler";
-import { Button, Input, TextArea } from "@worldcoin/mini-apps-ui-kit-react";
+import { StandardButton } from "./ui/standard-button";
+import { Xmark } from "iconoir-react";
 import { toast } from "sonner";
 
 interface IdeaSubmissionFormProps {
   onSuccess?: (title: string) => void;
   onCancel?: () => void;
 }
+
+const inputClass =
+  "w-full border border-gray-200 rounded-xl px-4 py-3 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-colors disabled:opacity-50 disabled:cursor-not-allowed";
 
 export const IdeaSubmissionForm = ({ onSuccess, onCancel }: IdeaSubmissionFormProps) => {
   const [title, setTitle] = useState("");
@@ -64,52 +68,58 @@ export const IdeaSubmissionForm = ({ onSuccess, onCancel }: IdeaSubmissionFormPr
         <button
           aria-label="Close"
           onClick={onCancel}
-          className="absolute right-6 top-6 p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-xl transition-all duration-200 group"
+          className="absolute right-6 top-6 p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-xl transition-colors"
         >
-          <span className="text-lg group-hover:scale-110 transition-transform">✕</span>
+          <Xmark width={18} height={18} />
         </button>
       )}
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900 mb-2">Submit an Idea</h1>
-        <p className="text-gray-500 text-sm">
+        <h1 className="text-2xl font-bold text-slate-900 mb-2">Submit an Idea</h1>
+        <p className="text-slate-500 text-sm">
           Share your miniapp idea. Others can upvote it, remix it, or claim it to build.
         </p>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-5">
         <div>
-          <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-2">
+          <label htmlFor="title" className="block text-sm font-medium text-slate-700 mb-2">
             Title
           </label>
-          <Input
+          <input
             id="title"
             type="text"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             required
+            className={inputClass}
+            placeholder="A great miniapp idea..."
           />
         </div>
 
         <div>
-          <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-2">
+          <label htmlFor="description" className="block text-sm font-medium text-slate-700 mb-2">
             Description
           </label>
-          <TextArea
+          <textarea
             id="description"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             required
             rows={5}
+            className={inputClass}
+            placeholder="Describe what this miniapp would do and why people would use it..."
           />
         </div>
 
-        <Button
+        <StandardButton
           type="submit"
           disabled={isSubmitting || !title.trim() || !description.trim()}
-          className="w-full"
+          loading={isSubmitting}
+          variant="primary"
+          fullWidth
         >
-          {isSubmitting ? "Submitting..." : "Submit Idea"}
-        </Button>
+          Submit Idea
+        </StandardButton>
       </form>
     </div>
   );

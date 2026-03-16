@@ -46,7 +46,7 @@ function ProfileIdeas({ onIdeaClick }: { onIdeaClick: (id: string) => void }) {
           key={idea._id}
           onClick={() => onIdeaClick(idea._id)}
           title={idea.title}
-          className="flex items-center gap-1.5 bg-white rounded-lg px-3 py-2.5 border border-gray-200 hover:border-gray-300 hover:shadow-sm transition-all duration-150 min-w-0"
+          className="flex items-center gap-1.5 bg-white rounded-lg px-3 py-2.5 border border-gray-200 hover:border-gray-300 hover:shadow-sm transition-colors duration-150 min-w-0 cursor-pointer"
           style={{ flexBasis: "calc(50% - 0.25rem)", maxWidth: "calc(50% - 0.25rem)" }}
         >
           <span className="font-medium text-gray-900 text-xs truncate flex-1 min-w-0">{idea.title}</span>
@@ -93,7 +93,7 @@ export const SettingsContent = ({
             </div>
             <button
               onClick={onCopyAddress}
-              className="p-2 text-gray-400 hover:text-gray-600 transition-colors flex-shrink-0"
+              className="p-2 text-gray-400 hover:text-gray-600 transition-colors flex-shrink-0 cursor-pointer"
               aria-label="Copy address"
             >
               {copied ? (

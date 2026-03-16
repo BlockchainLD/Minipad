@@ -33,14 +33,20 @@ export function FarcasterProfile() {
         <div className="flex-1">
           <div className="flex items-center space-x-2">
             <p className="font-semibold text-gray-900">{displayName}</p>
-            {data.pfp?.verified && <span className="text-blue-500 text-sm">✓</span>}
+            {data.pfp?.verified && (
+              <svg width={14} height={14} viewBox="0 0 24 24" fill="none" className="text-violet-600 flex-shrink-0" aria-label="Verified">
+                <circle cx="12" cy="12" r="10" fill="currentColor" opacity="0.15" />
+                <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" />
+                <polyline points="7,12 10.5,15.5 17,9" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            )}
           </div>
           <p className="text-sm text-gray-600">@{username}</p>
         </div>
       </div>
 
       {data.profile?.bio?.text ? (
-        <p className="text-sm text-gray-700">{data.profile.bio.text}</p>
+        <p className="text-sm text-gray-700 line-clamp-3">{data.profile.bio.text}</p>
       ) : null}
 
       <div className="flex items-center space-x-4 text-sm text-gray-600">
@@ -60,13 +66,13 @@ export function FarcasterProfile() {
       ) : null}
 
       {data.profile?.url ? (
-        <div className="flex items-center space-x-2 text-sm">
-          <span>🔗</span>
+        <div className="flex items-center space-x-2 text-sm min-w-0">
+          <span className="flex-shrink-0">🔗</span>
           <a
             href={data.profile.url}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-blue-600 hover:text-blue-800 break-all"
+            className="text-violet-600 hover:text-violet-800 truncate min-w-0"
           >
             {data.profile.url}
           </a>
