@@ -270,15 +270,19 @@ const RemixesSection = ({
 
   const deleteRemix = useMutation(api.remixes.deleteRemix);
   const [deleteConfirmingRemixId, setDeleteConfirmingRemixId] = useState<Id<"remixes"> | null>(null);
+  const [deletingId, setDeletingId] = useState<Id<"remixes"> | null>(null);
 
   const handleRemixDelete = async (remixId: Id<"remixes">) => {
-    if (!address) return;
+    if (!address || deletingId) return;
     setDeleteConfirmingRemixId(null);
+    setDeletingId(remixId);
     try {
       await deleteRemix({ remixId, author: address });
       toast.success("Deleted.");
     } catch (error) {
       handleError(error, { operation: "delete remix", component: "IdeaDetailModal" });
+    } finally {
+      setDeletingId(null);
     }
   };
 
@@ -333,19 +337,21 @@ const RemixesSection = ({
                     </p>
                     <div className="flex items-center gap-2 mt-2">
                       <RemixUpvoteButton remix={remix} address={address} />
-                      {address && remix.author === address && (
+                      {address && remix.author.toLowerCase() === address.toLowerCase() && (
                         deleteConfirmingRemixId === remix._id ? (
                           <div className="flex items-center gap-1.5" onClick={(e) => e.stopPropagation()}>
                             <span className="text-xs text-red-600">Delete?</span>
                             <button
                               onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleRemixDelete(remix._id); }}
-                              className="text-xs px-2 py-0.5 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors cursor-pointer"
+                              disabled={deletingId === remix._id}
+                              className="text-xs px-2 py-0.5 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors cursor-pointer disabled:opacity-50"
                             >
-                              Yes
+                              {deletingId === remix._id ? "..." : "Yes"}
                             </button>
                             <button
                               onClick={(e) => { e.preventDefault(); e.stopPropagation(); setDeleteConfirmingRemixId(null); }}
-                              className="text-xs px-2 py-0.5 bg-gray-100 text-gray-600 rounded-lg hover:bg-gray-200 transition-colors cursor-pointer"
+                              disabled={deletingId === remix._id}
+                              className="text-xs px-2 py-0.5 bg-gray-100 text-gray-600 rounded-lg hover:bg-gray-200 transition-colors cursor-pointer disabled:opacity-50"
                             >
                               No
                             </button>
