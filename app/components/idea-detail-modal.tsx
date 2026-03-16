@@ -615,10 +615,10 @@ export const IdeaDetailModal = ({
               <button
                 onClick={(e) => { e.preventDefault(); e.stopPropagation(); setShowRemixForm(true); }}
                 className="flex items-center gap-1.5 px-3 py-2 text-yellow-600 hover:text-yellow-700 hover:bg-yellow-50 rounded-xl transition-colors text-sm font-medium cursor-pointer"
-                title="Add your take"
+                title="Remix this idea"
               >
                 <Flash width={16} height={16} />
-                Add Take
+                Remix
               </button>
             )}
 

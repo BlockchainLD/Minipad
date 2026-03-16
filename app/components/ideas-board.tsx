@@ -34,6 +34,7 @@ type Idea = {
   attestationUid?: string;
   githubUrl?: string;
   deploymentUrl?: string;
+  remixCount?: number;
 };
 
 const handleButtonClick = (e: React.MouseEvent, callback: () => void) => {
@@ -360,10 +361,11 @@ export const IdeasBoard = ({ onViewChange, onProfileClick, openIdeaId, onIdeaOpe
               {idea.status !== "completed" && (
                 <button
                   onClick={(e) => handleButtonClick(e, () => handleRemix(idea._id))}
-                  className="flex items-center justify-center p-2 text-yellow-500 hover:text-yellow-600 hover:bg-yellow-50 rounded-xl transition-colors cursor-pointer"
-                  title="Add your take"
+                  className="flex items-center gap-1.5 px-3 py-2 text-yellow-500 hover:text-yellow-600 hover:bg-yellow-50 rounded-xl transition-colors cursor-pointer"
+                  title="Remix this idea"
                 >
                   <Flash width={18} height={18} />
+                  <span className="text-sm font-semibold">{idea.remixCount ?? 0}</span>
                 </button>
               )}
 
