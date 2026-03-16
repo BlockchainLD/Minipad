@@ -16,6 +16,10 @@ const schema = defineSchema({
     upvotes: v.number(),
     status: v.union(v.literal("open"), v.literal("claimed"), v.literal("completed")),
     claimedBy: v.optional(v.string()), // wallet address of claimer
+    claimedByFid: v.optional(v.number()), // Farcaster FID of claimer
+    claimedByAvatar: v.optional(v.string()), // Farcaster avatar URL of claimer
+    claimedByDisplayName: v.optional(v.string()), // Farcaster display name of claimer
+    claimedByUsername: v.optional(v.string()), // Farcaster username of claimer
     claimedAt: v.optional(v.number()),
     completedAt: v.optional(v.number()),
     githubUrl: v.optional(v.string()),

@@ -6,6 +6,10 @@ export const claimIdea = mutation({
     ideaId: v.id("ideas"),
     claimer: v.string(),
     attestationUid: v.optional(v.string()),
+    claimerFid: v.optional(v.number()),
+    claimerAvatar: v.optional(v.string()),
+    claimerDisplayName: v.optional(v.string()),
+    claimerUsername: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     const idea = await ctx.db.get(args.ideaId);
@@ -23,6 +27,10 @@ export const claimIdea = mutation({
     await ctx.db.patch(args.ideaId, {
       status: "claimed",
       claimedBy: args.claimer,
+      claimedByFid: args.claimerFid,
+      claimedByAvatar: args.claimerAvatar,
+      claimedByDisplayName: args.claimerDisplayName,
+      claimedByUsername: args.claimerUsername,
       claimedAt: Date.now(),
     });
   },
@@ -80,6 +88,10 @@ export const unclaimIdea = mutation({
     await ctx.db.patch(args.ideaId, {
       status: "open",
       claimedBy: undefined,
+      claimedByFid: undefined,
+      claimedByAvatar: undefined,
+      claimedByDisplayName: undefined,
+      claimedByUsername: undefined,
       claimedAt: undefined,
     });
 
