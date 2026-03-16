@@ -513,6 +513,8 @@ export const IdeaDetailModal = ({
               <div className="flex items-center gap-2">
                 <Heart width={16} height={16} />
                 <span>{optimisticUpvotes ?? idea.upvotes} upvotes</span>
+                <span className="text-gray-400">·</span>
+                <span>{new Date(idea.timestamp).toLocaleDateString()}</span>
               </div>
             </div>
 
