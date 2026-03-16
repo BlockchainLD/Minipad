@@ -120,10 +120,8 @@ const CardUpvoteButton = ({
     <button
       onClick={handleClick}
       disabled={!address || isLoading}
-      className={`relative flex items-center gap-2 px-3 py-2 rounded-xl transition-colors duration-150 disabled:opacity-50 disabled:cursor-not-allowed ${
-        isUpvoted
-          ? "text-red-500 hover:text-red-600 hover:bg-red-50"
-          : "text-gray-500 hover:text-gray-700 hover:bg-gray-50"
+      className={`relative flex items-center gap-2 transition-colors duration-150 disabled:opacity-50 disabled:cursor-not-allowed ${
+        isUpvoted ? "text-red-500" : "text-gray-500 hover:text-gray-700"
       }`}
       title={!address ? "Connect wallet to upvote" : isUpvoted ? "Remove upvote" : "Add upvote"}
     >

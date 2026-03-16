@@ -509,13 +509,8 @@ export const IdeaDetailModal = ({
             </div>
 
             {/* Meta */}
-            <div className="flex flex-wrap gap-4 mb-6 text-sm text-gray-600">
-              <div className="flex items-center gap-2">
-                <Heart width={16} height={16} />
-                <span>{optimisticUpvotes ?? idea.upvotes} upvotes</span>
-                <span className="text-gray-400">·</span>
-                <span>{new Date(idea.timestamp).toLocaleDateString()}</span>
-              </div>
+            <div className="mb-6 text-sm text-gray-500">
+              {new Date(idea.timestamp).toLocaleDateString()}
             </div>
 
             <div className="mb-8">
@@ -601,15 +596,18 @@ export const IdeaDetailModal = ({
         {/* Fixed Bottom Action Bar */}
         <div className="flex-shrink-0 border-t border-violet-100 bg-white p-6">
           <div className="flex items-center justify-center gap-2 flex-wrap">
-            <UpvoteButton
-              ideaId={idea._id}
-              upvotes={idea.upvotes}
-              onUpvote={onUpvote}
-              onRemoveUpvote={onRemoveUpvote}
-              address={address}
-              optimisticUpvotes={optimisticUpvotes}
-              onOptimisticUpvoteChange={setOptimisticUpvotes}
-            />
+            {/* Upvote: first unless idea is claimed by current user (moved to right side there) */}
+            {!(idea.status === "claimed" && address && idea.claimedBy === address) && (
+              <UpvoteButton
+                ideaId={idea._id}
+                upvotes={idea.upvotes}
+                onUpvote={onUpvote}
+                onRemoveUpvote={onRemoveUpvote}
+                address={address}
+                optimisticUpvotes={optimisticUpvotes}
+                onOptimisticUpvoteChange={setOptimisticUpvotes}
+              />
+            )}
 
             {idea.status !== "completed" && (
               <button
@@ -654,6 +652,16 @@ export const IdeaDetailModal = ({
                 ) : (
                   <UnclaimButton onClick={(e) => handleButtonClick(e, () => setShowUnclaimConfirm(true))} />
                 )}
+                {/* Upvote moved here so Remix+SubmitBuild+Unclaim share one line */}
+                <UpvoteButton
+                  ideaId={idea._id}
+                  upvotes={idea.upvotes}
+                  onUpvote={onUpvote}
+                  onRemoveUpvote={onRemoveUpvote}
+                  address={address}
+                  optimisticUpvotes={optimisticUpvotes}
+                  onOptimisticUpvoteChange={setOptimisticUpvotes}
+                />
               </>
             )}
 
