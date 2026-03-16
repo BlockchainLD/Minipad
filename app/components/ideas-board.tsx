@@ -7,7 +7,7 @@ import { useAccount } from "wagmi";
 import { toast } from "sonner";
 import { Id } from "../../convex/_generated/dataModel";
 import { Heart, Flash, Hammer, LightBulb, OpenNewWindow } from "iconoir-react";
-import { IdeaFilter, FilterOption } from "./idea-filter";
+import { IdeaFilter, SectionOption } from "./idea-filter";
 import { CompletionForm } from "./completion-form";
 import { UserAvatar } from "./ui/user-avatar";
 import { StatusBadge } from "./ui/status-badge";
@@ -159,7 +159,8 @@ export const IdeasBoard = ({ onViewChange, onProfileClick, openIdeaId, onIdeaOpe
   const [showCompletionForm, setShowCompletionForm] = useState(false);
   // autoOpenRemixForm: when set, IdeaDetailModal opens its remix form immediately
   const [autoOpenRemixForm, setAutoOpenRemixForm] = useState(false);
-  const [currentFilter, setCurrentFilter] = useState<FilterOption>("newest");
+  const [currentSection, setCurrentSection] = useState<SectionOption>("ideasboard");
+  const [currentSort, setCurrentSort] = useState<"newest" | "most-popular">("most-popular");
 
   const ideas = useQuery(api.ideas.getIdeas, { limit: 50 });
   const upvoteIdea = useMutation(api.upvotes.upvoteIdea);
@@ -272,26 +273,27 @@ export const IdeasBoard = ({ onViewChange, onProfileClick, openIdeaId, onIdeaOpe
     setSelectedIdea(null);
   };
 
+  const handleClaimIdeaRandom = () => {
+    if (!ideas) return;
+    const open = ideas.filter((i) => !i.isRemix && i.status === "open");
+    if (!open.length) { toast.error("No open ideas available"); return; }
+    const withUpvotes = open.filter((i) => i.upvotes > 0);
+    const pool = withUpvotes.length > 0
+      ? [...withUpvotes].sort((a, b) => b.upvotes - a.upvotes).slice(0, 10)
+      : [...open].sort((a, b) => b.timestamp - a.timestamp).slice(0, 10);
+    openModal(pool[Math.floor(Math.random() * pool.length)] as Idea);
+  };
+
   const filteredAndSortedIdeas = React.useMemo(() => {
     if (!ideas) return [];
-    const filtered = ideas.filter((idea) => !idea.isRemix);
-    switch (currentFilter) {
-      case "newest":
-        return filtered.sort((a, b) => b.timestamp - a.timestamp);
-      case "most-popular":
-        return filtered.sort((a, b) => b.upvotes - a.upvotes);
-      case "claimed":
-        return filtered
-          .filter((idea) => idea.status === "claimed")
-          .sort((a, b) => b.timestamp - a.timestamp);
-      case "completed":
-        return filtered
-          .filter((idea) => idea.status === "completed")
-          .sort((a, b) => b.timestamp - a.timestamp);
-      default:
-        return filtered;
-    }
-  }, [ideas, currentFilter]);
+    let filtered = ideas.filter((idea) => !idea.isRemix);
+    if (currentSection === "ideasboard") filtered = filtered.filter((i) => i.status === "open");
+    else if (currentSection === "buildboard") filtered = filtered.filter((i) => i.status === "claimed");
+    else filtered = filtered.filter((i) => i.status === "completed");
+    return currentSort === "most-popular"
+      ? [...filtered].sort((a, b) => b.upvotes - a.upvotes)
+      : [...filtered].sort((a, b) => b.timestamp - a.timestamp);
+  }, [ideas, currentSection, currentSort]);
 
   if (!ideas) {
     return (
@@ -330,22 +332,42 @@ export const IdeasBoard = ({ onViewChange, onProfileClick, openIdeaId, onIdeaOpe
   return (
     <div className="w-full max-w-4xl mx-auto p-6 sm:p-8">
       <div className="mb-5">
-        <div className="flex justify-between items-center mb-4">
-          <h1 className="text-xl font-bold text-gray-900">Ideasboard</h1>
-          <StandardButton
-            variant="primary"
-            size="sm"
-            onClick={() => {
-              onViewChange?.("submit");
-              if (typeof window !== "undefined") {
-                window.scrollTo({ top: 0, behavior: "smooth" });
-              }
-            }}
+        <div className="flex items-center justify-between mb-3">
+          <h1 className="text-xl font-bold text-gray-900">
+            {currentSection === "ideasboard" ? "Ideasboard"
+              : currentSection === "buildboard" ? "Buildboard"
+              : "Miniapps"}
+          </h1>
+
+          <button
+            onClick={() => setCurrentSort((s) => s === "most-popular" ? "newest" : "most-popular")}
+            className="text-xs font-medium px-2.5 py-1 rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200 transition-colors"
           >
-            + New Idea
-          </StandardButton>
+            {currentSort === "most-popular" ? "Popular" : "Newest"}
+          </button>
+
+          {currentSection === "ideasboard" && (
+            <StandardButton
+              variant="primary"
+              size="sm"
+              onClick={() => {
+                onViewChange?.("submit");
+                if (typeof window !== "undefined") {
+                  window.scrollTo({ top: 0, behavior: "smooth" });
+                }
+              }}
+            >
+              + New Idea
+            </StandardButton>
+          )}
+          {currentSection === "buildboard" && (
+            <StandardButton variant="secondary" size="sm" onClick={handleClaimIdeaRandom}>
+              Claim Idea
+            </StandardButton>
+          )}
+          {currentSection === "miniapps" && <div />}
         </div>
-        <IdeaFilter currentFilter={currentFilter} onFilterChange={setCurrentFilter} />
+        <IdeaFilter currentSection={currentSection} onSectionChange={setCurrentSection} />
       </div>
 
       <div className="space-y-4">
@@ -452,20 +474,20 @@ export const IdeasBoard = ({ onViewChange, onProfileClick, openIdeaId, onIdeaOpe
         {filteredAndSortedIdeas.length === 0 && (
           <div className="text-center py-16">
             <div className="bg-slate-50 rounded-3xl p-12 border border-gray-100">
-              {currentFilter === "claimed" ? (
+              {currentSection === "buildboard" ? (
                 <>
                   <div className="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-4">
                     <Hammer width={32} height={32} className="text-yellow-600" />
                   </div>
-                  <p className="text-gray-600 text-lg font-medium mb-2">No claimed ideas found</p>
-                  <p className="text-gray-500">Try a different filter or submit a new idea!</p>
+                  <p className="text-gray-600 text-lg font-medium mb-2">No ideas being built yet</p>
+                  <p className="text-gray-500">Ideas that have been claimed will appear here.</p>
                 </>
-              ) : currentFilter === "completed" ? (
+              ) : currentSection === "miniapps" ? (
                 <>
                   <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
                     <OpenNewWindow width={32} height={32} className="text-green-600" />
                   </div>
-                  <p className="text-gray-600 text-lg font-medium mb-2">No completed ideas yet</p>
+                  <p className="text-gray-600 text-lg font-medium mb-2">No completed miniapps yet</p>
                   <p className="text-gray-500">Ideas that have been built and deployed will appear here.</p>
                 </>
               ) : (
