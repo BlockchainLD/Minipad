@@ -36,19 +36,12 @@ function IdeaTile({ idea, onIdeaClick }: { idea: IdeaLike; onIdeaClick: (id: str
 // useQuery lives inside this component so the ErrorBoundary above it catches errors.
 function ProfileIdeas({ onIdeaClick }: { onIdeaClick: (id: string) => void }) {
   const { address } = useAccount();
-  const allIdeas = useQuery(api.ideas.getIdeas, { limit: 50 });
-  const rawClaimedIdeas = useQuery(
-    api.userIdeas.getUserClaimedIdeas,
-    address ? { claimer: address } : "skip"
+  const submittedIdeas = useQuery(
+    api.userIdeas.getUserSubmittedIdeas,
+    address ? { author: address } : "skip"
   );
 
-  const submittedIdeas = allIdeas?.filter(
-    (idea) => idea.author === address && !idea.isRemix
-  );
-  const claimedIdeas = rawClaimedIdeas?.filter((i) => i.status === "claimed") ?? [];
-  const completedIdeas = rawClaimedIdeas?.filter((i) => i.status === "completed") ?? [];
-
-  if (!address || allIdeas === undefined) {
+  if (!address || submittedIdeas === undefined) {
     return (
       <div className="space-y-2 animate-pulse">
         {[0, 1].map((i) => <div key={i} className="bg-gray-200 h-10 rounded-lg" />)}
@@ -56,18 +49,33 @@ function ProfileIdeas({ onIdeaClick }: { onIdeaClick: (id: string) => void }) {
     );
   }
 
-  return (
-    <div className="space-y-4">
-      {!submittedIdeas || submittedIdeas.length === 0 ? (
-        <p className="text-sm text-gray-500">No ideas submitted yet.</p>
-      ) : (
-        <div className="flex flex-wrap gap-2">
-          {submittedIdeas.map((idea) => (
-            <IdeaTile key={idea._id} idea={idea} onIdeaClick={onIdeaClick} />
-          ))}
-        </div>
-      )}
+  if (submittedIdeas.length === 0) return null;
 
+  return (
+    <div className="flex flex-wrap gap-2">
+      {submittedIdeas.map((idea) => (
+        <IdeaTile key={idea._id} idea={idea} onIdeaClick={onIdeaClick} />
+      ))}
+    </div>
+  );
+}
+
+function ProfileClaimedIdeas({ onIdeaClick }: { onIdeaClick: (id: string) => void }) {
+  const { address } = useAccount();
+  const rawClaimedIdeas = useQuery(
+    api.userIdeas.getUserClaimedIdeas,
+    address ? { claimer: address } : "skip"
+  );
+
+  if (!rawClaimedIdeas) return null;
+
+  const claimedIdeas = rawClaimedIdeas.filter((i) => i.status === "claimed");
+  const completedIdeas = rawClaimedIdeas.filter((i) => i.status === "completed");
+
+  if (claimedIdeas.length === 0 && completedIdeas.length === 0) return null;
+
+  return (
+    <>
       {claimedIdeas.length > 0 && (
         <div className="space-y-2">
           <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Claimed</p>
@@ -78,7 +86,6 @@ function ProfileIdeas({ onIdeaClick }: { onIdeaClick: (id: string) => void }) {
           </div>
         </div>
       )}
-
       {completedIdeas.length > 0 && (
         <div className="space-y-2">
           <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Completed</p>
@@ -89,7 +96,7 @@ function ProfileIdeas({ onIdeaClick }: { onIdeaClick: (id: string) => void }) {
           </div>
         </div>
       )}
-    </div>
+    </>
   );
 }
 
@@ -108,9 +115,14 @@ export const SettingsContent = ({
 
       <div className="space-y-3">
         <p className="font-semibold text-black">Your Ideas</p>
-        <ErrorBoundary fallback={<p className="text-sm text-gray-500">Could not load ideas.</p>}>
-          <ProfileIdeas onIdeaClick={onIdeaClick} />
-        </ErrorBoundary>
+        <div className="space-y-4">
+          <ErrorBoundary fallback={null}>
+            <ProfileIdeas onIdeaClick={onIdeaClick} />
+          </ErrorBoundary>
+          <ErrorBoundary fallback={null}>
+            <ProfileClaimedIdeas onIdeaClick={onIdeaClick} />
+          </ErrorBoundary>
+        </div>
       </div>
 
       <div className="space-y-3">
