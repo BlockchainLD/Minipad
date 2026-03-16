@@ -510,18 +510,14 @@ export const IdeaDetailModal = ({
               </button>
             </div>
 
-            {/* Meta */}
-            <div className="mb-6 text-sm text-gray-500">
-              {new Date(idea.timestamp).toLocaleDateString()}
-            </div>
-
             <div className="mb-8">
               <StatusBadge status={idea.status} className="px-4 py-2 text-sm" />
             </div>
 
             {/* Description */}
             <div className="mb-8">
-              <h3 className="text-lg font-semibold text-gray-900 mb-3">Description</h3>
+              <h3 className="text-lg font-semibold text-gray-900 mb-1">Description</h3>
+              <p className="text-xs text-gray-400 mb-3">{new Date(idea.timestamp).toLocaleDateString()}</p>
               <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">{idea.description}</p>
             </div>
 
