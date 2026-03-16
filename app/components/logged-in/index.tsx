@@ -8,6 +8,7 @@ import { IdeasBoard } from "../ideas-board";
 import { IdeaSubmissionForm } from "../idea-submission-form";
 import { IdeaSubmissionConfirmation } from "../idea-submission-confirmation";
 import { Header } from "./header";
+import { LeaderboardModal } from "../leaderboard-modal";
 import { TABS, VIEWS } from "../../lib/constants";
 
 export const LoggedIn = () => {
@@ -25,6 +26,7 @@ export const LoggedIn = () => {
     VIEWS.BOARD
   );
   const [pendingOpenIdeaId, setPendingOpenIdeaId] = useState<string | null>(null);
+  const [showLeaderboard, setShowLeaderboard] = useState(false);
   const farcasterData = useFarcasterData();
   const avatarUrl = farcasterData?.pfp?.url || null;
 
@@ -87,6 +89,7 @@ export const LoggedIn = () => {
             avatarUrl={avatarUrl}
             onLogoClick={handleLogoClick}
             onAvatarClick={handleAvatarClick}
+            onTrophyClick={() => setShowLeaderboard(true)}
           />
           <div className="flex-1 px-6 pb-6">
             {activeTab === TABS.HOME && homeContent}
@@ -94,6 +97,7 @@ export const LoggedIn = () => {
           </div>
         </div>
         <CopyNotification show={copied} />
+        <LeaderboardModal isOpen={showLeaderboard} onClose={() => setShowLeaderboard(false)} />
       </>
     );
   }
@@ -105,6 +109,7 @@ export const LoggedIn = () => {
           avatarUrl={avatarUrl}
           onLogoClick={handleLogoClick}
           onAvatarClick={handleAvatarClick}
+          onTrophyClick={() => setShowLeaderboard(true)}
         />
         <div className="p-6 pt-4">
           {activeTab === TABS.HOME && homeContent}
@@ -112,6 +117,7 @@ export const LoggedIn = () => {
         </div>
       </div>
       <CopyNotification show={copied} />
+      <LeaderboardModal isOpen={showLeaderboard} onClose={() => setShowLeaderboard(false)} />
     </>
   );
 };

@@ -1,13 +1,14 @@
 "use client";
-import { LightBulb } from "iconoir-react";
+import { LightBulb, Trophy } from "iconoir-react";
 
 interface HeaderProps {
   avatarUrl: string | null;
   onLogoClick: () => void;
   onAvatarClick: () => void;
+  onTrophyClick: () => void;
 }
 
-export const Header = ({ avatarUrl, onLogoClick, onAvatarClick }: HeaderProps) => (
+export const Header = ({ avatarUrl, onLogoClick, onAvatarClick, onTrophyClick }: HeaderProps) => (
   <div className="flex items-center justify-center px-6 py-4 border-b border-violet-100 bg-white">
     <div className="flex items-center gap-3 w-full justify-between">
       <button
@@ -17,24 +18,36 @@ export const Header = ({ avatarUrl, onLogoClick, onAvatarClick }: HeaderProps) =
         <LightBulb width={24} height={24} className="text-violet-600" />
         <span className="text-xl font-bold text-violet-600">Minipad</span>
       </button>
-      {avatarUrl && (
+
+      <div className="flex items-center gap-3">
         <button
-          onClick={onAvatarClick}
-          className="rounded-full focus:outline-none focus:ring-2 focus:ring-violet-300 hover:ring-2 hover:ring-violet-300 transition-all"
-          aria-label="Open settings"
-          title="Settings"
+          onClick={onTrophyClick}
+          className="p-1.5 rounded-lg hover:bg-yellow-50 transition-colors"
+          aria-label="Leaderboard"
+          title="Leaderboard"
         >
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={avatarUrl}
-            alt="Profile"
-            width={28}
-            height={28}
-            className="w-7 h-7 rounded-full object-cover"
-            onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
-          />
+          <Trophy width={22} height={22} className="text-yellow-500" />
         </button>
-      )}
+
+        {avatarUrl && (
+          <button
+            onClick={onAvatarClick}
+            className="rounded-full focus:outline-none focus:ring-2 focus:ring-violet-300 hover:ring-2 hover:ring-violet-300 transition-all"
+            aria-label="Open settings"
+            title="Settings"
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={avatarUrl}
+              alt="Profile"
+              width={28}
+              height={28}
+              className="w-7 h-7 rounded-full object-cover"
+              onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+            />
+          </button>
+        )}
+      </div>
     </div>
   </div>
 );
