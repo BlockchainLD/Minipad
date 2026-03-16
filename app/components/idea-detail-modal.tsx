@@ -614,7 +614,7 @@ export const IdeaDetailModal = ({
             {idea.status !== "completed" && (
               <button
                 onClick={(e) => { e.preventDefault(); e.stopPropagation(); setShowRemixForm(true); }}
-                className="flex items-center gap-1.5 px-3 py-2 text-yellow-600 hover:text-yellow-700 hover:bg-yellow-50 rounded-xl transition-colors text-sm font-medium cursor-pointer"
+                className="flex items-center gap-1.5 px-3 py-2 bg-yellow-500 hover:bg-yellow-600 text-white border border-yellow-500 rounded-xl transition-all duration-200 text-sm font-medium cursor-pointer shadow-sm active:scale-95"
                 title="Remix this idea"
               >
                 <Flash width={16} height={16} />

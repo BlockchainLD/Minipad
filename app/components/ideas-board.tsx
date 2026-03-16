@@ -322,34 +322,34 @@ export const IdeasBoard = ({ onViewChange, onProfileClick, openIdeaId, onIdeaOpe
             onClick={() => openModal(idea as Idea)}
             className="bg-white border border-gray-200 rounded-2xl p-5 sm:p-6 hover:shadow-md hover:border-violet-200 transition-colors duration-200 cursor-pointer group"
           >
-            <div className="flex flex-col sm:flex-row justify-between items-start mb-4 gap-3">
-              <div className="flex-1 min-w-0">
-                <h3 className="text-lg font-semibold text-gray-900 break-words mb-2">
+            <div className="mb-4">
+              <div className="flex items-start justify-between gap-3 mb-2">
+                <h3 className="text-lg font-semibold text-gray-900 line-clamp-1 flex-1 min-w-0">
                   {idea.title}
                 </h3>
-                <div className="flex items-center gap-2 mb-3">
-                  <button
-                    onClick={(e) => { e.stopPropagation(); onProfileClick?.(idea.author); }}
-                    className="flex items-center gap-2 hover:opacity-80 transition-opacity cursor-pointer"
-                  >
-                    <UserAvatar
-                      author={idea.author}
-                      authorAvatar={idea.authorAvatar}
-                      authorDisplayName={idea.authorDisplayName}
-                      authorUsername={idea.authorUsername}
-                      size={24}
-                    />
-                    <span className="text-sm text-gray-600">
-                      {idea.authorDisplayName || idea.authorUsername || "Anonymous"}
-                    </span>
-                  </button>
-                </div>
-                <p className="text-gray-600 mb-4 line-clamp-3 break-words">{idea.description}</p>
+                <StatusBadge status={idea.status} className="flex-shrink-0" />
               </div>
-              <StatusBadge status={idea.status} className="px-3 py-1.5" />
+              <div className="flex items-center gap-2 mb-3">
+                <button
+                  onClick={(e) => { e.stopPropagation(); onProfileClick?.(idea.author); }}
+                  className="flex items-center gap-2 hover:opacity-80 transition-opacity cursor-pointer"
+                >
+                  <UserAvatar
+                    author={idea.author}
+                    authorAvatar={idea.authorAvatar}
+                    authorDisplayName={idea.authorDisplayName}
+                    authorUsername={idea.authorUsername}
+                    size={24}
+                  />
+                  <span className="text-sm text-gray-600">
+                    {idea.authorDisplayName || idea.authorUsername || "Anonymous"}
+                  </span>
+                </button>
+              </div>
+              <p className="text-gray-600 mb-4 line-clamp-3 break-words">{idea.description}</p>
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-nowrap">
               <CardUpvoteButton
                 ideaId={idea._id}
                 upvotes={idea.upvotes}
@@ -361,11 +361,11 @@ export const IdeasBoard = ({ onViewChange, onProfileClick, openIdeaId, onIdeaOpe
               {idea.status !== "completed" && (
                 <button
                   onClick={(e) => handleButtonClick(e, () => handleRemix(idea._id))}
-                  className="flex items-center gap-1.5 px-3 py-2 text-yellow-500 hover:text-yellow-600 hover:bg-yellow-50 rounded-xl transition-colors cursor-pointer"
+                  className="flex items-center gap-1.5 px-3 py-2 hover:bg-yellow-50 rounded-xl transition-colors cursor-pointer"
                   title="Remix this idea"
                 >
-                  <Flash width={18} height={18} />
-                  <span className="text-sm font-semibold">{idea.remixCount ?? 0}</span>
+                  <Flash width={18} height={18} className="text-yellow-500" />
+                  <span className="text-sm font-semibold text-gray-500">{idea.remixCount ?? 0}</span>
                 </button>
               )}
 
@@ -388,14 +388,16 @@ export const IdeasBoard = ({ onViewChange, onProfileClick, openIdeaId, onIdeaOpe
               )}
 
               {idea.status === "claimed" && idea.claimedBy === address && (
-                <SubmitBuildButton
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    setSelectedIdea(idea as Idea);
-                    setShowCompletionForm(true);
-                  }}
-                />
+                <div className="ml-auto">
+                  <SubmitBuildButton
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      setSelectedIdea(idea as Idea);
+                      setShowCompletionForm(true);
+                    }}
+                  />
+                </div>
               )}
             </div>
           </div>
