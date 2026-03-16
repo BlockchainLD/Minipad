@@ -19,10 +19,11 @@ export const getUserSubmittedIdeas = query({
 export const getUserClaimedIdeas = query({
   args: { claimer: v.string() },
   handler: async (ctx, args) => {
-    return ctx.db
+    const ideas = await ctx.db
       .query("ideas")
-      .withIndex("by_claimed_by", (q) => q.eq("claimedBy", args.claimer))
+      .filter((q) => q.eq(q.field("claimedBy"), args.claimer))
       .order("desc")
       .collect();
+    return ideas.map(({ _creationTime, ...idea }) => idea);
   },
 });

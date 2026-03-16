@@ -67,7 +67,13 @@ function ProfileClaimedIdeas({ onIdeaClick }: { onIdeaClick: (id: string) => voi
     address ? { claimer: address } : "skip"
   );
 
-  if (!rawClaimedIdeas) return null;
+  if (!address || rawClaimedIdeas === undefined) {
+    return (
+      <div className="space-y-2 animate-pulse">
+        {[0, 1].map((i) => <div key={i} className="bg-gray-200 h-10 rounded-lg" />)}
+      </div>
+    );
+  }
 
   const claimedIdeas = rawClaimedIdeas.filter((i) => i.status === "claimed");
   const completedIdeas = rawClaimedIdeas.filter((i) => i.status === "completed");
