@@ -6,7 +6,7 @@ interface StandardButtonProps {
   onClick?: (e: React.MouseEvent) => void;
   disabled?: boolean;
   loading?: boolean;
-  variant?: "primary" | "secondary" | "danger" | "success" | "warning";
+  variant?: "primary" | "secondary" | "danger" | "success" | "warning" | "black";
   size?: "xs" | "sm" | "md" | "lg";
   className?: string;
   type?: "button" | "submit" | "reset";
@@ -42,6 +42,7 @@ export const StandardButton = ({
     danger: "bg-red-500 hover:bg-red-600 text-white shadow-sm",
     success: "bg-green-500 hover:bg-green-600 text-white shadow-sm",
     warning: "bg-amber-500 hover:bg-amber-600 text-white shadow-sm",
+    black: "bg-black hover:bg-gray-800 text-white shadow-sm",
   };
 
   const widthClasses = fullWidth ? "w-full justify-center" : "";
@@ -84,7 +85,7 @@ export const ClaimButton = ({
     onClick={onClick}
     disabled={disabled}
     loading={loading}
-    variant="primary"
+    variant="black"
     size="sm"
     icon={<Hammer width={16} height={16} strokeWidth={2} />}
   >

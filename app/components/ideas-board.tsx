@@ -395,7 +395,7 @@ export const IdeasBoard = ({ onViewChange, onProfileClick, openIdeaId, onIdeaOpe
                   target="_blank"
                   rel="noopener noreferrer"
                   onClick={(e) => e.stopPropagation()}
-                  className="ml-auto flex items-center gap-1.5 px-3 py-1.5 bg-green-50 text-green-700 hover:bg-green-100 border border-green-200 rounded-xl text-sm font-medium transition-colors"
+                  className="ml-auto flex items-center gap-1.5 px-3 py-1.5 bg-black text-white hover:bg-gray-800 border border-black rounded-xl text-sm font-medium transition-colors"
                   title="View live app"
                 >
                   <OpenNewWindow width={14} height={14} />
