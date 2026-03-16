@@ -339,13 +339,13 @@ const RemixesSection = ({
                             <span className="text-xs text-red-600">Delete?</span>
                             <button
                               onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleRemixDelete(remix._id); }}
-                              className="text-xs px-2 py-0.5 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+                              className="text-xs px-2 py-0.5 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors cursor-pointer"
                             >
                               Yes
                             </button>
                             <button
                               onClick={(e) => { e.preventDefault(); e.stopPropagation(); setDeleteConfirmingRemixId(null); }}
-                              className="text-xs px-2 py-0.5 bg-gray-100 text-gray-600 rounded-lg hover:bg-gray-200 transition-colors"
+                              className="text-xs px-2 py-0.5 bg-gray-100 text-gray-600 rounded-lg hover:bg-gray-200 transition-colors cursor-pointer"
                             >
                               No
                             </button>
@@ -353,7 +353,7 @@ const RemixesSection = ({
                         ) : (
                           <button
                             onClick={(e) => { e.preventDefault(); e.stopPropagation(); setDeleteConfirmingRemixId(remix._id); }}
-                            className="flex items-center justify-center p-1 text-red-400 hover:text-red-600 transition-colors"
+                            className="flex items-center justify-center p-1 text-red-400 hover:text-red-600 transition-colors cursor-pointer"
                             title="Delete"
                           >
                             <Trash width={12} height={12} />
@@ -469,7 +469,7 @@ export const IdeaDetailModal = ({
           <h2 className="text-xl font-bold text-slate-900">Idea Details</h2>
           <button
             onClick={onClose}
-            className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-xl transition-colors"
+            className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-xl transition-colors cursor-pointer"
           >
             <Xmark width={18} height={18} />
           </button>
@@ -484,7 +484,7 @@ export const IdeaDetailModal = ({
             <div className="flex items-center gap-3 mb-6">
               <button
                 onClick={(e) => { e.stopPropagation(); onProfileClick?.(idea.author); }}
-                className="hover:opacity-80 transition-opacity"
+                className="hover:opacity-80 transition-opacity cursor-pointer"
               >
                 <UserAvatar
                   author={idea.author}
@@ -496,7 +496,7 @@ export const IdeaDetailModal = ({
               </button>
               <button
                 onClick={(e) => { e.stopPropagation(); onProfileClick?.(idea.author); }}
-                className="text-lg font-medium text-gray-900 hover:opacity-80 transition-opacity"
+                className="text-lg font-medium text-gray-900 hover:opacity-80 transition-opacity cursor-pointer"
               >
                 {idea.authorDisplayName || idea.authorUsername || "Anonymous"}
               </button>
@@ -606,7 +606,7 @@ export const IdeaDetailModal = ({
             {idea.status !== "completed" && (
               <button
                 onClick={(e) => { e.preventDefault(); e.stopPropagation(); setShowRemixForm(true); }}
-                className="flex items-center gap-1.5 px-3 py-2 text-yellow-600 hover:text-yellow-700 hover:bg-yellow-50 rounded-xl transition-colors text-sm font-medium"
+                className="flex items-center gap-1.5 px-3 py-2 text-yellow-600 hover:text-yellow-700 hover:bg-yellow-50 rounded-xl transition-colors text-sm font-medium cursor-pointer"
                 title="Add your take"
               >
                 <Flash width={16} height={16} />
@@ -632,13 +632,13 @@ export const IdeaDetailModal = ({
                     <span className="text-sm text-amber-700">Unclaim?</span>
                     <button
                       onClick={(e) => handleButtonClick(e, () => onUnclaim(idea._id))}
-                      className="text-sm px-3 py-1.5 bg-amber-500 text-white rounded-xl hover:bg-amber-600 transition-colors font-medium"
+                      className="text-sm px-3 py-1.5 bg-amber-500 text-white rounded-xl hover:bg-amber-600 transition-colors font-medium cursor-pointer"
                     >
                       Unclaim
                     </button>
                     <button
                       onClick={(e) => handleButtonClick(e, () => setShowUnclaimConfirm(false))}
-                      className="text-sm px-3 py-1.5 bg-gray-100 text-gray-600 rounded-xl hover:bg-gray-200 transition-colors"
+                      className="text-sm px-3 py-1.5 bg-gray-100 text-gray-600 rounded-xl hover:bg-gray-200 transition-colors cursor-pointer"
                     >
                       Cancel
                     </button>
@@ -655,13 +655,13 @@ export const IdeaDetailModal = ({
                   <span className="text-sm text-red-600">Delete idea?</span>
                   <button
                     onClick={(e) => handleButtonClick(e, () => onDelete(idea._id))}
-                    className="text-sm px-3 py-1.5 bg-red-500 text-white rounded-xl hover:bg-red-600 transition-colors font-medium"
+                    className="text-sm px-3 py-1.5 bg-red-500 text-white rounded-xl hover:bg-red-600 transition-colors font-medium cursor-pointer"
                   >
                     Delete
                   </button>
                   <button
                     onClick={(e) => handleButtonClick(e, () => setShowDeleteConfirm(false))}
-                    className="text-sm px-3 py-1.5 bg-gray-100 text-gray-600 rounded-xl hover:bg-gray-200 transition-colors"
+                    className="text-sm px-3 py-1.5 bg-gray-100 text-gray-600 rounded-xl hover:bg-gray-200 transition-colors cursor-pointer"
                   >
                     Cancel
                   </button>
@@ -669,7 +669,7 @@ export const IdeaDetailModal = ({
               ) : (
                 <button
                   onClick={(e) => handleButtonClick(e, () => setShowDeleteConfirm(true))}
-                  className="flex items-center justify-center p-2 text-red-500 hover:text-red-600 hover:bg-red-50 rounded-xl transition-colors"
+                  className="flex items-center justify-center p-2 text-red-500 hover:text-red-600 hover:bg-red-50 rounded-xl transition-colors cursor-pointer"
                   title="Delete this idea"
                 >
                   <Trash width={20} height={20} />

@@ -106,7 +106,7 @@ export const CompletionForm = ({ ideaId, onSuccess, onCancel }: CompletionFormPr
             onChange={(e) => setGithubUrl(e.target.value)}
             required
             placeholder="https://github.com/username/repo"
-            className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-colors"
+            className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           />
           <p className="mt-1 text-xs text-gray-400">e.g. https://github.com/username/repo</p>
         </div>
@@ -122,7 +122,7 @@ export const CompletionForm = ({ ideaId, onSuccess, onCancel }: CompletionFormPr
             onChange={(e) => setDeploymentUrl(e.target.value)}
             required
             placeholder="https://your-app.vercel.app"
-            className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-colors"
+            className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           />
           <p className="mt-1 text-xs text-gray-400">e.g. https://your-app.vercel.app</p>
         </div>

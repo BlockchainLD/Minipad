@@ -99,7 +99,7 @@ export const RemixForm = ({ originalTitle, onSubmit, onCancel }: RemixFormProps)
                     key={t.value}
                     type="button"
                     onClick={() => setType(t.value)}
-                    className={`flex-1 px-3 py-2 rounded-xl text-sm font-medium border transition-all duration-200 ${
+                    className={`flex-1 px-3 py-2 rounded-xl text-sm font-medium border transition-colors duration-200 cursor-pointer ${
                       type === t.value
                         ? "bg-violet-600 text-white border-violet-600"
                         : "bg-white text-gray-700 border-gray-300 hover:border-gray-400"
@@ -121,7 +121,7 @@ export const RemixForm = ({ originalTitle, onSubmit, onCancel }: RemixFormProps)
                 onChange={(e) => setContent(e.target.value)}
                 placeholder={PLACEHOLDERS[type]}
                 rows={5}
-                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-colors resize-none"
+                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-colors resize-none disabled:opacity-50 disabled:cursor-not-allowed"
                 required
                 disabled={isSubmitting}
               />
@@ -138,14 +138,14 @@ export const RemixForm = ({ originalTitle, onSubmit, onCancel }: RemixFormProps)
                 type="button"
                 onClick={onCancel}
                 disabled={isSubmitting}
-                className="flex-1 px-6 py-3 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 transition-all duration-200 disabled:opacity-50"
+                className="flex-1 px-6 py-3 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={isSubmitting || !content.trim()}
-                className="flex-1 px-6 py-3 bg-violet-600 hover:bg-violet-700 text-white rounded-xl font-medium transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex-1 px-6 py-3 bg-violet-600 hover:bg-violet-700 text-white rounded-xl font-medium transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
               >
                 {isSubmitting ? "Submitting..." : "Submit"}
               </button>

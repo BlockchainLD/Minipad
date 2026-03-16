@@ -319,7 +319,7 @@ export const IdeasBoard = ({ onViewChange, onProfileClick, openIdeaId, onIdeaOpe
           <div
             key={idea._id}
             onClick={() => openModal(idea as Idea)}
-            className="bg-white border border-gray-200 rounded-2xl p-5 sm:p-6 hover:shadow-md hover:border-violet-200 transition-all duration-200 cursor-pointer group"
+            className="bg-white border border-gray-200 rounded-2xl p-5 sm:p-6 hover:shadow-md hover:border-violet-200 transition-colors duration-200 cursor-pointer group"
           >
             <div className="flex flex-col sm:flex-row justify-between items-start mb-4 gap-3">
               <div className="flex-1 min-w-0">
@@ -329,7 +329,7 @@ export const IdeasBoard = ({ onViewChange, onProfileClick, openIdeaId, onIdeaOpe
                 <div className="flex items-center gap-2 mb-3">
                   <button
                     onClick={(e) => { e.stopPropagation(); onProfileClick?.(idea.author); }}
-                    className="flex items-center gap-2 hover:opacity-80 transition-opacity"
+                    className="flex items-center gap-2 hover:opacity-80 transition-opacity cursor-pointer"
                   >
                     <UserAvatar
                       author={idea.author}
@@ -360,7 +360,7 @@ export const IdeasBoard = ({ onViewChange, onProfileClick, openIdeaId, onIdeaOpe
               {idea.status !== "completed" && (
                 <button
                   onClick={(e) => handleButtonClick(e, () => handleRemix(idea._id))}
-                  className="flex items-center justify-center p-2 text-yellow-500 hover:text-yellow-600 hover:bg-yellow-50 rounded-xl transition-colors"
+                  className="flex items-center justify-center p-2 text-yellow-500 hover:text-yellow-600 hover:bg-yellow-50 rounded-xl transition-colors cursor-pointer"
                   title="Add your take"
                 >
                   <Flash width={18} height={18} />
