@@ -30,7 +30,8 @@ const schema = defineSchema({
     .index("by_status", ["status"])
     .index("by_timestamp", ["timestamp"])
     .index("by_upvotes", ["upvotes"])
-    .index("by_original_idea", ["originalIdeaId"]),
+    .index("by_original_idea", ["originalIdeaId"])
+    .index("by_claimed_by", ["claimedBy"]),
 
   // Remixes / additions / edits / comments on ideas
   remixes: defineTable({
