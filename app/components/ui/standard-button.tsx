@@ -84,7 +84,7 @@ export const ClaimButton = ({
     disabled={disabled}
     loading={loading}
     variant="primary"
-    size="md"
+    size="sm"
     icon={<Hammer width={16} height={16} strokeWidth={2} />}
   >
     Claim
@@ -107,7 +107,7 @@ export const SubmitBuildButton = ({
     disabled={disabled}
     loading={loading}
     variant="success"
-    size="md"
+    size="sm"
     fullWidth={fullWidth}
     icon={<Tools width={16} height={16} strokeWidth={2} />}
   >
@@ -129,7 +129,7 @@ export const UnclaimButton = ({
     disabled={disabled}
     loading={loading}
     variant="warning"
-    size="md"
+    size="sm"
     icon={<Hammer width={16} height={16} strokeWidth={2} />}
   >
     Unclaim
