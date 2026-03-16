@@ -19,16 +19,18 @@ export const getUserSubmittedIdeas = query({
 export const getUserClaimedIdeas = query({
   args: { claimer: v.string() },
   handler: async (ctx, args) => {
-    return ctx.db
+    const claimed = await ctx.db
       .query("ideas")
-      .withIndex("by_claimed_by", (q) => q.eq("claimedBy", args.claimer))
-      .filter((q) =>
-        q.or(
-          q.eq(q.field("status"), "claimed"),
-          q.eq(q.field("status"), "completed")
-        )
-      )
-      .order("desc")
+      .withIndex("by_status", (q) => q.eq("status", "claimed"))
+      .filter((q) => q.eq(q.field("claimedBy"), args.claimer))
       .collect();
+
+    const completed = await ctx.db
+      .query("ideas")
+      .withIndex("by_status", (q) => q.eq("status", "completed"))
+      .filter((q) => q.eq(q.field("claimedBy"), args.claimer))
+      .collect();
+
+    return [...claimed, ...completed].sort((a, b) => b.timestamp - a.timestamp);
   },
 });
