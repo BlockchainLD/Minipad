@@ -145,7 +145,7 @@ const CardUpvoteButton = ({
 
 interface IdeasBoardProps {
   onViewChange?: (view: "board" | "submit" | "complete" | "confirmation") => void;
-  onProfileClick?: (authorAddress: string) => void;
+  onProfileClick?: (user: { address: string; avatarUrl?: string; displayName?: string; username?: string; fid?: number }) => void;
   openIdeaId?: string | null;
   onIdeaOpened?: () => void;
 }
@@ -430,20 +430,25 @@ export const IdeasBoard = ({ onViewChange, onProfileClick, openIdeaId, onIdeaOpe
                 </h3>
                 <div className="flex items-center gap-1.5 flex-shrink-0">
                   {(idea.status === "claimed" || idea.status === "completed") && idea.claimedBy && (
-                    <UserAvatar
-                      author={idea.claimedBy}
-                      authorAvatar={idea.claimedByAvatar}
-                      authorDisplayName={idea.claimedByDisplayName}
-                      authorUsername={idea.claimedByUsername}
-                      size={24}
-                    />
+                    <button
+                      onClick={(e) => { e.stopPropagation(); onProfileClick?.({ address: idea.claimedBy!, avatarUrl: idea.claimedByAvatar, displayName: idea.claimedByDisplayName, username: idea.claimedByUsername, fid: idea.claimedByFid }); }}
+                      className="hover:opacity-80 transition-opacity cursor-pointer"
+                    >
+                      <UserAvatar
+                        author={idea.claimedBy}
+                        authorAvatar={idea.claimedByAvatar}
+                        authorDisplayName={idea.claimedByDisplayName}
+                        authorUsername={idea.claimedByUsername}
+                        size={24}
+                      />
+                    </button>
                   )}
                   <StatusBadge status={idea.status} />
                 </div>
               </div>
               <div className="flex items-center gap-2 mb-3">
                 <button
-                  onClick={(e) => { e.stopPropagation(); onProfileClick?.(idea.author); }}
+                  onClick={(e) => { e.stopPropagation(); onProfileClick?.({ address: idea.author, avatarUrl: idea.authorAvatar, displayName: idea.authorDisplayName, username: idea.authorUsername, fid: idea.authorFid }); }}
                   className="flex items-center gap-2 hover:opacity-80 transition-opacity cursor-pointer"
                 >
                   <UserAvatar
