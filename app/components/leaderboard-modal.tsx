@@ -1,6 +1,6 @@
 "use client";
 
-import { Xmark, Trophy } from "iconoir-react";
+import { Xmark, Medal1stSolid } from "iconoir-react";
 import { useEffect } from "react";
 
 interface LeaderboardModalProps {
@@ -33,7 +33,7 @@ export const LeaderboardModal = ({ isOpen, onClose }: LeaderboardModalProps) => 
       >
         <div className="flex items-center justify-between p-6 border-b border-gray-100">
           <div className="flex items-center gap-2">
-            <Trophy width={22} height={22} className="text-yellow-500" />
+            <Medal1stSolid width={22} height={22} className="text-yellow-500" />
             <h2 className="text-xl font-bold text-gray-900">Leaderboard</h2>
           </div>
           <button
@@ -45,7 +45,7 @@ export const LeaderboardModal = ({ isOpen, onClose }: LeaderboardModalProps) => 
         </div>
 
         <div className="p-6 text-center py-16 text-gray-400">
-          <Trophy width={40} height={40} className="text-yellow-300 mx-auto mb-3" />
+          <Medal1stSolid width={40} height={40} className="text-yellow-300 mx-auto mb-3" />
           <p className="text-sm">Coming soon</p>
         </div>
       </div>
