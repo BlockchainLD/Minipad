@@ -6,16 +6,62 @@ import { sdk } from "@farcaster/miniapp-sdk";
 import { useAccount } from "wagmi";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "../../convex/_generated/api";
+import { ErrorBoundary } from "./error-boundary";
+
+// Isolated so an error here (e.g. Convex not yet deployed) doesn't affect the profile card.
+function DeveloperTagline({ address }: { address: string }) {
+  const tagline = useQuery(api.users.getTagline, { address });
+  const setTagline = useMutation(api.users.setTagline);
+  const [isEditing, setIsEditing] = useState(false);
+  const [taglineInput, setTaglineInput] = useState("");
+
+  const handleSave = async () => {
+    await setTagline({ address, tagline: taglineInput.trim() });
+    setIsEditing(false);
+  };
+
+  if (isEditing) {
+    return (
+      <div className="flex items-center gap-1.5">
+        <input
+          autoFocus
+          value={taglineInput}
+          onChange={(e) => setTaglineInput(e.target.value.slice(0, 12))}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") handleSave();
+            if (e.key === "Escape") setIsEditing(false);
+          }}
+          maxLength={12}
+          placeholder="12 chars max"
+          className="w-28 text-xs border border-violet-300 rounded-md px-2 py-1 focus:outline-none focus:ring-1 focus:ring-violet-400 text-gray-700"
+        />
+        <button
+          onClick={handleSave}
+          className="text-xs text-violet-600 font-medium hover:text-violet-800 transition-colors"
+        >
+          Save
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <button
+      onClick={() => { setTaglineInput(tagline ?? ""); setIsEditing(true); }}
+      className="group flex flex-col items-end gap-0.5"
+      title="Click to set your tagline"
+    >
+      <span className="italic text-xs text-gray-400 group-hover:text-violet-500 transition-colors">
+        {tagline || "Developer"}
+      </span>
+    </button>
+  );
+}
 
 export function FarcasterProfile() {
   const { fid, isInMiniApp } = useFarcaster();
   const data = useFarcasterData();
   const { address } = useAccount();
-  const tagline = useQuery(api.users.getTagline, address ? { address } : "skip");
-  const setTagline = useMutation(api.users.setTagline);
-
-  const [isEditing, setIsEditing] = useState(false);
-  const [taglineInput, setTaglineInput] = useState("");
 
   if (!isInMiniApp || !fid || !data) return null;
 
@@ -23,59 +69,14 @@ export function FarcasterProfile() {
   const username = data.username || "unknown";
   const avatarUrl = data.pfp?.url || "";
 
-  const handleTaglineSave = async () => {
-    if (!address) return;
-    await setTagline({ address, tagline: taglineInput.trim() });
-    setIsEditing(false);
-  };
-
-  const handleTaglineEdit = () => {
-    setTaglineInput(tagline ?? "");
-    setIsEditing(true);
-  };
-
   return (
     <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4 space-y-4 relative">
-      {/* Developer tagline — top right */}
+      {/* Developer tagline — top right, isolated error boundary */}
       <div className="absolute top-4 right-4 text-right">
-        {isEditing ? (
-          <div className="flex items-center gap-1.5">
-            <input
-              autoFocus
-              value={taglineInput}
-              onChange={(e) => setTaglineInput(e.target.value.slice(0, 12))}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") handleTaglineSave();
-                if (e.key === "Escape") setIsEditing(false);
-              }}
-              maxLength={12}
-              placeholder="12 chars max"
-              className="w-28 text-xs border border-violet-300 rounded-md px-2 py-1 focus:outline-none focus:ring-1 focus:ring-violet-400 text-gray-700"
-            />
-            <button
-              onClick={handleTaglineSave}
-              className="text-xs text-violet-600 font-medium hover:text-violet-800 transition-colors"
-            >
-              Save
-            </button>
-          </div>
-        ) : (
-          <button
-            onClick={handleTaglineEdit}
-            className="group flex flex-col items-end gap-0.5"
-            title="Click to set your tagline"
-          >
-            <span className="italic text-xs text-gray-400 group-hover:text-violet-500 transition-colors">
-              Developer
-            </span>
-            {tagline ? (
-              <span className="text-[11px] text-violet-500 font-medium">{tagline}</span>
-            ) : (
-              <span className="text-[10px] text-gray-300 group-hover:text-gray-400 transition-colors">
-                + add tag
-              </span>
-            )}
-          </button>
+        {address && (
+          <ErrorBoundary fallback={null}>
+            <DeveloperTagline address={address} />
+          </ErrorBoundary>
         )}
       </div>
 
