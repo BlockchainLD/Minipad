@@ -74,6 +74,12 @@ const schema = defineSchema({
     .index("by_voter", ["voter"])
     .index("by_timestamp", ["timestamp"]),
 
+  // User profiles (tagline / public nickname)
+  users: defineTable({
+    address: v.string(), // wallet address (primary key)
+    tagline: v.optional(v.string()), // max 12 chars public tagline
+  }).index("by_address", ["address"]),
+
   // Claims by builders
   claims: defineTable({
     ideaId: v.id("ideas"),
