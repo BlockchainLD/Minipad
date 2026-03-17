@@ -17,9 +17,9 @@ export function FarcasterProfile() {
     <div className="bg-white rounded-lg p-4 space-y-4">
       <div className="flex items-center space-x-3">
         <button
-          onClick={() => sdk.actions.openUrl(`https://warpcast.com/${username}`)}
+          onClick={() => sdk.actions.viewProfile({ fid })}
           className="hover:opacity-80 transition-opacity cursor-pointer flex-shrink-0"
-          aria-label={`View @${username} on Warpcast`}
+          aria-label="View Farcaster profile"
         >
           {avatarUrl ? (
             // eslint-disable-next-line @next/next/no-img-element

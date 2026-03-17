@@ -113,8 +113,8 @@ export const UserProfileModal = ({ isOpen, onClose, user, onIdeaClick }: UserPro
   const username = user.username;
 
   const handleAvatarClick = () => {
-    if (username) {
-      sdk.actions.openUrl(`https://warpcast.com/${username}`);
+    if (user.fid) {
+      sdk.actions.viewProfile({ fid: user.fid });
     }
   };
 
@@ -137,8 +137,8 @@ export const UserProfileModal = ({ isOpen, onClose, user, onIdeaClick }: UserPro
           <div className="flex items-center gap-3">
             <button
               onClick={handleAvatarClick}
-              className={username ? "hover:opacity-80 transition-opacity cursor-pointer" : "cursor-default"}
-              aria-label={username ? `View ${username} on Warpcast` : undefined}
+              className={user.fid ? "hover:opacity-80 transition-opacity cursor-pointer" : "cursor-default"}
+              aria-label={user.fid ? "View Farcaster profile" : undefined}
             >
               <UserAvatar
                 author={user.address}
