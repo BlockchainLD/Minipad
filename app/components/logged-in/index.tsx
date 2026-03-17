@@ -9,6 +9,7 @@ import { IdeaSubmissionForm } from "../idea-submission-form";
 import { IdeaSubmissionConfirmation } from "../idea-submission-confirmation";
 import { Header } from "./header";
 import { LeaderboardModal } from "../leaderboard-modal";
+import { UserProfileModal, type UserProfile } from "../user-profile-modal";
 import { TABS, VIEWS } from "../../lib/constants";
 
 export const LoggedIn = () => {
@@ -27,6 +28,7 @@ export const LoggedIn = () => {
   );
   const [pendingOpenIdeaId, setPendingOpenIdeaId] = useState<string | null>(null);
   const [showLeaderboard, setShowLeaderboard] = useState(false);
+  const [profileModalUser, setProfileModalUser] = useState<UserProfile | null>(null);
   const farcasterData = useFarcasterData();
   const avatarUrl = farcasterData?.pfp?.url || null;
 
@@ -50,9 +52,11 @@ export const LoggedIn = () => {
       {currentView === VIEWS.BOARD && (
         <IdeasBoard
           onViewChange={setCurrentView}
-          onProfileClick={(authorAddress) => {
-            if (authorAddress === walletAddress) {
+          onProfileClick={(user) => {
+            if (user.address === walletAddress) {
               setActiveTab(TABS.SETTINGS);
+            } else {
+              setProfileModalUser(user);
             }
           }}
           openIdeaId={pendingOpenIdeaId}
@@ -98,6 +102,12 @@ export const LoggedIn = () => {
         </div>
         <CopyNotification show={copied} />
         <LeaderboardModal isOpen={showLeaderboard} onClose={() => setShowLeaderboard(false)} />
+        <UserProfileModal
+          isOpen={!!profileModalUser}
+          onClose={() => setProfileModalUser(null)}
+          user={profileModalUser}
+          onIdeaClick={handleIdeaClick}
+        />
       </>
     );
   }
@@ -118,6 +128,12 @@ export const LoggedIn = () => {
       </div>
       <CopyNotification show={copied} />
       <LeaderboardModal isOpen={showLeaderboard} onClose={() => setShowLeaderboard(false)} />
+      <UserProfileModal
+        isOpen={!!profileModalUser}
+        onClose={() => setProfileModalUser(null)}
+        user={profileModalUser}
+        onIdeaClick={handleIdeaClick}
+      />
     </>
   );
 };

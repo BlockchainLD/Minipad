@@ -253,7 +253,7 @@ interface IdeaDetailModalProps {
   onUnclaim: (id: Id<"ideas">) => void;
   onDelete: (id: Id<"ideas">) => void;
   onOpenCompletionForm: () => void;
-  onProfileClick?: (authorAddress: string) => void;
+  onProfileClick?: (user: { address: string; avatarUrl?: string; displayName?: string; username?: string; fid?: number }) => void;
   address: string | undefined;
   // When true, the remix form opens immediately (e.g. from card Flash button)
   autoOpenRemixForm?: boolean;
@@ -480,13 +480,18 @@ export const IdeaDetailModal = ({
         <div className="flex items-center justify-between p-6 border-b border-violet-100 flex-shrink-0 bg-white">
           <div className="flex items-center gap-2">
             {(idea.status === "claimed" || idea.status === "completed") && idea.claimedBy && (
-              <UserAvatar
-                author={idea.claimedBy}
-                authorAvatar={idea.claimedByAvatar}
-                authorDisplayName={idea.claimedByDisplayName}
-                authorUsername={idea.claimedByUsername}
-                size={28}
-              />
+              <button
+                onClick={(e) => { e.stopPropagation(); onProfileClick?.({ address: idea.claimedBy!, avatarUrl: idea.claimedByAvatar, displayName: idea.claimedByDisplayName, username: idea.claimedByUsername, fid: idea.claimedByFid }); }}
+                className="hover:opacity-80 transition-opacity cursor-pointer"
+              >
+                <UserAvatar
+                  author={idea.claimedBy}
+                  authorAvatar={idea.claimedByAvatar}
+                  authorDisplayName={idea.claimedByDisplayName}
+                  authorUsername={idea.claimedByUsername}
+                  size={28}
+                />
+              </button>
             )}
             <StatusBadge status={idea.status} />
           </div>
@@ -506,7 +511,7 @@ export const IdeaDetailModal = ({
             {/* Author */}
             <div className="flex items-center gap-3 mb-4">
               <button
-                onClick={(e) => { e.stopPropagation(); onProfileClick?.(idea.author); }}
+                onClick={(e) => { e.stopPropagation(); onProfileClick?.({ address: idea.author, avatarUrl: idea.authorAvatar, displayName: idea.authorDisplayName, username: idea.authorUsername, fid: idea.authorFid }); }}
                 className="hover:opacity-80 transition-opacity cursor-pointer"
               >
                 <UserAvatar
@@ -518,7 +523,7 @@ export const IdeaDetailModal = ({
                 />
               </button>
               <button
-                onClick={(e) => { e.stopPropagation(); onProfileClick?.(idea.author); }}
+                onClick={(e) => { e.stopPropagation(); onProfileClick?.({ address: idea.author, avatarUrl: idea.authorAvatar, displayName: idea.authorDisplayName, username: idea.authorUsername, fid: idea.authorFid }); }}
                 className="text-lg font-medium text-gray-900 hover:opacity-80 transition-opacity cursor-pointer"
               >
                 {idea.authorDisplayName || idea.authorUsername || "Anonymous"}
