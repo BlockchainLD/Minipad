@@ -60,7 +60,7 @@ export default function RootLayout({
         <WagmiProvider>
           <ConvexClientProvider>
             {children}
-            <SonnerToaster position="top-center" richColors />
+            <SonnerToaster position="top-center" richColors duration={3000} />
           </ConvexClientProvider>
         </WagmiProvider>
       </body>

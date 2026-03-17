@@ -79,7 +79,7 @@ export const CompletionForm = ({ ideaId, onSuccess, onCancel }: CompletionFormPr
       <div className="mb-6">
         <h2 className="text-2xl font-bold text-gray-900 mb-2">Submit Your Build</h2>
         <p className="text-gray-500 text-sm">
-          Submit your Live URL and GitHub repo
+          Share your Deployment URL to complete your build for others to test
         </p>
       </div>
 

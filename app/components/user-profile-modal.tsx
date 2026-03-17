@@ -96,6 +96,11 @@ function UserIdeas({ address, onIdeaClick }: { address: string; onIdeaClick: (id
 }
 
 export const UserProfileModal = ({ isOpen, onClose, user, onIdeaClick }: UserProfileModalProps) => {
+  const tagline = useQuery(
+    api.users.getTagline,
+    user?.address ? { address: user.address } : "skip"
+  );
+
   useEffect(() => {
     if (!isOpen) return;
     const handleEscape = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
@@ -149,8 +154,16 @@ export const UserProfileModal = ({ isOpen, onClose, user, onIdeaClick }: UserPro
               />
             </button>
             <div>
-              <p className="font-semibold text-gray-900">{displayName}</p>
+              <div className="flex items-center gap-2">
+                <p className="font-semibold text-gray-900">{displayName}</p>
+                {tagline && (
+                  <span className="text-[11px] text-violet-500 font-medium bg-violet-50 px-1.5 py-0.5 rounded-md">
+                    {tagline}
+                  </span>
+                )}
+              </div>
               {username && <p className="text-sm text-gray-500">@{username}</p>}
+              <p className="text-[11px] italic text-gray-400 mt-0.5">Developer</p>
             </div>
           </div>
           <button
