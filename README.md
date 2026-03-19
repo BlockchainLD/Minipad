@@ -92,7 +92,6 @@ app/
 │   ├── use-farcaster-data.tsx    # Farcaster user data hook
 │   └── use-is-mobile.tsx         # Responsive breakpoint hook
 ├── lib/
-│   ├── auth-client.ts            # Better Auth client config
 │   ├── constants.ts              # App-wide constants
 │   ├── eas.ts                    # EAS hook and attestation functions
 │   ├── error-handler.ts          # Centralized error handling
