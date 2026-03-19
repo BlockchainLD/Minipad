@@ -60,6 +60,10 @@ CONVEX_SITE_URL=          # Your Convex site URL (used by auth)
 app/
 ├── page.tsx                    # Entry point — sign-in or main app
 ├── layout.tsx                  # Root layout with providers
+├── .well-known/
+│   └── farcaster.json/route.ts # Farcaster manifest
+├── icon.png/route.tsx          # Dynamic app icon generation
+├── splash.png/route.tsx        # Dynamic splash image generation
 ├── components/
 │   ├── auto-connect-wrapper.tsx  # Farcaster mini app auto-connect
 │   ├── sign-in-form.tsx          # Base wallet sign-in
@@ -100,10 +104,12 @@ app/
 │   └── wagmi-provider.tsx
 └── api/
     ├── auth/[...all]/route.ts    # Better Auth API routes
-    └── farcaster/[fid]/route.ts  # Farcaster profile proxy
+    ├── farcaster/[fid]/route.ts  # Farcaster profile proxy
+    └── icon/route.tsx            # OG icon generation
 
 convex/
 ├── schema.ts         # Database schema (6 tables)
+├── convex.config.ts  # App config (Better Auth component)
 ├── ideas.ts          # Idea queries and mutations
 ├── claims.ts         # Claim/unclaim/complete mutations
 ├── remixes.ts        # Remix CRUD
@@ -113,7 +119,12 @@ convex/
 ├── types.ts          # Convex validator types
 ├── auth.ts           # Better Auth server config
 ├── auth.config.ts    # Auth provider config
-└── http.ts           # HTTP routes
+├── http.ts           # HTTP routes
+└── betterAuth/       # Better Auth component (auto-configured)
+    ├── adapter.ts
+    ├── auth.ts
+    ├── convex.config.ts
+    └── schema.ts
 
 scripts/                          # EAS setup scripts (see EAS section)
 ```
@@ -138,13 +149,24 @@ Six tables in Convex:
 | `ideas.submitIdea` | mutation | Submit a new idea |
 | `ideas.getIdeas` | query | List ideas with optional filters |
 | `ideas.deleteIdea` | mutation | Delete own idea |
+| `ideas.updateIdeaAttestation` | mutation | Store EAS attestation UID on an idea |
 | `claims.claimIdea` | mutation | Claim an idea to build |
 | `claims.unclaimIdea` | mutation | Release a claim |
 | `claims.completeIdea` | mutation | Mark idea complete with URLs |
 | `remixes.createRemix` | mutation | Add a remix/comment to an idea |
+| `remixes.deleteRemix` | mutation | Delete own remix |
+| `remixes.getRemixesForIdea` | query | List remixes for an idea |
+| `remixes.upvoteRemix` | mutation | Upvote a remix |
+| `remixes.removeRemixUpvote` | mutation | Remove upvote from a remix |
+| `remixes.hasUserUpvotedRemix` | query | Check if user upvoted a remix |
 | `upvotes.upvoteIdea` | mutation | Upvote an idea |
+| `upvotes.removeUpvote` | mutation | Remove upvote from an idea |
+| `upvotes.hasUserUpvoted` | query | Check if user upvoted an idea |
+| `users.getTagline` | query | Get user's tagline by address |
+| `users.setTagline` | mutation | Set user's tagline |
 | `userIdeas.getUserSubmittedIdeas` | query | Get ideas by author |
 | `userIdeas.getUserClaimedIdeas` | query | Get ideas claimed by user |
+| `auth.getCurrentUser` | query | Get currently authenticated user |
 
 ## EAS Integration
 

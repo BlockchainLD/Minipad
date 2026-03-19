@@ -1,5 +1,5 @@
 import React from "react";
-import { Hammer, Tools, Trash } from "iconoir-react";
+import { Hammer, Tools } from "iconoir-react";
 
 interface StandardButtonProps {
   children?: React.ReactNode;
@@ -141,21 +141,3 @@ export const UnclaimButton = ({
   </StandardButton>
 );
 
-export const DeleteButton = ({
-  onClick,
-  disabled = false,
-  loading = false,
-}: {
-  onClick: (e: React.MouseEvent) => void;
-  disabled?: boolean;
-  loading?: boolean;
-}) => (
-  <StandardButton
-    onClick={onClick}
-    disabled={disabled}
-    loading={loading}
-    variant="danger"
-    size="sm"
-    icon={<Trash width={16} height={16} strokeWidth={2} />}
-  />
-);
