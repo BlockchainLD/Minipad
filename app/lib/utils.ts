@@ -10,7 +10,5 @@ export const APP_METADATA = {
         backgroundColor: '#eeccff',
     },
     url: process.env.SITE_URL || (typeof window !== 'undefined' ? window.location.origin : 'https://minipad-app.vercel.app'),
-    baseBuilder: {
-        allowedAddresses: ['0x8342A48694A74044116F330db5050a267b28dD85']
-    }
+    baseBuilder: {}
 };
