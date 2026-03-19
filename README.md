@@ -165,7 +165,6 @@ Six tables in Convex:
 | `users.setTagline` | mutation | Set user's tagline |
 | `userIdeas.getUserSubmittedIdeas` | query | Get ideas by author |
 | `userIdeas.getUserClaimedIdeas` | query | Get ideas claimed by user |
-| `auth.getCurrentUser` | query | Get currently authenticated user |
 
 ## EAS Integration
 
