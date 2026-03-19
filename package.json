@@ -1,11 +1,10 @@
 {
-  "name": "mini-app-template",
+  "name": "minipad",
   "version": "0.1.0",
   "private": true,
-  "author": "dylsteck",
   "repository": {
     "type": "git",
-    "url": "https://github.com/dylsteck/mini-app-template.git"
+    "url": "https://github.com/BlockchainLD/Minipad.git"
   },
   "scripts": {
     "dev": "concurrently \"bun run next:dev\" \"bun run convex:dev\"",
@@ -19,19 +18,13 @@
     "test-eas": "node scripts/test-eas-connection.js"
   },
   "dependencies": {
-    "@base-org/account": "^2.2.0",
     "@base-org/account-ui": "^1.0.1",
-    "@coinbase/onchainkit": "^1.1.0",
     "@convex-dev/better-auth": "^0.8.6",
     "@ethereum-attestation-service/eas-sdk": "^2.9.1-beta.1",
     "@farcaster/miniapp-sdk": "^0.2.3",
     "@farcaster/miniapp-wagmi-connector": "^1.0.0",
-    "@noble/curves": "^2.0.0",
-    "@noble/hashes": "^2.0.0",
     "@tanstack/react-query": "^5.89.0",
-    "@worldcoin/mini-apps-ui-kit-react": "^1.3.4",
     "better-auth": "1.3.8",
-    "concurrently": "^9.2.1",
     "convex": "^1.27.1",
     "iconoir-react": "^7.11.0",
     "next": "15.5.9",
@@ -48,6 +41,7 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "concurrently": "^9.2.1",
     "eslint": "^9",
     "eslint-config-next": "15.5.3",
     "tailwindcss": "^4",
