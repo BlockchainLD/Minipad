@@ -40,23 +40,6 @@ export const remixType = v.object({
   upvotes: v.number(),
 });
 
-// remixType extended with per-voter upvote status (returned by getRemixesForIdea)
-export const remixWithUpvoteType = v.object({
-  _id: v.id("remixes"),
-  _creationTime: v.number(),
-  ideaId: v.id("ideas"),
-  author: v.string(),
-  authorFid: v.optional(v.number()),
-  authorAvatar: v.optional(v.string()),
-  authorDisplayName: v.optional(v.string()),
-  authorUsername: v.optional(v.string()),
-  content: v.string(),
-  type: v.union(v.literal("addition"), v.literal("edit"), v.literal("comment")),
-  timestamp: v.number(),
-  upvotes: v.number(),
-  hasUpvoted: v.boolean(),
-});
-
 export const claimType = v.object({
   _id: v.id("claims"),
   ideaId: v.id("ideas"),

@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { SignInWithBaseButton } from "@base-org/account-ui/react";
 import { useConnect } from "wagmi";
 import { LightBulb } from "iconoir-react";
 
@@ -42,12 +41,12 @@ export function SignInForm() {
             <span className="text-base text-slate-600">Connecting...</span>
           </div>
         ) : (
-          <SignInWithBaseButton
-            align="center"
-            variant="solid"
-            colorScheme="light"
+          <button
             onClick={handleWalletConnect}
-          />
+            className="w-full py-3 px-6 bg-[#0052FF] hover:bg-[#0040CC] text-white font-semibold rounded-xl transition-colors duration-150"
+          >
+            Sign in with Base
+          </button>
         )}
       </div>
     </div>

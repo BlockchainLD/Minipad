@@ -24,19 +24,6 @@ const nextConfig: NextConfig = {
         port: '',
         pathname: '/**',
       },
-      // Allow Imgur images used in APP_METADATA
-      {
-        protocol: 'https',
-        hostname: 'i.imgur.com',
-        port: '',
-        pathname: '/**',
-      },
-      {
-        protocol: 'https',
-        hostname: 'imgur.com',
-        port: '',
-        pathname: '/**',
-      },
     ],
   },
   async headers() {

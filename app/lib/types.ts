@@ -13,7 +13,3 @@ export interface FarcasterUser {
   pfp?: { url?: string; verified?: boolean };
   connectedAccounts?: Array<{ platform: string; username: string }>;
 }
-
-export interface FarcasterData {
-  result: { user: FarcasterUser };
-}
