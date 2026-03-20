@@ -33,7 +33,7 @@ function DeveloperTagline({ address }: { address: string }) {
           }}
           maxLength={16}
           placeholder="Your tagline..."
-          className="w-44 border border-gray-200 rounded-xl px-4 py-3 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-colors"
+          className="w-28 border border-gray-200 rounded-xl px-3 py-1 text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-colors"
         />
         <button
           onClick={handleSave}
@@ -51,7 +51,7 @@ function DeveloperTagline({ address }: { address: string }) {
       className="group flex flex-col items-end gap-0.5"
       title="Click to set your tagline"
     >
-      <span className="italic text-xs text-gray-400 group-hover:text-violet-500 transition-colors">
+      <span className="italic text-xs text-gray-400 group-hover:text-violet-500 transition-colors whitespace-nowrap">
         {tagline || "Developer"}
       </span>
     </button>
@@ -102,7 +102,7 @@ export function FarcasterProfile() {
             </div>
           )}
         </button>
-        <div className="flex-1 pr-24">
+        <div className="flex-1 pr-32">
           <div className="flex items-center space-x-2">
             <p className="font-semibold text-gray-900">{displayName}</p>
             {data.pfp?.verified && (
