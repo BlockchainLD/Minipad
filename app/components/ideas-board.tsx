@@ -357,7 +357,7 @@ export const IdeasBoard = ({ onViewChange, onProfileClick, openIdeaId, onIdeaOpe
           <div className="relative" ref={dropdownRef}>
             <button
               onClick={() => setDropdownOpen((o) => !o)}
-              className="text-xl font-bold text-gray-900 hover:text-gray-600 transition-colors"
+              className="text-xl font-bold text-gray-900 bg-slate-100 hover:bg-slate-200 px-3 py-1.5 rounded-lg transition-colors"
             >
               {currentSection === "ideasboard" ? "Ideasboard"
                 : currentSection === "buildboard" ? "Buildboard"
@@ -383,9 +383,9 @@ export const IdeasBoard = ({ onViewChange, onProfileClick, openIdeaId, onIdeaOpe
 
           <button
             onClick={() => setCurrentSort((s) => s === "most-popular" ? "newest" : "most-popular")}
-            className="text-xs font-medium px-2.5 py-1 rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200 transition-colors"
+            className="text-xs font-medium text-slate-500 hover:text-slate-700 transition-colors"
           >
-            {currentSort === "most-popular" ? "Popular" : "Newest"}
+            {currentSort === "most-popular" ? "Popular" : "New"}
           </button>
         </div>
 
@@ -486,18 +486,35 @@ export const IdeasBoard = ({ onViewChange, onProfileClick, openIdeaId, onIdeaOpe
                 </button>
               )}
 
-              {idea.status === "completed" && idea.deploymentUrl && (
-                <a
-                  href={idea.deploymentUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  onClick={(e) => e.stopPropagation()}
-                  className="ml-auto flex items-center gap-1.5 px-3 py-1.5 bg-black text-white hover:bg-gray-800 border border-black rounded-xl text-sm font-medium transition-colors"
-                  title="View live app"
-                >
-                  <OpenNewWindow width={14} height={14} />
-                  View App
-                </a>
+              {idea.status === "completed" && (idea.deploymentUrl || idea.githubUrl) && (
+                <div className="ml-auto flex items-center gap-2">
+                  {idea.deploymentUrl && (
+                    <a
+                      href={idea.deploymentUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={(e) => e.stopPropagation()}
+                      className="flex items-center gap-1.5 px-3 py-1.5 bg-white text-black hover:bg-gray-50 border border-black rounded-xl text-sm font-medium transition-colors"
+                      title="View live app"
+                    >
+                      <OpenNewWindow width={14} height={14} />
+                      View App
+                    </a>
+                  )}
+                  {idea.githubUrl && (
+                    <a
+                      href={idea.githubUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={(e) => e.stopPropagation()}
+                      className="flex items-center gap-1.5 px-3 py-1.5 bg-white text-green-600 hover:bg-green-50 border border-green-600 rounded-xl text-sm font-medium transition-colors"
+                      title="View source code"
+                    >
+                      <OpenNewWindow width={14} height={14} />
+                      View Code
+                    </a>
+                  )}
+                </div>
               )}
 
               {idea.status === "open" && (

@@ -77,7 +77,7 @@ const schema = defineSchema({
   // User profiles (tagline / public nickname)
   users: defineTable({
     address: v.string(), // wallet address (primary key)
-    tagline: v.optional(v.string()), // max 12 chars public tagline
+    tagline: v.optional(v.string()), // max 16 chars public tagline
   }).index("by_address", ["address"]),
 
   // Claims by builders
