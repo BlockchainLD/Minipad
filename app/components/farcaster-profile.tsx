@@ -32,8 +32,8 @@ function DeveloperTagline({ address }: { address: string }) {
             if (e.key === "Escape") setIsEditing(false);
           }}
           maxLength={16}
-          placeholder="16 chars max"
-          className="w-40 text-xs border border-violet-300 rounded-md px-2 py-1 focus:outline-none focus:ring-1 focus:ring-violet-400 text-gray-700"
+          placeholder="Your tagline..."
+          className="w-44 border border-gray-200 rounded-xl px-4 py-3 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-colors"
         />
         <button
           onClick={handleSave}
