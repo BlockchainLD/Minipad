@@ -33,7 +33,7 @@ function DeveloperTagline({ address }: { address: string }) {
           }}
           maxLength={16}
           placeholder="16 chars max"
-          className="w-28 text-xs border border-violet-300 rounded-md px-2 py-1 focus:outline-none focus:ring-1 focus:ring-violet-400 text-gray-700"
+          className="w-40 text-xs border border-violet-300 rounded-md px-2 py-1 focus:outline-none focus:ring-1 focus:ring-violet-400 text-gray-700"
         />
         <button
           onClick={handleSave}
