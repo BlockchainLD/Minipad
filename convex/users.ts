@@ -15,7 +15,7 @@ export const getTagline = query({
 export const setTagline = mutation({
   args: { address: v.string(), tagline: v.string() },
   handler: async (ctx, { address, tagline }) => {
-    const trimmed = tagline.trim().slice(0, 12);
+    const trimmed = tagline.trim().slice(0, 16);
     const user = await ctx.db
       .query("users")
       .withIndex("by_address", (q) => q.eq("address", address))

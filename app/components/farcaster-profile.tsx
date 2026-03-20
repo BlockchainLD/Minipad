@@ -26,13 +26,13 @@ function DeveloperTagline({ address }: { address: string }) {
         <input
           autoFocus
           value={taglineInput}
-          onChange={(e) => setTaglineInput(e.target.value.slice(0, 12))}
+          onChange={(e) => setTaglineInput(e.target.value.slice(0, 16))}
           onKeyDown={(e) => {
             if (e.key === "Enter") handleSave();
             if (e.key === "Escape") setIsEditing(false);
           }}
-          maxLength={12}
-          placeholder="12 chars max"
+          maxLength={16}
+          placeholder="16 chars max"
           className="w-28 text-xs border border-violet-300 rounded-md px-2 py-1 focus:outline-none focus:ring-1 focus:ring-violet-400 text-gray-700"
         />
         <button
