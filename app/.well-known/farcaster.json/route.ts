@@ -6,7 +6,7 @@ export async function GET() {
   const miniappConfig = {
     version: "1",
     name: APP_METADATA.title,
-    iconUrl: `${APP_URL}/icon.png`,
+    iconUrl: APP_METADATA.imageUrl,
     splashImageUrl: `${APP_URL}/splash.png`,
     splashBackgroundColor: APP_METADATA.splash.backgroundColor,
     homeUrl: APP_METADATA.url,
