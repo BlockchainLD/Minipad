@@ -487,31 +487,31 @@ export const IdeasBoard = ({ onViewChange, onProfileClick, openIdeaId, onIdeaOpe
               )}
 
               {idea.status === "completed" && (idea.deploymentUrl || idea.githubUrl) && (
-                <div className="ml-auto flex items-center gap-2">
-                  {idea.deploymentUrl && (
-                    <a
-                      href={idea.deploymentUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      onClick={(e) => e.stopPropagation()}
-                      className="flex items-center gap-1.5 px-3 py-1.5 bg-white text-black hover:bg-gray-50 border border-black rounded-xl text-sm font-medium transition-colors"
-                      title="View live app"
-                    >
-                      <OpenNewWindow width={14} height={14} />
-                      View App
-                    </a>
-                  )}
+                <div className="ml-auto flex items-center gap-1.5">
                   {idea.githubUrl && (
                     <a
                       href={idea.githubUrl}
                       target="_blank"
                       rel="noopener noreferrer"
                       onClick={(e) => e.stopPropagation()}
-                      className="flex items-center gap-1.5 px-3 py-1.5 bg-white text-green-600 hover:bg-green-50 border border-green-600 rounded-xl text-sm font-medium transition-colors"
+                      className="flex items-center gap-1 px-2 py-1 bg-white text-green-600 hover:bg-green-50 border border-green-600 rounded-lg text-xs font-medium transition-colors whitespace-nowrap"
                       title="View source code"
                     >
-                      <OpenNewWindow width={14} height={14} />
+                      <OpenNewWindow width={12} height={12} />
                       View Code
+                    </a>
+                  )}
+                  {idea.deploymentUrl && (
+                    <a
+                      href={idea.deploymentUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={(e) => e.stopPropagation()}
+                      className="flex items-center gap-1 px-2 py-1 bg-white text-black hover:bg-gray-50 border border-black rounded-lg text-xs font-medium transition-colors whitespace-nowrap"
+                      title="View live app"
+                    >
+                      <OpenNewWindow width={12} height={12} />
+                      View App
                     </a>
                   )}
                 </div>
