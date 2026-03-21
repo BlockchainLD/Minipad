@@ -72,7 +72,7 @@ export function FarcasterProfile() {
   return (
     <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4 space-y-4 relative">
       {/* Developer tagline — top right, isolated error boundary */}
-      <div className="absolute top-4 right-4 text-right">
+      <div className="absolute top-4 right-8 text-right">
         {address && (
           <ErrorBoundary fallback={null}>
             <DeveloperTagline address={address} />
@@ -102,7 +102,7 @@ export function FarcasterProfile() {
             </div>
           )}
         </button>
-        <div className="flex-1 pr-32">
+        <div className="flex-1 pr-36">
           <div className="flex items-center space-x-2">
             <p className="font-semibold text-gray-900">{displayName}</p>
             {data.pfp?.verified && (
