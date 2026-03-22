@@ -22,7 +22,7 @@ interface RemixFormProps {
 
 const REMIX_TYPES: { value: RemixType; label: string }[] = [
   { value: "addition", label: "Addition" },
-  { value: "edit", label: "Edit Suggestion" },
+  { value: "edit", label: "Edit" },
   { value: "comment", label: "Comment" },
 ];
 
@@ -80,7 +80,7 @@ export const RemixForm = ({ originalTitle, onSubmit, onCancel }: RemixFormProps)
           <div className="flex items-center justify-between mb-6">
             <div>
               <h2 className="text-2xl font-bold text-gray-900">Add Your Take</h2>
-              <p className="text-gray-500 text-sm mt-1 truncate max-w-xs">on: {originalTitle}</p>
+              <p className="text-gray-500 text-sm mt-1 truncate max-w-xs">Idea: {originalTitle}</p>
             </div>
             <button
               onClick={onCancel}
