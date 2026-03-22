@@ -29,6 +29,7 @@ export const LoggedIn = () => {
   const [pendingOpenIdeaId, setPendingOpenIdeaId] = useState<string | null>(null);
   const [showLeaderboard, setShowLeaderboard] = useState(false);
   const [profileModalUser, setProfileModalUser] = useState<UserProfile | null>(null);
+  const [isGridView, setIsGridView] = useState(false);
   const farcasterData = useFarcasterData();
   const avatarUrl = farcasterData?.pfp?.url || null;
 
@@ -61,6 +62,7 @@ export const LoggedIn = () => {
           }}
           openIdeaId={pendingOpenIdeaId}
           onIdeaOpened={() => setPendingOpenIdeaId(null)}
+          isGridView={isGridView}
         />
       )}
       {currentView === VIEWS.SUBMIT && (
@@ -94,6 +96,9 @@ export const LoggedIn = () => {
             onLogoClick={handleLogoClick}
             onAvatarClick={handleAvatarClick}
             onTrophyClick={() => setShowLeaderboard(true)}
+            showGridToggle={activeTab === TABS.HOME}
+            isGridView={isGridView}
+            onToggleGrid={() => setIsGridView((g) => !g)}
           />
           <div className="flex-1 px-6 pb-6 pt-5">
             {activeTab === TABS.HOME && homeContent}

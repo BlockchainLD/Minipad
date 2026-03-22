@@ -148,9 +148,10 @@ interface IdeasBoardProps {
   onProfileClick?: (user: { address: string; avatarUrl?: string; displayName?: string; username?: string; fid?: number }) => void;
   openIdeaId?: string | null;
   onIdeaOpened?: () => void;
+  isGridView?: boolean;
 }
 
-export const IdeasBoard = ({ onViewChange, onProfileClick, openIdeaId, onIdeaOpened }: IdeasBoardProps) => {
+export const IdeasBoard = ({ onViewChange, onProfileClick, openIdeaId, onIdeaOpened, isGridView = false }: IdeasBoardProps) => {
   const { address } = useAccount();
   const farcasterData = useFarcasterData();
 
@@ -416,8 +417,43 @@ export const IdeasBoard = ({ onViewChange, onProfileClick, openIdeaId, onIdeaOpe
         )}
       </div>
 
-      <div className="space-y-4">
-        {filteredAndSortedIdeas.map((idea) => (
+      <div className={isGridView ? "grid grid-cols-2 gap-3" : "space-y-4"}>
+        {filteredAndSortedIdeas.map((idea) => isGridView ? (
+          // Compact grid card
+          <div
+            key={idea._id}
+            onClick={() => openModal(idea as Idea)}
+            className="bg-white border border-gray-200 rounded-xl p-3 hover:shadow-md hover:border-violet-200 transition-colors duration-200 cursor-pointer group flex flex-col gap-2"
+          >
+            <div className="flex items-start justify-between gap-1">
+              <StatusBadge status={idea.status} />
+            </div>
+            <h3 className="text-sm font-semibold text-gray-900 line-clamp-2 leading-snug flex-1">
+              {idea.title}
+            </h3>
+            <p className="text-xs text-gray-500 line-clamp-2 break-words leading-snug">{idea.description}</p>
+            <div className="flex items-center gap-2 mt-auto">
+              <CardUpvoteButton
+                ideaId={idea._id}
+                upvotes={idea.upvotes}
+                onUpvote={handleUpvote}
+                onRemoveUpvote={handleRemoveUpvote}
+                address={address}
+              />
+              {idea.status !== "completed" && (
+                <button
+                  onClick={(e) => handleButtonClick(e, () => handleRemix(idea._id))}
+                  className="flex items-center gap-1 transition-colors cursor-pointer text-gray-400 hover:text-yellow-500"
+                  title="Remix this idea"
+                >
+                  <Flash width={15} height={15} />
+                  <span className="text-xs font-semibold">{idea.remixCount ?? 0}</span>
+                </button>
+              )}
+            </div>
+          </div>
+        ) : (
+          // Full list card
           <div
             key={idea._id}
             onClick={() => openModal(idea as Idea)}
