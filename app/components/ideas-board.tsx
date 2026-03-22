@@ -10,7 +10,6 @@ import { Heart, Flash, Hammer, LightBulb, OpenNewWindow } from "iconoir-react";
 import { SectionOption } from "./idea-filter";
 import { CompletionForm } from "./completion-form";
 import { UserAvatar } from "./ui/user-avatar";
-import { StatusBadge } from "./ui/status-badge";
 import { StandardButton, ClaimButton, SubmitBuildButton } from "./ui/standard-button";
 import { handleError } from "../lib/error-handler";
 import { IdeaDetailModal } from "./idea-detail-modal";
@@ -425,8 +424,8 @@ export const IdeasBoard = ({ onViewChange, onProfileClick, openIdeaId, onIdeaOpe
             onClick={() => openModal(idea as Idea)}
             className="bg-white border border-gray-200 rounded-xl p-3 hover:shadow-md hover:border-violet-200 transition-colors duration-200 cursor-pointer group flex flex-col gap-2"
           >
-            {/* Top row: creator avatar left, status badge right */}
-            <div className="flex items-center justify-between gap-1">
+            {/* Top row: creator avatar */}
+            <div className="flex items-center gap-1">
               <button
                 onClick={(e) => { e.stopPropagation(); onProfileClick?.({ address: idea.author, avatarUrl: idea.authorAvatar, displayName: idea.authorDisplayName, username: idea.authorUsername, fid: idea.authorFid }); }}
                 className="hover:opacity-80 transition-opacity"
@@ -439,7 +438,6 @@ export const IdeasBoard = ({ onViewChange, onProfileClick, openIdeaId, onIdeaOpe
                   size={20}
                 />
               </button>
-              <StatusBadge status={idea.status} />
             </div>
             <h3 className="text-sm font-semibold text-gray-900 line-clamp-2 leading-snug flex-1">
               {idea.title}
@@ -501,23 +499,20 @@ export const IdeasBoard = ({ onViewChange, onProfileClick, openIdeaId, onIdeaOpe
                 <h3 className="text-lg font-semibold text-gray-900 line-clamp-1 flex-1 min-w-0">
                   {idea.title}
                 </h3>
-                <div className="flex items-center gap-1.5 flex-shrink-0">
-                  {(idea.status === "claimed" || idea.status === "completed") && idea.claimedBy && (
-                    <button
-                      onClick={(e) => { e.stopPropagation(); onProfileClick?.({ address: idea.claimedBy!, avatarUrl: idea.claimedByAvatar, displayName: idea.claimedByDisplayName, username: idea.claimedByUsername, fid: idea.claimedByFid }); }}
-                      className="hover:opacity-80 transition-opacity cursor-pointer"
-                    >
-                      <UserAvatar
-                        author={idea.claimedBy}
-                        authorAvatar={idea.claimedByAvatar}
-                        authorDisplayName={idea.claimedByDisplayName}
-                        authorUsername={idea.claimedByUsername}
-                        size={24}
-                      />
-                    </button>
-                  )}
-                  <StatusBadge status={idea.status} />
-                </div>
+                {(idea.status === "claimed" || idea.status === "completed") && idea.claimedBy && (
+                  <button
+                    onClick={(e) => { e.stopPropagation(); onProfileClick?.({ address: idea.claimedBy!, avatarUrl: idea.claimedByAvatar, displayName: idea.claimedByDisplayName, username: idea.claimedByUsername, fid: idea.claimedByFid }); }}
+                    className="hover:opacity-80 transition-opacity cursor-pointer flex-shrink-0"
+                  >
+                    <UserAvatar
+                      author={idea.claimedBy}
+                      authorAvatar={idea.claimedByAvatar}
+                      authorDisplayName={idea.claimedByDisplayName}
+                      authorUsername={idea.claimedByUsername}
+                      size={24}
+                    />
+                  </button>
+                )}
               </div>
               <div className="flex items-center gap-2 mb-3">
                 <button
