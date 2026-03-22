@@ -425,13 +425,27 @@ export const IdeasBoard = ({ onViewChange, onProfileClick, openIdeaId, onIdeaOpe
             onClick={() => openModal(idea as Idea)}
             className="bg-white border border-gray-200 rounded-xl p-3 hover:shadow-md hover:border-violet-200 transition-colors duration-200 cursor-pointer group flex flex-col gap-2"
           >
-            <div className="flex items-start justify-between gap-1">
+            {/* Top row: creator avatar left, status badge right */}
+            <div className="flex items-center justify-between gap-1">
+              <button
+                onClick={(e) => { e.stopPropagation(); onProfileClick?.({ address: idea.author, avatarUrl: idea.authorAvatar, displayName: idea.authorDisplayName, username: idea.authorUsername, fid: idea.authorFid }); }}
+                className="hover:opacity-80 transition-opacity"
+              >
+                <UserAvatar
+                  author={idea.author}
+                  authorAvatar={idea.authorAvatar}
+                  authorDisplayName={idea.authorDisplayName}
+                  authorUsername={idea.authorUsername}
+                  size={20}
+                />
+              </button>
               <StatusBadge status={idea.status} />
             </div>
             <h3 className="text-sm font-semibold text-gray-900 line-clamp-2 leading-snug flex-1">
               {idea.title}
             </h3>
             <p className="text-xs text-gray-500 line-clamp-2 break-words leading-snug">{idea.description}</p>
+            {/* Bottom row: upvote, remix, + section action on the right */}
             <div className="flex items-center gap-2 mt-auto">
               <CardUpvoteButton
                 ideaId={idea._id}
@@ -449,6 +463,29 @@ export const IdeasBoard = ({ onViewChange, onProfileClick, openIdeaId, onIdeaOpe
                   <Flash width={15} height={15} />
                   <span className="text-xs font-semibold">{idea.remixCount ?? 0}</span>
                 </button>
+              )}
+              {/* Ideasboard: claim hammer */}
+              {idea.status === "open" && (
+                <button
+                  onClick={(e) => handleButtonClick(e, () => handleClaim(idea._id))}
+                  className="ml-auto text-gray-400 hover:text-yellow-500 transition-colors"
+                  title="Claim this idea"
+                >
+                  <Hammer width={15} height={15} />
+                </button>
+              )}
+              {/* Miniapps: deployment link */}
+              {idea.status === "completed" && idea.deploymentUrl && (
+                <a
+                  href={idea.deploymentUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={(e) => e.stopPropagation()}
+                  className="ml-auto text-gray-400 hover:text-violet-600 transition-colors"
+                  title="View live app"
+                >
+                  <OpenNewWindow width={15} height={15} />
+                </a>
               )}
             </div>
           </div>
