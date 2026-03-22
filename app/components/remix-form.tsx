@@ -21,13 +21,13 @@ interface RemixFormProps {
 }
 
 const REMIX_TYPES: { value: RemixType; label: string }[] = [
-  { value: "addition", label: "Addition" },
+  { value: "addition", label: "Add" },
   { value: "edit", label: "Edit" },
   { value: "comment", label: "Comment" },
 ];
 
 const PLACEHOLDERS: Record<RemixType, string> = {
-  addition: "Describe a feature or capability you'd add to this idea...",
+  addition: "Describe a feature you'd like to see...",
   edit: "Describe what you'd change or improve...",
   comment: "Share your thoughts on this idea...",
 };
@@ -35,7 +35,7 @@ const PLACEHOLDERS: Record<RemixType, string> = {
 const LABELS: Record<RemixType, string> = {
   addition: "What would you add?",
   edit: "What would you change?",
-  comment: "Your thoughts",
+  comment: "Your take",
 };
 
 export const RemixForm = ({ originalTitle, onSubmit, onCancel }: RemixFormProps) => {
@@ -79,7 +79,7 @@ export const RemixForm = ({ originalTitle, onSubmit, onCancel }: RemixFormProps)
         <div className="p-6 sm:p-8">
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h2 className="text-2xl font-bold text-gray-900">Add Your Take</h2>
+              <h2 className="text-2xl font-bold text-gray-900">Remix</h2>
               <p className="text-gray-500 text-sm mt-1 truncate max-w-xs">Idea: {originalTitle}</p>
             </div>
             <button
