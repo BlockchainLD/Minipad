@@ -357,7 +357,7 @@ export const IdeasBoard = ({ onViewChange, onProfileClick, openIdeaId, onIdeaOpe
           <div className="relative" ref={dropdownRef}>
             <button
               onClick={() => setDropdownOpen((o) => !o)}
-              className="text-xl font-bold text-gray-900 bg-slate-100 hover:bg-slate-200 px-3 py-1.5 rounded-lg transition-colors"
+              className="text-xl font-bold text-violet-600 bg-white hover:bg-violet-50 px-3 py-1.5 rounded-lg transition-colors"
             >
               {currentSection === "ideasboard" ? "Ideasboard"
                 : currentSection === "buildboard" ? "Buildboard"
