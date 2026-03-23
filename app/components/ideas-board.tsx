@@ -515,12 +515,24 @@ export const IdeasBoard = ({ onViewChange, onProfileClick, openIdeaId, onIdeaOpe
                 <h3 className="text-lg font-semibold text-gray-900 line-clamp-1 flex-1 min-w-0">
                   {idea.title}
                 </h3>
-                {/* Avatar stack: claimer (if any) + creator */}
-                <div className="flex items-center -space-x-1.5 flex-shrink-0">
+                {/* Avatar stack: creator behind (left, z-0), claimer in front (right, z-10) */}
+                <div className="flex items-center -space-x-2 flex-shrink-0">
+                  <button
+                    onClick={(e) => { e.stopPropagation(); onProfileClick?.({ address: idea.author, avatarUrl: idea.authorAvatar, displayName: idea.authorDisplayName, username: idea.authorUsername, fid: idea.authorFid }); }}
+                    className="hover:opacity-80 transition-opacity cursor-pointer relative z-0 ring-1 ring-white rounded-full"
+                  >
+                    <UserAvatar
+                      author={idea.author}
+                      authorAvatar={idea.authorAvatar}
+                      authorDisplayName={idea.authorDisplayName}
+                      authorUsername={idea.authorUsername}
+                      size={24}
+                    />
+                  </button>
                   {(idea.status === "claimed" || idea.status === "completed") && idea.claimedBy && (
                     <button
                       onClick={(e) => { e.stopPropagation(); onProfileClick?.({ address: idea.claimedBy!, avatarUrl: idea.claimedByAvatar, displayName: idea.claimedByDisplayName, username: idea.claimedByUsername, fid: idea.claimedByFid }); }}
-                      className="hover:opacity-80 transition-opacity cursor-pointer ring-1 ring-white rounded-full"
+                      className="hover:opacity-80 transition-opacity cursor-pointer relative z-10 ring-1 ring-white rounded-full"
                     >
                       <UserAvatar
                         author={idea.claimedBy}
@@ -531,18 +543,6 @@ export const IdeasBoard = ({ onViewChange, onProfileClick, openIdeaId, onIdeaOpe
                       />
                     </button>
                   )}
-                  <button
-                    onClick={(e) => { e.stopPropagation(); onProfileClick?.({ address: idea.author, avatarUrl: idea.authorAvatar, displayName: idea.authorDisplayName, username: idea.authorUsername, fid: idea.authorFid }); }}
-                    className="hover:opacity-80 transition-opacity cursor-pointer ring-1 ring-white rounded-full"
-                  >
-                    <UserAvatar
-                      author={idea.author}
-                      authorAvatar={idea.authorAvatar}
-                      authorDisplayName={idea.authorDisplayName}
-                      authorUsername={idea.authorUsername}
-                      size={24}
-                    />
-                  </button>
                 </div>
               </div>
               <div className="flex items-center gap-2 mb-3">
