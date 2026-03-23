@@ -424,20 +424,36 @@ export const IdeasBoard = ({ onViewChange, onProfileClick, openIdeaId, onIdeaOpe
             onClick={() => openModal(idea as Idea)}
             className="bg-white border border-gray-200 rounded-xl p-3 hover:shadow-md hover:border-violet-200 transition-colors duration-200 cursor-pointer group flex flex-col gap-2"
           >
-            {/* Top row: creator avatar */}
-            <div className="flex items-center gap-1">
-              <button
-                onClick={(e) => { e.stopPropagation(); onProfileClick?.({ address: idea.author, avatarUrl: idea.authorAvatar, displayName: idea.authorDisplayName, username: idea.authorUsername, fid: idea.authorFid }); }}
-                className="hover:opacity-80 transition-opacity"
-              >
-                <UserAvatar
-                  author={idea.author}
-                  authorAvatar={idea.authorAvatar}
-                  authorDisplayName={idea.authorDisplayName}
-                  authorUsername={idea.authorUsername}
-                  size={20}
-                />
-              </button>
+            {/* Top row: avatars (creator + claimer if any) pinned to top-right */}
+            <div className="flex items-center justify-end">
+              <div className="flex items-center -space-x-1.5">
+                {(idea.status === "claimed" || idea.status === "completed") && idea.claimedBy && (
+                  <button
+                    onClick={(e) => { e.stopPropagation(); onProfileClick?.({ address: idea.claimedBy!, avatarUrl: idea.claimedByAvatar, displayName: idea.claimedByDisplayName, username: idea.claimedByUsername, fid: idea.claimedByFid }); }}
+                    className="hover:opacity-80 transition-opacity ring-1 ring-white rounded-full"
+                  >
+                    <UserAvatar
+                      author={idea.claimedBy}
+                      authorAvatar={idea.claimedByAvatar}
+                      authorDisplayName={idea.claimedByDisplayName}
+                      authorUsername={idea.claimedByUsername}
+                      size={20}
+                    />
+                  </button>
+                )}
+                <button
+                  onClick={(e) => { e.stopPropagation(); onProfileClick?.({ address: idea.author, avatarUrl: idea.authorAvatar, displayName: idea.authorDisplayName, username: idea.authorUsername, fid: idea.authorFid }); }}
+                  className="hover:opacity-80 transition-opacity ring-1 ring-white rounded-full"
+                >
+                  <UserAvatar
+                    author={idea.author}
+                    authorAvatar={idea.authorAvatar}
+                    authorDisplayName={idea.authorDisplayName}
+                    authorUsername={idea.authorUsername}
+                    size={20}
+                  />
+                </button>
+              </div>
             </div>
             <h3 className="text-sm font-semibold text-gray-900 line-clamp-2 leading-snug flex-1">
               {idea.title}
@@ -499,33 +515,41 @@ export const IdeasBoard = ({ onViewChange, onProfileClick, openIdeaId, onIdeaOpe
                 <h3 className="text-lg font-semibold text-gray-900 line-clamp-1 flex-1 min-w-0">
                   {idea.title}
                 </h3>
-                {(idea.status === "claimed" || idea.status === "completed") && idea.claimedBy && (
+                {/* Avatar stack: claimer (if any) + creator */}
+                <div className="flex items-center -space-x-1.5 flex-shrink-0">
+                  {(idea.status === "claimed" || idea.status === "completed") && idea.claimedBy && (
+                    <button
+                      onClick={(e) => { e.stopPropagation(); onProfileClick?.({ address: idea.claimedBy!, avatarUrl: idea.claimedByAvatar, displayName: idea.claimedByDisplayName, username: idea.claimedByUsername, fid: idea.claimedByFid }); }}
+                      className="hover:opacity-80 transition-opacity cursor-pointer ring-1 ring-white rounded-full"
+                    >
+                      <UserAvatar
+                        author={idea.claimedBy}
+                        authorAvatar={idea.claimedByAvatar}
+                        authorDisplayName={idea.claimedByDisplayName}
+                        authorUsername={idea.claimedByUsername}
+                        size={24}
+                      />
+                    </button>
+                  )}
                   <button
-                    onClick={(e) => { e.stopPropagation(); onProfileClick?.({ address: idea.claimedBy!, avatarUrl: idea.claimedByAvatar, displayName: idea.claimedByDisplayName, username: idea.claimedByUsername, fid: idea.claimedByFid }); }}
-                    className="hover:opacity-80 transition-opacity cursor-pointer flex-shrink-0"
+                    onClick={(e) => { e.stopPropagation(); onProfileClick?.({ address: idea.author, avatarUrl: idea.authorAvatar, displayName: idea.authorDisplayName, username: idea.authorUsername, fid: idea.authorFid }); }}
+                    className="hover:opacity-80 transition-opacity cursor-pointer ring-1 ring-white rounded-full"
                   >
                     <UserAvatar
-                      author={idea.claimedBy}
-                      authorAvatar={idea.claimedByAvatar}
-                      authorDisplayName={idea.claimedByDisplayName}
-                      authorUsername={idea.claimedByUsername}
+                      author={idea.author}
+                      authorAvatar={idea.authorAvatar}
+                      authorDisplayName={idea.authorDisplayName}
+                      authorUsername={idea.authorUsername}
                       size={24}
                     />
                   </button>
-                )}
+                </div>
               </div>
               <div className="flex items-center gap-2 mb-3">
                 <button
                   onClick={(e) => { e.stopPropagation(); onProfileClick?.({ address: idea.author, avatarUrl: idea.authorAvatar, displayName: idea.authorDisplayName, username: idea.authorUsername, fid: idea.authorFid }); }}
                   className="flex items-center gap-2 hover:opacity-80 transition-opacity cursor-pointer"
                 >
-                  <UserAvatar
-                    author={idea.author}
-                    authorAvatar={idea.authorAvatar}
-                    authorDisplayName={idea.authorDisplayName}
-                    authorUsername={idea.authorUsername}
-                    size={24}
-                  />
                   <span className="text-sm text-gray-600">
                     {idea.authorDisplayName || idea.authorUsername || "Anonymous"}
                   </span>
