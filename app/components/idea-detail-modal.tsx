@@ -478,24 +478,12 @@ export const IdeaDetailModal = ({
       <div className="relative w-full max-w-3xl max-h-[90vh] bg-white rounded-3xl shadow-2xl overflow-hidden animate-in fade-in-0 zoom-in-95 duration-300 flex flex-col border border-gray-100">
         {/* Fixed Header */}
         <div className="relative flex items-center justify-between p-6 border-b border-violet-100 flex-shrink-0 bg-white">
-          {/* Overlapping avatar stack: creator behind, claimer in front */}
-          <div className="flex items-center -space-x-2">
-            <button
-              onClick={(e) => { e.stopPropagation(); onProfileClick?.({ address: idea.author, avatarUrl: idea.authorAvatar, displayName: idea.authorDisplayName, username: idea.authorUsername, fid: idea.authorFid }); }}
-              className="hover:opacity-80 transition-opacity cursor-pointer relative z-0 ring-1 ring-white rounded-full"
-            >
-              <UserAvatar
-                author={idea.author}
-                authorAvatar={idea.authorAvatar}
-                authorDisplayName={idea.authorDisplayName}
-                authorUsername={idea.authorUsername}
-                size={28}
-              />
-            </button>
-            {(idea.status === "claimed" || idea.status === "completed") && idea.claimedBy && (
+          {/* Claimer/builder avatar top left, inline with status badge */}
+          <div className="flex items-center">
+            {(idea.status === "claimed" || idea.status === "completed") && idea.claimedBy ? (
               <button
                 onClick={(e) => { e.stopPropagation(); onProfileClick?.({ address: idea.claimedBy!, avatarUrl: idea.claimedByAvatar, displayName: idea.claimedByDisplayName, username: idea.claimedByUsername, fid: idea.claimedByFid }); }}
-                className="hover:opacity-80 transition-opacity cursor-pointer relative z-10 ring-1 ring-white rounded-full"
+                className="hover:opacity-80 transition-opacity cursor-pointer ring-1 ring-white rounded-full"
               >
                 <UserAvatar
                   author={idea.claimedBy}
@@ -505,6 +493,8 @@ export const IdeaDetailModal = ({
                   size={28}
                 />
               </button>
+            ) : (
+              <div className="w-7 h-7" />
             )}
           </div>
           {/* Status badge absolutely centered */}
@@ -526,6 +516,18 @@ export const IdeaDetailModal = ({
 
             {/* Author */}
             <div className="flex items-center gap-3 mb-4">
+              <button
+                onClick={(e) => { e.stopPropagation(); onProfileClick?.({ address: idea.author, avatarUrl: idea.authorAvatar, displayName: idea.authorDisplayName, username: idea.authorUsername, fid: idea.authorFid }); }}
+                className="hover:opacity-80 transition-opacity cursor-pointer ring-1 ring-white rounded-full"
+              >
+                <UserAvatar
+                  author={idea.author}
+                  authorAvatar={idea.authorAvatar}
+                  authorDisplayName={idea.authorDisplayName}
+                  authorUsername={idea.authorUsername}
+                  size={28}
+                />
+              </button>
               <button
                 onClick={(e) => { e.stopPropagation(); onProfileClick?.({ address: idea.author, avatarUrl: idea.authorAvatar, displayName: idea.authorDisplayName, username: idea.authorUsername, fid: idea.authorFid }); }}
                 className="text-lg font-medium text-gray-900 hover:opacity-80 transition-opacity cursor-pointer"
