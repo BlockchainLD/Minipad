@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { useAccount } from "wagmi";
@@ -39,7 +39,16 @@ type Idea = {
   githubUrl?: string;
   deploymentUrl?: string;
   remixCount?: number;
+  claimedAt?: number;
+  completedAt?: number;
 };
+
+const TABS: { value: SectionOption; label: string }[] = [
+  { value: "all", label: "All" },
+  { value: "ideasboard", label: "Ideasboard" },
+  { value: "buildboard", label: "Buildboard" },
+  { value: "miniapps", label: "Miniapps" },
+];
 
 const handleButtonClick = (e: React.MouseEvent, callback: () => void) => {
   e.preventDefault();
@@ -161,8 +170,6 @@ export const IdeasBoard = ({ onViewChange, onProfileClick, openIdeaId, onIdeaOpe
   const [autoOpenRemixForm, setAutoOpenRemixForm] = useState(false);
   const [currentSection, setCurrentSection] = useState<SectionOption>("ideasboard");
   const [currentSort, setCurrentSort] = useState<"newest" | "most-popular">("most-popular");
-  const [dropdownOpen, setDropdownOpen] = useState(false);
-  const dropdownRef = useRef<HTMLDivElement>(null);
 
   const ideas = useQuery(api.ideas.getIdeas, { limit: 50 });
   const upvoteIdea = useMutation(api.upvotes.upvoteIdea);
@@ -275,16 +282,6 @@ export const IdeasBoard = ({ onViewChange, onProfileClick, openIdeaId, onIdeaOpe
     setSelectedIdea(null);
   };
 
-  useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
-        setDropdownOpen(false);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
-
   const handleClaimIdeaRandom = () => {
     if (!ideas) return;
     const open = ideas.filter((i) => !i.isRemix && i.status === "open");
@@ -309,10 +306,29 @@ export const IdeasBoard = ({ onViewChange, onProfileClick, openIdeaId, onIdeaOpe
     let filtered = ideas.filter((idea) => !idea.isRemix);
     if (currentSection === "ideasboard") filtered = filtered.filter((i) => i.status === "open");
     else if (currentSection === "buildboard") filtered = filtered.filter((i) => i.status === "claimed");
-    else filtered = filtered.filter((i) => i.status === "completed");
-    return currentSort === "most-popular"
-      ? [...filtered].sort((a, b) => b.upvotes - a.upvotes)
-      : [...filtered].sort((a, b) => b.timestamp - a.timestamp);
+    else if (currentSection === "miniapps") filtered = filtered.filter((i) => i.status === "completed");
+    // "all" keeps everything
+
+    if (currentSort === "most-popular") {
+      // ideasboard, buildboard, all: upvotes desc, remixCount as tiebreaker
+      // miniapps: upvotes desc only
+      return [...filtered].sort((a, b) => {
+        if (b.upvotes !== a.upvotes) return b.upvotes - a.upvotes;
+        if (currentSection !== "miniapps") return (b.remixCount ?? 0) - (a.remixCount ?? 0);
+        return 0;
+      });
+    } else {
+      // "newest" — sort by the most relevant timestamp per status
+      return [...filtered].sort((a, b) => {
+        const tsA = a.status === "completed" ? (a.completedAt ?? a.timestamp)
+          : a.status === "claimed" ? (a.claimedAt ?? a.timestamp)
+          : a.timestamp;
+        const tsB = b.status === "completed" ? (b.completedAt ?? b.timestamp)
+          : b.status === "claimed" ? (b.claimedAt ?? b.timestamp)
+          : b.timestamp;
+        return tsB - tsA;
+      });
+    }
   }, [ideas, currentSection, currentSort]);
 
   if (!ideas) {
@@ -351,46 +367,34 @@ export const IdeasBoard = ({ onViewChange, onProfileClick, openIdeaId, onIdeaOpe
 
   return (
     <div className="w-full max-w-4xl mx-auto p-6 sm:p-8">
-      <div className="flex items-center justify-between mb-5">
-        {/* Section dropdown + sort toggle hugging left */}
-        <div className="flex items-center gap-2">
-          <div className="relative" ref={dropdownRef}>
-            <button
-              onClick={() => setDropdownOpen((o) => !o)}
-              className="text-xl font-bold text-violet-600 bg-white hover:bg-violet-50 px-3 py-1.5 rounded-lg transition-colors"
-            >
-              {currentSection === "ideasboard" ? "Ideasboard"
-                : currentSection === "buildboard" ? "Buildboard"
-                : "Miniapps"}
-            </button>
-
-            {dropdownOpen && (
-              <div className="absolute top-full left-0 mt-1.5 bg-white border border-gray-200 rounded-xl shadow-lg z-20 min-w-[140px] overflow-hidden">
-                {(["ideasboard", "buildboard", "miniapps"] as SectionOption[])
-                  .filter((s) => s !== currentSection)
-                  .map((s) => (
-                    <button
-                      key={s}
-                      onClick={() => { setCurrentSection(s); setDropdownOpen(false); }}
-                      className="w-full text-left px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-slate-50 transition-colors"
-                    >
-                      {s === "ideasboard" ? "Ideasboard" : s === "buildboard" ? "Buildboard" : "Miniapps"}
-                    </button>
-                  ))}
-              </div>
-            )}
-          </div>
-
+      {/* Tab bar */}
+      <div className="flex gap-1 bg-slate-100 rounded-xl p-1 mb-4">
+        {TABS.map(({ value, label }) => (
           <button
-            onClick={() => setCurrentSort((s) => s === "most-popular" ? "newest" : "most-popular")}
-            className="text-xs font-medium text-slate-500 hover:text-slate-700 transition-colors"
+            key={value}
+            onClick={() => setCurrentSection(value)}
+            className={`flex-1 px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-150 ${
+              currentSection === value
+                ? "bg-white text-violet-700 shadow-sm"
+                : "text-slate-500 hover:text-slate-700 hover:bg-white/70 hover:shadow-sm"
+            }`}
           >
-            {currentSort === "most-popular" ? "Popular" : "New"}
+            {label}
           </button>
-        </div>
+        ))}
+      </div>
+
+      <div className="flex items-center justify-between mb-5">
+        {/* Sort toggle */}
+        <button
+          onClick={() => setCurrentSort((s) => s === "most-popular" ? "newest" : "most-popular")}
+          className="text-xs font-medium text-slate-500 hover:text-slate-700 transition-colors"
+        >
+          {currentSort === "most-popular" ? "Popular" : "New"}
+        </button>
 
         {/* Action button */}
-        {currentSection === "ideasboard" && (
+        {(currentSection === "ideasboard" || currentSection === "all") && (
           <StandardButton
             variant="primary"
             size="sm"

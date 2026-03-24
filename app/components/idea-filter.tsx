@@ -1,1 +1,1 @@
-export type SectionOption = "ideasboard" | "buildboard" | "miniapps";
+export type SectionOption = "all" | "ideasboard" | "buildboard" | "miniapps";
