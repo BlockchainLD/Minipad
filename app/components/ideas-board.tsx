@@ -368,7 +368,7 @@ export const IdeasBoard = ({ onViewChange, onProfileClick, openIdeaId, onIdeaOpe
   }
 
   return (
-    <div className="w-full max-w-4xl mx-auto px-6 sm:px-8 pb-6 sm:pb-8 pt-2">
+    <div className="w-full max-w-4xl mx-auto px-6 sm:px-8 pb-6 sm:pb-8">
       {/* Grid toggle + sort toggle + action button */}
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
