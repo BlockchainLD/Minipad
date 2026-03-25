@@ -138,15 +138,19 @@ export const SettingsContent = ({
       <div className="space-y-3">
         <p className="font-semibold text-black">Settings</p>
         <div className="bg-gray-50 rounded-lg p-4">
-          <div className="flex items-center justify-between">
-            <p className="text-sm text-gray-700">Feed</p>
-            <button
-              onClick={onToggleFeed}
-              className="text-xs font-medium px-3 py-1.5 rounded-lg bg-white border border-gray-200 hover:border-gray-300 shadow-sm transition-colors cursor-pointer"
-            >
-              {isAllFeed ? "Toggle Feed: All" : "Toggle Feed: Filtered"}
-            </button>
-          </div>
+          <button
+            onClick={onToggleFeed}
+            className="w-full flex items-center justify-between cursor-pointer"
+          >
+            <p className="text-sm font-medium text-gray-900">Feed</p>
+            <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${
+              isAllFeed
+                ? "bg-violet-100 text-violet-700"
+                : "bg-gray-200 text-gray-500"
+            }`}>
+              {isAllFeed ? "All" : "Filtered"}
+            </span>
+          </button>
         </div>
       </div>
 
