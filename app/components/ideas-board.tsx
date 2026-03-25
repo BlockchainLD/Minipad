@@ -44,7 +44,6 @@ type Idea = {
 };
 
 const TABS: { value: SectionOption; label: string }[] = [
-  { value: "all", label: "All" },
   { value: "ideasboard", label: "Ideasboard" },
   { value: "buildboard", label: "Buildboard" },
   { value: "miniapps", label: "Miniapps" },
@@ -157,9 +156,11 @@ interface IdeasBoardProps {
   openIdeaId?: string | null;
   onIdeaOpened?: () => void;
   isGridView?: boolean;
+  onToggleGrid?: () => void;
+  isAllFeed?: boolean;
 }
 
-export const IdeasBoard = ({ onViewChange, onProfileClick, openIdeaId, onIdeaOpened, isGridView = false }: IdeasBoardProps) => {
+export const IdeasBoard = ({ onViewChange, onProfileClick, openIdeaId, onIdeaOpened, isGridView = false, onToggleGrid, isAllFeed = false }: IdeasBoardProps) => {
   const { address } = useAccount();
   const farcasterData = useFarcasterData();
 
@@ -304,17 +305,18 @@ export const IdeasBoard = ({ onViewChange, onProfileClick, openIdeaId, onIdeaOpe
   const filteredAndSortedIdeas = React.useMemo(() => {
     if (!ideas) return [];
     let filtered = ideas.filter((idea) => !idea.isRemix);
-    if (currentSection === "ideasboard") filtered = filtered.filter((i) => i.status === "open");
-    else if (currentSection === "buildboard") filtered = filtered.filter((i) => i.status === "claimed");
-    else if (currentSection === "miniapps") filtered = filtered.filter((i) => i.status === "completed");
-    // "all" keeps everything
+    if (!isAllFeed) {
+      if (currentSection === "ideasboard") filtered = filtered.filter((i) => i.status === "open");
+      else if (currentSection === "buildboard") filtered = filtered.filter((i) => i.status === "claimed");
+      else if (currentSection === "miniapps") filtered = filtered.filter((i) => i.status === "completed");
+    }
 
     if (currentSort === "most-popular") {
-      // ideasboard, buildboard, all: upvotes desc, remixCount as tiebreaker
-      // miniapps: upvotes desc only
+      // miniapps (when not all-feed): upvotes only; everything else: upvotes + remixCount tiebreaker
+      const useRemixTiebreaker = isAllFeed || currentSection !== "miniapps";
       return [...filtered].sort((a, b) => {
         if (b.upvotes !== a.upvotes) return b.upvotes - a.upvotes;
-        if (currentSection !== "miniapps") return (b.remixCount ?? 0) - (a.remixCount ?? 0);
+        if (useRemixTiebreaker) return (b.remixCount ?? 0) - (a.remixCount ?? 0);
         return 0;
       });
     } else {
@@ -329,7 +331,7 @@ export const IdeasBoard = ({ onViewChange, onProfileClick, openIdeaId, onIdeaOpe
         return tsB - tsA;
       });
     }
-  }, [ideas, currentSection, currentSort]);
+  }, [ideas, currentSection, currentSort, isAllFeed]);
 
   if (!ideas) {
     return (
@@ -367,16 +369,38 @@ export const IdeasBoard = ({ onViewChange, onProfileClick, openIdeaId, onIdeaOpe
 
   return (
     <div className="w-full max-w-4xl mx-auto px-6 sm:px-8 pb-6 sm:pb-8 pt-2">
-      {/* Sort toggle + action button */}
+      {/* Grid toggle + sort toggle + action button */}
       <div className="flex items-center justify-between mb-3">
-        <button
-          onClick={() => setCurrentSort((s) => s === "most-popular" ? "newest" : "most-popular")}
-          className="text-xs font-medium text-slate-500 hover:text-slate-700 transition-colors"
-        >
-          {currentSort === "most-popular" ? "Popular" : "New"}
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={onToggleGrid}
+            className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors text-gray-400 hover:text-gray-700"
+            title={isGridView ? "Switch to list view" : "Switch to grid view"}
+          >
+            {isGridView ? (
+              <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <line x1="3" y1="5" x2="15" y2="5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                <line x1="3" y1="9" x2="15" y2="9" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                <line x1="3" y1="13" x2="15" y2="13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+              </svg>
+            ) : (
+              <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect x="2" y="2" width="6" height="6" rx="1" stroke="currentColor" strokeWidth="1.5"/>
+                <rect x="10" y="2" width="6" height="6" rx="1" stroke="currentColor" strokeWidth="1.5"/>
+                <rect x="2" y="10" width="6" height="6" rx="1" stroke="currentColor" strokeWidth="1.5"/>
+                <rect x="10" y="10" width="6" height="6" rx="1" stroke="currentColor" strokeWidth="1.5"/>
+              </svg>
+            )}
+          </button>
+          <button
+            onClick={() => setCurrentSort((s) => s === "most-popular" ? "newest" : "most-popular")}
+            className="text-xs font-medium text-slate-500 hover:text-slate-700 transition-colors"
+          >
+            {currentSort === "most-popular" ? "Popular" : "New"}
+          </button>
+        </div>
 
-        {(currentSection === "ideasboard" || currentSection === "all") && (
+        {(isAllFeed || currentSection === "ideasboard") && (
           <StandardButton
             variant="primary"
             size="sm"
@@ -390,34 +414,36 @@ export const IdeasBoard = ({ onViewChange, onProfileClick, openIdeaId, onIdeaOpe
             + New Idea
           </StandardButton>
         )}
-        {currentSection === "buildboard" && (
+        {!isAllFeed && currentSection === "buildboard" && (
           <StandardButton variant="primary" size="sm" onClick={handleClaimIdeaRandom}>
             Claim Idea
           </StandardButton>
         )}
-        {currentSection === "miniapps" && (
+        {!isAllFeed && currentSection === "miniapps" && (
           <StandardButton variant="primary" size="sm" onClick={handleTestRandom}>
             Test App
           </StandardButton>
         )}
       </div>
 
-      {/* Tab bar */}
-      <div className="flex gap-1 bg-slate-100 rounded-xl p-1 mb-5">
-        {TABS.map(({ value, label }) => (
-          <button
-            key={value}
-            onClick={() => setCurrentSection(value)}
-            className={`flex-1 px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-150 ${
-              currentSection === value
-                ? "bg-white text-violet-700 shadow-sm"
-                : "text-slate-500 hover:text-slate-700 hover:bg-white/70 hover:shadow-sm"
-            }`}
-          >
-            {label}
-          </button>
-        ))}
-      </div>
+      {/* Tab bar — hidden when all-feed is active */}
+      {!isAllFeed && (
+        <div className="flex gap-1 bg-slate-100 rounded-xl p-1 mb-5">
+          {TABS.map(({ value, label }) => (
+            <button
+              key={value}
+              onClick={() => setCurrentSection(value)}
+              className={`flex-1 px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-150 ${
+                currentSection === value
+                  ? "bg-white text-violet-700 shadow-sm"
+                  : "text-slate-500 hover:text-slate-700 hover:bg-white/70 hover:shadow-sm"
+              }`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+      )}
 
       <div className={isGridView ? "grid grid-cols-2 gap-3" : "space-y-4"}>
         {filteredAndSortedIdeas.map((idea) => isGridView ? (
