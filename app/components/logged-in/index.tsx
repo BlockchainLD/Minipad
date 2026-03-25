@@ -30,6 +30,7 @@ export const LoggedIn = () => {
   const [showLeaderboard, setShowLeaderboard] = useState(false);
   const [profileModalUser, setProfileModalUser] = useState<UserProfile | null>(null);
   const [isGridView, setIsGridView] = useState(false);
+  const [isAllFeed, setIsAllFeed] = useState(false);
   const farcasterData = useFarcasterData();
   const avatarUrl = farcasterData?.pfp?.url || null;
 
@@ -63,6 +64,8 @@ export const LoggedIn = () => {
           openIdeaId={pendingOpenIdeaId}
           onIdeaOpened={() => setPendingOpenIdeaId(null)}
           isGridView={isGridView}
+          onToggleGrid={() => setIsGridView((g) => !g)}
+          isAllFeed={isAllFeed}
         />
       )}
       {currentView === VIEWS.SUBMIT && (
@@ -84,6 +87,8 @@ export const LoggedIn = () => {
       onCopyAddress={handleCopyAddress}
       onSignOut={handleSignOut}
       onIdeaClick={handleIdeaClick}
+      isAllFeed={isAllFeed}
+      onToggleFeed={() => setIsAllFeed((v) => !v)}
     />
   );
 
@@ -96,9 +101,6 @@ export const LoggedIn = () => {
             onLogoClick={handleLogoClick}
             onAvatarClick={handleAvatarClick}
             onTrophyClick={() => setShowLeaderboard(true)}
-            showGridToggle={activeTab === TABS.HOME}
-            isGridView={isGridView}
-            onToggleGrid={() => setIsGridView((g) => !g)}
           />
           <div className="flex-1 px-6 pb-6 pt-5">
             {activeTab === TABS.HOME && homeContent}

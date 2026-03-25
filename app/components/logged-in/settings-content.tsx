@@ -14,6 +14,8 @@ interface SettingsContentProps {
   onCopyAddress: () => void;
   onSignOut: () => void;
   onIdeaClick: (ideaId: string) => void;
+  isAllFeed: boolean;
+  onToggleFeed: () => void;
 }
 
 type IdeaLike = { _id: string; title: string; status: "open" | "claimed" | "completed" };
@@ -112,6 +114,8 @@ export const SettingsContent = ({
   onCopyAddress,
   onSignOut,
   onIdeaClick,
+  isAllFeed,
+  onToggleFeed,
 }: SettingsContentProps) => {
   return (
     <div className="space-y-6">
@@ -128,6 +132,21 @@ export const SettingsContent = ({
           <ErrorBoundary fallback={null}>
             <ProfileClaimedIdeas onIdeaClick={onIdeaClick} />
           </ErrorBoundary>
+        </div>
+      </div>
+
+      <div className="space-y-3">
+        <p className="font-semibold text-black">Settings</p>
+        <div className="bg-gray-50 rounded-lg p-4">
+          <div className="flex items-center justify-between">
+            <p className="text-sm text-gray-700">Feed</p>
+            <button
+              onClick={onToggleFeed}
+              className="text-xs font-medium px-3 py-1.5 rounded-lg bg-white border border-gray-200 hover:border-gray-300 shadow-sm transition-colors cursor-pointer"
+            >
+              {isAllFeed ? "Toggle Feed: All" : "Toggle Feed: Filtered"}
+            </button>
+          </div>
         </div>
       </div>
 
