@@ -102,7 +102,7 @@ export const LoggedIn = () => {
             onAvatarClick={handleAvatarClick}
             onTrophyClick={() => setShowLeaderboard(true)}
           />
-          <div className="flex-1 px-6 pb-6 pt-5">
+          <div className="flex-1 px-6 pb-6 pt-3">
             {activeTab === TABS.HOME && homeContent}
             {activeTab === TABS.SETTINGS && settingsContent}
           </div>
@@ -128,7 +128,7 @@ export const LoggedIn = () => {
           onAvatarClick={handleAvatarClick}
           onTrophyClick={() => setShowLeaderboard(true)}
         />
-        <div className="p-6 pt-4">
+        <div className="p-6 pt-3">
           {activeTab === TABS.HOME && homeContent}
           {activeTab === TABS.SETTINGS && settingsContent}
         </div>
