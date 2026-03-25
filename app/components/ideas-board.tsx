@@ -367,25 +367,8 @@ export const IdeasBoard = ({ onViewChange, onProfileClick, openIdeaId, onIdeaOpe
 
   return (
     <div className="w-full max-w-4xl mx-auto p-6 sm:p-8">
-      {/* Tab bar */}
-      <div className="flex gap-1 bg-slate-100 rounded-xl p-1 mb-4">
-        {TABS.map(({ value, label }) => (
-          <button
-            key={value}
-            onClick={() => setCurrentSection(value)}
-            className={`flex-1 px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-150 ${
-              currentSection === value
-                ? "bg-white text-violet-700 shadow-sm"
-                : "text-slate-500 hover:text-slate-700 hover:bg-white/70 hover:shadow-sm"
-            }`}
-          >
-            {label}
-          </button>
-        ))}
-      </div>
-
-      <div className="flex items-center justify-between mb-5">
-        {/* Sort toggle */}
+      {/* Sort toggle + action button */}
+      <div className="flex items-center justify-between mb-3">
         <button
           onClick={() => setCurrentSort((s) => s === "most-popular" ? "newest" : "most-popular")}
           className="text-xs font-medium text-slate-500 hover:text-slate-700 transition-colors"
@@ -393,7 +376,6 @@ export const IdeasBoard = ({ onViewChange, onProfileClick, openIdeaId, onIdeaOpe
           {currentSort === "most-popular" ? "Popular" : "New"}
         </button>
 
-        {/* Action button */}
         {(currentSection === "ideasboard" || currentSection === "all") && (
           <StandardButton
             variant="primary"
@@ -418,6 +400,23 @@ export const IdeasBoard = ({ onViewChange, onProfileClick, openIdeaId, onIdeaOpe
             Test App
           </StandardButton>
         )}
+      </div>
+
+      {/* Tab bar */}
+      <div className="flex gap-1 bg-slate-100 rounded-xl p-1 mb-5">
+        {TABS.map(({ value, label }) => (
+          <button
+            key={value}
+            onClick={() => setCurrentSection(value)}
+            className={`flex-1 px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-150 ${
+              currentSection === value
+                ? "bg-white text-violet-700 shadow-sm"
+                : "text-slate-500 hover:text-slate-700 hover:bg-white/70 hover:shadow-sm"
+            }`}
+          >
+            {label}
+          </button>
+        ))}
       </div>
 
       <div className={isGridView ? "grid grid-cols-2 gap-3" : "space-y-4"}>
