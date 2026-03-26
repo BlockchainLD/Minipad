@@ -23,19 +23,18 @@ export const seedIdeas = mutation({
       throw new ConvexError("Unauthorized");
 
     for (const idea of args.ideas) {
-      const doc: Record<string, unknown> = {
+      await ctx.db.insert("ideas", {
         title: idea.title,
         description: idea.description,
         author: idea.author,
         authorFid: idea.authorFid,
         authorUsername: idea.authorUsername,
         authorDisplayName: idea.authorDisplayName,
+        ...(idea.authorAvatar ? { authorAvatar: idea.authorAvatar } : {}),
         timestamp: Date.now(),
         upvotes: 0,
-        status: "open" as const,
-      };
-      if (idea.authorAvatar) doc.authorAvatar = idea.authorAvatar;
-      await ctx.db.insert("ideas", doc as any);
+        status: "open",
+      });
     }
 
     return `Seeded ${args.ideas.length} ideas`;
