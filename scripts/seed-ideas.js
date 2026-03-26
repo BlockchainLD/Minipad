@@ -85,16 +85,21 @@ async function resolveViaWarpcast(uname) {
     try {
       const data = await fetchJson(url, { "Origin": "https://warpcast.com", "Referer": "https://warpcast.com/" });
       const user = data?.result?.user;
-      if (user?.custodyAddress) {
+      if (user?.fid) {
+        // Log all top-level user keys once to diagnose missing fields
+        if (!user.custodyAddress) {
+          console.log(`    [debug] Warpcast user keys for ${uname}: ${Object.keys(user).join(", ")}`);
+        }
         return {
           fid: user.fid,
-          username: user.username,
+          username: user.username || uname,
           displayName: user.displayName,
           avatarUrl: user.pfp?.url,
-          custodyAddress: user.custodyAddress,
+          // custodyAddress may be absent in newer API; will be filled by fnames fallback
+          custodyAddress: user.custodyAddress || null,
         };
       }
-      if (data) console.log(`    [debug] ${url} → unexpected shape: ${JSON.stringify(data).slice(0, 200)}`);
+      if (data) console.log(`    [debug] ${url} → no user: ${JSON.stringify(data).slice(0, 200)}`);
     } catch (e) {
       console.log(`    [debug] fetch error for ${url}: ${e.message}`);
     }
@@ -102,29 +107,31 @@ async function resolveViaWarpcast(uname) {
   return null;
 }
 
-async function resolveViaFnamesAndHub(uname) {
-  // Step 1: get FID + owner from fnames registry
-  const fname = uname.endsWith(".eth") ? uname.slice(0, -4) : uname;
-  const fnamesUrl = `https://fnames.farcaster.xyz/transfers?name=${encodeURIComponent(fname)}`;
-  let fid, custodyAddress;
-  try {
-    const data = await fetchJson(fnamesUrl);
-    const transfers = data?.transfers;
-    if (!transfers?.length) return null;
-    // Last transfer = current owner
-    const latest = transfers[transfers.length - 1];
-    fid = latest.to;
-    custodyAddress = latest.owner;
-    if (!fid || !custodyAddress) return null;
-  } catch (e) {
-    console.log(`    [debug] fetch error for ${fnamesUrl}: ${e.message}`);
-    return null;
+async function getCustodyFromFnames(username) {
+  // Try with .eth, without .eth, and original — fnames registry handles both fname and ENS-based names
+  const attempts = username.endsWith(".eth")
+    ? [username, username.slice(0, -4)]
+    : [username, username + ".eth"];
+  for (const fname of attempts) {
+    const url = `https://fnames.farcaster.xyz/transfers?name=${encodeURIComponent(fname)}`;
+    try {
+      const data = await fetchJson(url);
+      const transfers = data?.transfers;
+      if (transfers?.length) {
+        const latest = transfers[transfers.length - 1];
+        if (latest.to && latest.owner) return { fid: latest.to, custodyAddress: latest.owner };
+      }
+    } catch (e) {
+      console.log(`    [debug] fnames error for ${fname}: ${e.message}`);
+    }
   }
+  return null;
+}
 
-  // Step 2: get display name + avatar from Pinata Hub
-  let displayName = uname, avatarUrl;
+async function getProfileFromHub(fid) {
+  const hub = "https://hub.pinata.cloud";
+  let displayName, avatarUrl;
   try {
-    const hub = "https://hub.pinata.cloud";
     const [nameData, pfpData] = await Promise.all([
       fetchJson(`${hub}/v1/userDataByFid?fid=${fid}&user_data_type=2`), // display name
       fetchJson(`${hub}/v1/userDataByFid?fid=${fid}&user_data_type=1`), // pfp
@@ -134,23 +141,55 @@ async function resolveViaFnamesAndHub(uname) {
   } catch (e) {
     console.log(`    [debug] hub error for fid ${fid}: ${e.message}`);
   }
-
-  return { fid, username: fname, displayName, avatarUrl, custodyAddress };
+  return { displayName, avatarUrl };
 }
 
 async function resolveUsername(username) {
-  // Try Warpcast API first (with and without .eth suffix)
+  // Step 1: Try Warpcast API (with and without .eth suffix)
   const usernames = [username];
   if (username.endsWith(".eth")) usernames.push(username.slice(0, -4));
 
+  let partial = null;
   for (const uname of usernames) {
-    const result = await resolveViaWarpcast(uname);
-    if (result) return result;
+    partial = await resolveViaWarpcast(uname);
+    if (partial) break;
   }
 
-  // Fallback: fnames.farcaster.xyz + Pinata Hub
-  console.log(`    [debug] Warpcast failed for ${username}, trying fnames registry...`);
-  return resolveViaFnamesAndHub(username);
+  // Step 2: If no custody address yet, get it from fnames registry
+  if (partial && !partial.custodyAddress) {
+    const fnamesResult = await getCustodyFromFnames(username);
+    if (fnamesResult) {
+      partial.custodyAddress = fnamesResult.custodyAddress;
+      // Also fill display name + avatar from hub if missing
+      if (!partial.displayName || !partial.avatarUrl) {
+        const profile = await getProfileFromHub(partial.fid);
+        partial.displayName = partial.displayName || profile.displayName || username;
+        partial.avatarUrl = partial.avatarUrl || profile.avatarUrl;
+      }
+    }
+  }
+
+  // Step 3: If Warpcast failed entirely, try fnames + hub directly
+  if (!partial) {
+    console.log(`    [debug] Warpcast failed for ${username}, trying fnames registry...`);
+    const fnamesResult = await getCustodyFromFnames(username);
+    if (!fnamesResult) return null;
+    const profile = await getProfileFromHub(fnamesResult.fid);
+    partial = {
+      fid: fnamesResult.fid,
+      username: username.endsWith(".eth") ? username.slice(0, -4) : username,
+      displayName: profile.displayName || username,
+      avatarUrl: profile.avatarUrl,
+      custodyAddress: fnamesResult.custodyAddress,
+    };
+  }
+
+  if (!partial.custodyAddress) {
+    console.log(`    [debug] Could not get custody address for ${username} (FID ${partial.fid})`);
+    return null;
+  }
+
+  return partial;
 }
 
 async function main() {
