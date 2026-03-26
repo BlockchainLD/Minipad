@@ -59,24 +59,41 @@ const SEED_IDEAS = [
 ];
 
 async function resolveUsername(username) {
-  try {
-    const res = await fetch(
-      `https://client.warpcast.com/v2/user-by-username?username=${encodeURIComponent(username)}`
-    );
-    if (!res.ok) return null;
-    const data = await res.json();
-    const user = data?.result?.user;
-    if (!user?.custodyAddress) return null;
-    return {
-      fid: user.fid,
-      username: user.username,
-      displayName: user.displayName,
-      avatarUrl: user.pfp?.url,
-      custodyAddress: user.custodyAddress,
-    };
-  } catch (e) {
-    return null;
+  const urls = [
+    `https://client.warpcast.com/v2/user-by-username?username=${encodeURIComponent(username)}`,
+    `https://api.warpcast.com/v2/user-by-username?username=${encodeURIComponent(username)}`,
+  ];
+  for (const url of urls) {
+    try {
+      const res = await fetch(url, {
+        headers: {
+          "Accept": "application/json",
+          "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36",
+        },
+      });
+      const text = await res.text();
+      if (!res.ok) {
+        console.log(`    [debug] ${url} → ${res.status}: ${text.slice(0, 200)}`);
+        continue;
+      }
+      const data = JSON.parse(text);
+      const user = data?.result?.user;
+      if (!user?.custodyAddress) {
+        console.log(`    [debug] unexpected response shape: ${text.slice(0, 200)}`);
+        continue;
+      }
+      return {
+        fid: user.fid,
+        username: user.username,
+        displayName: user.displayName,
+        avatarUrl: user.pfp?.url,
+        custodyAddress: user.custodyAddress,
+      };
+    } catch (e) {
+      console.log(`    [debug] fetch error for ${url}: ${e.message}`);
+    }
   }
+  return null;
 }
 
 async function main() {
