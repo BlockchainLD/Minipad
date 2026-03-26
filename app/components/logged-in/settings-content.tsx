@@ -16,6 +16,7 @@ interface SettingsContentProps {
   onIdeaClick: (ideaId: string) => void;
   isAllFeed: boolean;
   onToggleFeed: () => void;
+  onAdminDeleteAll?: () => void;
 }
 
 type IdeaLike = { _id: string; title: string; status: "open" | "claimed" | "completed" };
@@ -116,6 +117,7 @@ export const SettingsContent = ({
   onIdeaClick,
   isAllFeed,
   onToggleFeed,
+  onAdminDeleteAll,
 }: SettingsContentProps) => {
   return (
     <div className="space-y-6">
@@ -137,16 +139,26 @@ export const SettingsContent = ({
 
       <div className="space-y-3">
         <p className="font-semibold text-black">Settings</p>
-        <button
-          onClick={onToggleFeed}
-          className={`text-xs font-semibold px-2.5 py-1 rounded-full cursor-pointer ${
-            isAllFeed
-              ? "bg-violet-100 text-violet-700"
-              : "bg-gray-200 text-gray-500"
-          }`}
-        >
-          {isAllFeed ? "Toggle Feed: All" : "Toggle Feed: Filtered"}
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={onToggleFeed}
+            className={`text-xs font-semibold px-2.5 py-1 rounded-full cursor-pointer ${
+              isAllFeed
+                ? "bg-violet-100 text-violet-700"
+                : "bg-gray-200 text-gray-500"
+            }`}
+          >
+            {isAllFeed ? "Toggle Feed: All" : "Toggle Feed: Filtered"}
+          </button>
+          {onAdminDeleteAll && (
+            <button
+              onClick={onAdminDeleteAll}
+              className="text-xs font-semibold px-2.5 py-1 rounded-full bg-red-100 text-red-600 hover:bg-red-200 transition-colors cursor-pointer"
+            >
+              Delete All Ideas
+            </button>
+          )}
+        </div>
       </div>
 
       <div className="space-y-3">

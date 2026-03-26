@@ -11,6 +11,11 @@ import { Header } from "./header";
 import { LeaderboardModal } from "../leaderboard-modal";
 import { UserProfileModal, type UserProfile } from "../user-profile-modal";
 import { TABS, VIEWS } from "../../lib/constants";
+import { useMutation } from "convex/react";
+import { api } from "../../../convex/_generated/api";
+import { toast } from "sonner";
+
+const ADMIN_ADDRESS = "0x6A0bA3707dF9D13A4445cD7E04274B2725930cD7";
 
 export const LoggedIn = () => {
   const {
@@ -31,6 +36,18 @@ export const LoggedIn = () => {
   const [profileModalUser, setProfileModalUser] = useState<UserProfile | null>(null);
   const [isGridView, setIsGridView] = useState(false);
   const [isAllFeed, setIsAllFeed] = useState(false);
+  const adminDeleteAllIdeas = useMutation(api.ideas.adminDeleteAllIdeas);
+  const isAdmin = walletAddress?.toLowerCase() === ADMIN_ADDRESS.toLowerCase();
+
+  const handleAdminDeleteAll = async () => {
+    if (!walletAddress) return;
+    try {
+      await adminDeleteAllIdeas({ adminAddress: walletAddress });
+      toast.success("All ideas deleted.");
+    } catch {
+      toast.error("Failed to delete ideas.");
+    }
+  };
   const farcasterData = useFarcasterData();
   const avatarUrl = farcasterData?.pfp?.url || null;
 
@@ -89,6 +106,7 @@ export const LoggedIn = () => {
       onIdeaClick={handleIdeaClick}
       isAllFeed={isAllFeed}
       onToggleFeed={() => setIsAllFeed((v) => !v)}
+      onAdminDeleteAll={isAdmin ? handleAdminDeleteAll : undefined}
     />
   );
 
