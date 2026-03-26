@@ -86,20 +86,25 @@ async function resolveViaWarpcast(uname) {
       const data = await fetchJson(url, { "Origin": "https://warpcast.com", "Referer": "https://warpcast.com/" });
       const user = data?.result?.user;
       if (user?.fid) {
-        // Log all top-level user keys once to diagnose missing fields
-        if (!user.custodyAddress) {
-          console.log(`    [debug] Warpcast user keys for ${uname}: ${Object.keys(user).join(", ")}`);
-        }
+        console.log(`    [debug] Warpcast keys for ${uname}: ${Object.keys(user).join(", ")}`);
+        // Try multiple possible avatar field paths across API versions
+        const avatarUrl =
+          user.pfp?.url ||
+          (typeof user.pfp === "string" ? user.pfp : undefined) ||
+          user.avatarUrl ||
+          user.avatar?.url ||
+          user.profile?.pfp?.url ||
+          undefined;
+        if (avatarUrl) console.log(`    [debug] avatar for ${uname}: ${avatarUrl}`);
         return {
           fid: user.fid,
           username: user.username || uname,
           displayName: user.displayName,
-          avatarUrl: user.pfp?.url,
-          // custodyAddress may be absent in newer API; will be filled by fnames fallback
+          avatarUrl,
           custodyAddress: user.custodyAddress || null,
         };
       }
-      if (data) console.log(`    [debug] ${url} → no user: ${JSON.stringify(data).slice(0, 200)}`);
+      if (data) console.log(`    [debug] ${url} → no user: ${JSON.stringify(data).slice(0, 300)}`);
     } catch (e) {
       console.log(`    [debug] fetch error for ${url}: ${e.message}`);
     }
@@ -132,12 +137,16 @@ async function getProfileFromHub(fid) {
   const hub = "https://hub.pinata.cloud";
   let displayName, avatarUrl;
   try {
-    const [nameData, pfpData] = await Promise.all([
-      fetchJson(`${hub}/v1/userDataByFid?fid=${fid}&user_data_type=2`), // display name
+    // Farcaster Hub user_data_type: 1=PFP, 2=DISPLAY_NAME, 6=USERNAME
+    const [pfpData, nameData] = await Promise.all([
       fetchJson(`${hub}/v1/userDataByFid?fid=${fid}&user_data_type=1`), // pfp
+      fetchJson(`${hub}/v1/userDataByFid?fid=${fid}&user_data_type=2`), // display name
     ]);
+    if (pfpData?.data?.userDataBody?.value) {
+      avatarUrl = pfpData.data.userDataBody.value;
+      console.log(`    [debug] hub avatar for FID ${fid}: ${avatarUrl}`);
+    }
     if (nameData?.data?.userDataBody?.value) displayName = nameData.data.userDataBody.value;
-    if (pfpData?.data?.userDataBody?.value) avatarUrl = pfpData.data.userDataBody.value;
   } catch (e) {
     console.log(`    [debug] hub error for fid ${fid}: ${e.message}`);
   }
