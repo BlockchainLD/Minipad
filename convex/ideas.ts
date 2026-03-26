@@ -1,6 +1,8 @@
 import { mutation, query } from "./_generated/server";
 import { ConvexError, v } from "convex/values";
 
+const ADMIN_ADDRESS = "0x6A0bA3707dF9D13A4445cD7E04274B2725930cD7";
+
 export const submitIdea = mutation({
   args: {
     title: v.string(),
@@ -88,5 +90,19 @@ export const deleteIdea = mutation({
     }
 
     await ctx.db.delete(args.ideaId);
+  },
+});
+
+export const adminDeleteAllIdeas = mutation({
+  args: { adminAddress: v.string() },
+  handler: async (ctx, args) => {
+    if (args.adminAddress.toLowerCase() !== ADMIN_ADDRESS.toLowerCase())
+      throw new ConvexError("Unauthorized");
+
+    for (const u of await ctx.db.query("upvotes").collect()) await ctx.db.delete(u._id);
+    for (const ru of await ctx.db.query("remixUpvotes").collect()) await ctx.db.delete(ru._id);
+    for (const r of await ctx.db.query("remixes").collect()) await ctx.db.delete(r._id);
+    for (const c of await ctx.db.query("claims").collect()) await ctx.db.delete(c._id);
+    for (const i of await ctx.db.query("ideas").collect()) await ctx.db.delete(i._id);
   },
 });
