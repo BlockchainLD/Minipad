@@ -145,7 +145,7 @@ export const SettingsContent = ({
               : "bg-gray-200 text-gray-500"
           }`}
         >
-          {isAllFeed ? "All" : "Filtered"}
+          {isAllFeed ? "Toggle Feed: All" : "Toggle Feed: Filtered"}
         </button>
       </div>
 
