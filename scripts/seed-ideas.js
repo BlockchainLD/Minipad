@@ -58,25 +58,99 @@ const SEED_IDEAS = [
   },
 ];
 
-async function resolveUsername(username) {
-  try {
-    const res = await fetch(
-      `https://client.warpcast.com/v2/user-by-username?username=${encodeURIComponent(username)}`
-    );
-    if (!res.ok) return null;
-    const data = await res.json();
-    const user = data?.result?.user;
-    if (!user?.custodyAddress) return null;
-    return {
-      fid: user.fid,
-      username: user.username,
-      displayName: user.displayName,
-      avatarUrl: user.pfp?.url,
-      custodyAddress: user.custodyAddress,
-    };
-  } catch (e) {
+async function fetchJson(url, headers = {}) {
+  const res = await fetch(url, {
+    headers: {
+      "Accept": "application/json",
+      "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+      ...headers,
+    },
+  });
+  const text = await res.text();
+  if (!res.ok) {
+    console.log(`    [debug] ${url} → ${res.status}: ${text.slice(0, 200)}`);
     return null;
   }
+  try {
+    return JSON.parse(text);
+  } catch {
+    console.log(`    [debug] ${url} → invalid JSON: ${text.slice(0, 200)}`);
+    return null;
+  }
+}
+
+async function resolveViaWarpcast(uname) {
+  for (const base of ["https://client.warpcast.com", "https://api.warpcast.com"]) {
+    const url = `${base}/v2/user-by-username?username=${encodeURIComponent(uname)}`;
+    try {
+      const data = await fetchJson(url, { "Origin": "https://warpcast.com", "Referer": "https://warpcast.com/" });
+      const user = data?.result?.user;
+      if (user?.custodyAddress) {
+        return {
+          fid: user.fid,
+          username: user.username,
+          displayName: user.displayName,
+          avatarUrl: user.pfp?.url,
+          custodyAddress: user.custodyAddress,
+        };
+      }
+      if (data) console.log(`    [debug] ${url} → unexpected shape: ${JSON.stringify(data).slice(0, 200)}`);
+    } catch (e) {
+      console.log(`    [debug] fetch error for ${url}: ${e.message}`);
+    }
+  }
+  return null;
+}
+
+async function resolveViaFnamesAndHub(uname) {
+  // Step 1: get FID + owner from fnames registry
+  const fname = uname.endsWith(".eth") ? uname.slice(0, -4) : uname;
+  const fnamesUrl = `https://fnames.farcaster.xyz/transfers?name=${encodeURIComponent(fname)}`;
+  let fid, custodyAddress;
+  try {
+    const data = await fetchJson(fnamesUrl);
+    const transfers = data?.transfers;
+    if (!transfers?.length) return null;
+    // Last transfer = current owner
+    const latest = transfers[transfers.length - 1];
+    fid = latest.to;
+    custodyAddress = latest.owner;
+    if (!fid || !custodyAddress) return null;
+  } catch (e) {
+    console.log(`    [debug] fetch error for ${fnamesUrl}: ${e.message}`);
+    return null;
+  }
+
+  // Step 2: get display name + avatar from Pinata Hub
+  let displayName = uname, avatarUrl;
+  try {
+    const hub = "https://hub.pinata.cloud";
+    const [nameData, pfpData] = await Promise.all([
+      fetchJson(`${hub}/v1/userDataByFid?fid=${fid}&user_data_type=2`), // display name
+      fetchJson(`${hub}/v1/userDataByFid?fid=${fid}&user_data_type=1`), // pfp
+    ]);
+    if (nameData?.data?.userDataBody?.value) displayName = nameData.data.userDataBody.value;
+    if (pfpData?.data?.userDataBody?.value) avatarUrl = pfpData.data.userDataBody.value;
+  } catch (e) {
+    console.log(`    [debug] hub error for fid ${fid}: ${e.message}`);
+  }
+
+  return { fid, username: fname, displayName, avatarUrl, custodyAddress };
+}
+
+async function resolveUsername(username) {
+  // Try Warpcast API first (with and without .eth suffix)
+  const usernames = [username];
+  if (username.endsWith(".eth")) usernames.push(username.slice(0, -4));
+
+  for (const uname of usernames) {
+    const result = await resolveViaWarpcast(uname);
+    if (result) return result;
+  }
+
+  // Fallback: fnames.farcaster.xyz + Pinata Hub
+  console.log(`    [debug] Warpcast failed for ${username}, trying fnames registry...`);
+  return resolveViaFnamesAndHub(username);
 }
 
 async function main() {
