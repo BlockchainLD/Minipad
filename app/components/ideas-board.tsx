@@ -453,7 +453,10 @@ export const IdeasBoard = ({ onViewChange, onProfileClick, openIdeaId, onIdeaOpe
             onClick={() => openModal(idea as Idea)}
             className="bg-white border border-gray-200 rounded-xl p-3 hover:shadow-md hover:border-violet-200 transition-colors duration-200 cursor-pointer group flex flex-col gap-2"
           >
-            {/* Top row: avatar + username left, claimer avatar right if claimed */}
+            <h3 className="text-sm font-semibold text-gray-900 line-clamp-2 leading-snug flex-1">
+              {idea.title}
+            </h3>
+            {/* Avatar + username left, claimer avatar right if claimed */}
             <div className="flex items-center justify-between">
               <button
                 onClick={(e) => { e.stopPropagation(); onProfileClick?.({ address: idea.author, avatarUrl: idea.authorAvatar, displayName: idea.authorDisplayName, username: idea.authorUsername, fid: idea.authorFid }); }}
@@ -485,9 +488,6 @@ export const IdeasBoard = ({ onViewChange, onProfileClick, openIdeaId, onIdeaOpe
                 </button>
               )}
             </div>
-            <h3 className="text-sm font-semibold text-gray-900 line-clamp-2 leading-snug flex-1">
-              {idea.title}
-            </h3>
             <p className="text-xs text-gray-500 line-clamp-2 break-words leading-snug">{idea.description}</p>
             {/* Bottom row: upvote, remix, + section action on the right */}
             <div className="flex items-center gap-2 mt-auto">
