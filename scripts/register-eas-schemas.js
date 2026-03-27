@@ -20,6 +20,7 @@ const SCHEMA_DEFINITIONS = {
   REMIX: "string title, string description, string remixer, string remixerFid, string originalIdeaId, string remixId, uint256 timestamp",
   CLAIM: "string ideaId, string claimer, string claimerFid, uint256 timestamp",
   COMPLETION: "string ideaId, string claimer, string miniappUrl, string claimerFid, uint256 timestamp",
+  BUILD_ENDORSEMENT: "string ideaId, string buildUrl, string endorser, string endorserFid, string builderId, uint256 timestamp",
 };
 
 async function registerSchemas() {

@@ -9,6 +9,8 @@ import { handleError, handleSuccess } from "../lib/error-handler";
 import { Id } from "../../convex/_generated/dataModel";
 import { Tools, Xmark } from "iconoir-react";
 import { StandardButton } from "./ui/standard-button";
+import { useEAS, createCompletionAttestation } from "../lib/eas";
+import { useFarcasterData } from "../hooks/use-farcaster-data";
 
 interface CompletionFormProps {
   ideaId: Id<"ideas">;
@@ -21,7 +23,9 @@ export const CompletionForm = ({ ideaId, onSuccess, onCancel }: CompletionFormPr
   const [deploymentUrl, setDeploymentUrl] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { address } = useAccount();
+  const farcasterData = useFarcasterData();
   const completeIdea = useMutation(api.claims.completeIdea);
+  const { eas, isEASConfigured } = useEAS();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -46,13 +50,28 @@ export const CompletionForm = ({ ideaId, onSuccess, onCancel }: CompletionFormPr
       return;
     }
 
+    if (!eas || !isEASConfigured) {
+      toast.error("Wallet not ready or EAS not configured");
+      return;
+    }
+
     setIsSubmitting(true);
     try {
+      // EAS completion attestation first (required/blocking)
+      const attestationUid = await createCompletionAttestation(
+        eas,
+        ideaId,
+        address,
+        trimmedDeploymentUrl,
+        farcasterData?.fid?.toString()
+      );
+
       await completeIdea({
         ideaId,
         claimer: address,
         githubUrl: trimmedGithubUrl,
         deploymentUrl: trimmedDeploymentUrl,
+        attestationUid,
       });
       handleSuccess("Build submitted! This idea is now marked as complete.");
       setGithubUrl("");

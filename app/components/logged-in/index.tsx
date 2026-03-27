@@ -126,7 +126,15 @@ export const LoggedIn = () => {
           </div>
         </div>
         <CopyNotification show={copied} />
-        <LeaderboardModal isOpen={showLeaderboard} onClose={() => setShowLeaderboard(false)} />
+        <LeaderboardModal
+          isOpen={showLeaderboard}
+          onClose={() => setShowLeaderboard(false)}
+          onProfileClick={(user) => {
+            setShowLeaderboard(false);
+            if (user.address === walletAddress) { setActiveTab(TABS.SETTINGS); }
+            else { setProfileModalUser(user); }
+          }}
+        />
         <UserProfileModal
           isOpen={!!profileModalUser}
           onClose={() => setProfileModalUser(null)}
