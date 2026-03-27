@@ -2,7 +2,7 @@
 
 import { useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
-import { Xmark, Medal1stSolid, Trophy } from "iconoir-react";
+import { Xmark, Medal1stSolid } from "iconoir-react";
 import { useEffect } from "react";
 import { UserAvatar } from "./ui/user-avatar";
 
@@ -67,7 +67,7 @@ export const LeaderboardModal = ({ isOpen, onClose, onProfileClick }: Leaderboar
             </div>
           ) : leaderboard.length === 0 ? (
             <div className="text-center py-12 text-gray-400">
-              <Trophy width={40} height={40} className="text-yellow-300 mx-auto mb-3" />
+              <Medal1stSolid width={40} height={40} className="text-yellow-300 mx-auto mb-3" />
               <p className="text-sm">No endorsements yet.</p>
               <p className="text-xs mt-1">Try a completed build and endorse it!</p>
             </div>
@@ -108,7 +108,7 @@ export const LeaderboardModal = ({ isOpen, onClose, onProfileClick }: Leaderboar
                       </p>
                     </div>
                     <div className="flex items-center gap-1 flex-shrink-0">
-                      <Trophy width={16} height={16} className="text-yellow-500" />
+                      <Medal1stSolid width={16} height={16} className="text-yellow-500" />
                       <span className="font-bold text-gray-900">{builder.endorsementCount}</span>
                     </div>
                   </button>

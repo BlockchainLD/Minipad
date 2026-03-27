@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { Id } from "../../convex/_generated/dataModel";
-import { Heart, Flash, Xmark, Trash, Plus, EditPencil, MessageText, Trophy } from "iconoir-react";
+import { Heart, Flash, Xmark, Trash, Plus, EditPencil, MessageText, Medal1stSolid } from "iconoir-react";
 import { UserAvatar } from "./ui/user-avatar";
 import { StatusBadge } from "./ui/status-badge";
 import { ClaimButton, UnclaimButton, SubmitBuildButton } from "./ui/standard-button";
@@ -726,7 +726,7 @@ export const IdeaDetailModal = ({
                     : "Endorse this build"
                 }
               >
-                <Trophy width={16} height={16} />
+                <Medal1stSolid width={16} height={16} />
                 <span>{endorsementCount ?? 0}</span>
               </button>
             )}
