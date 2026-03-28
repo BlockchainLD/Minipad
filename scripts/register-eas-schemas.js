@@ -5,8 +5,8 @@
  * Run this script to register all required schemas for the Minipad platform
  */
 
-const { EAS, SchemaRegistry } = require("@ethereum-attestation-service/eas-sdk");
-const { createWalletClient, http, createPublicClient } = require("viem");
+const { SchemaRegistry } = require("@ethereum-attestation-service/eas-sdk");
+const { createWalletClient, http } = require("viem");
 const { base } = require("viem/chains");
 const { privateKeyToAccount } = require("viem/accounts");
 
@@ -37,20 +37,11 @@ async function registerSchemas() {
     const account = privateKeyToAccount(privateKey);
     console.log("🔑 Using account:", account.address);
 
-    const publicClient = createPublicClient({
-      chain: base,
-      transport: http("https://mainnet.base.org"),
-    });
-
     const walletClient = createWalletClient({
       account,
       chain: base,
       transport: http("https://mainnet.base.org"),
     });
-
-    // Initialize EAS and Schema Registry
-    const eas = new EAS(EAS_CONTRACT_ADDRESS);
-    eas.connect(walletClient);
 
     const schemaRegistry = new SchemaRegistry(SCHEMA_REGISTRY_ADDRESS);
     schemaRegistry.connect(walletClient);

@@ -105,23 +105,16 @@ export const getLeaderboard = query({
       .sort((a, b) => b[1] - a[1])
       .slice(0, limit);
 
-    // Fetch builder metadata from their completed ideas
+    // Fetch builder metadata from their completed ideas (single query per builder)
     const leaderboard = await Promise.all(
       sorted.map(async ([builderId, endorsementCount]) => {
-        // Find the most recent completed idea by this builder to get their profile data
-        const builderIdea = await ctx.db
-          .query("ideas")
-          .withIndex("by_claimed_by", (q) => q.eq("claimedBy", builderId))
-          .filter((q) => q.eq(q.field("status"), "completed"))
-          .first();
-
-        // Count total builds completed
         const completedIdeas = await ctx.db
           .query("ideas")
           .withIndex("by_claimed_by", (q) => q.eq("claimedBy", builderId))
           .filter((q) => q.eq(q.field("status"), "completed"))
           .collect();
 
+        const builderIdea = completedIdeas[0];
         return {
           builderId,
           endorsementCount,

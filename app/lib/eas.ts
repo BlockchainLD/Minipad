@@ -1,11 +1,10 @@
-import { EAS, SchemaEncoder, SchemaRegistry } from "@ethereum-attestation-service/eas-sdk";
+import { EAS, SchemaEncoder } from "@ethereum-attestation-service/eas-sdk";
 import { usePublicClient, useWalletClient } from "wagmi";
 import { base } from "viem/chains";
 import { useCallback, useEffect, useState } from "react";
 
 // EAS Configuration for Base
 const EAS_CONTRACT_ADDRESS = "0x4200000000000000000000000000000000000021";
-const SCHEMA_REGISTRY_ADDRESS = "0x4200000000000000000000000000000000000020";
 
 // Schema definitions for different types of attestations
 export const SCHEMA_DEFINITIONS = {
@@ -30,9 +29,7 @@ export function useEAS() {
   const publicClient = usePublicClient();
   const { data: walletClient } = useWalletClient();
   const [eas, setEas] = useState<EAS | null>(null);
-  const [schemaRegistry, setSchemaRegistry] = useState<SchemaRegistry | null>(null);
   const [isInitialized, setIsInitialized] = useState(false);
-
 
   const initializeEAS = useCallback(async () => {
     if (!publicClient || !walletClient) {
@@ -44,29 +41,19 @@ export function useEAS() {
       throw new Error("Please switch to Base network");
     }
 
-    console.log("🔗 Initializing EAS on Base mainnet...");
-
-    // Initialize EAS with gasless transactions support
+    // Initialize EAS
     const easInstance = new EAS(EAS_CONTRACT_ADDRESS);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     easInstance.connect(walletClient as any);
-
     setEas(easInstance);
-
-    // Initialize Schema Registry
-    const schemaRegistryInstance = new SchemaRegistry(SCHEMA_REGISTRY_ADDRESS);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    schemaRegistryInstance.connect(walletClient as any);
-    setSchemaRegistry(schemaRegistryInstance);
 
     // Check if schemas are configured via environment variables
     const hasAllSchemas = Object.values(SCHEMAS).every(schema => schema && schema.length > 0);
 
     if (hasAllSchemas) {
-      console.log("✅ All EAS schemas configured via environment variables");
       setIsInitialized(true);
     } else {
-      console.error("❌ EAS schemas not configured. Please register schemas and add UIDs to environment variables.");
+      console.error("EAS schemas not configured. Please run the schema registration script and update environment variables.");
       throw new Error("EAS schemas not configured. Please run the schema registration script and update environment variables.");
     }
   }, [publicClient, walletClient]);
@@ -82,7 +69,6 @@ export function useEAS() {
 
   return {
     eas,
-    schemaRegistry,
     isInitialized,
     isEASConfigured,
     walletClient,
