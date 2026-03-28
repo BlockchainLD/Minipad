@@ -6,7 +6,7 @@ import { api } from "../../convex/_generated/api";
 import { useAccount } from "wagmi";
 import { toast } from "sonner";
 import { Id } from "../../convex/_generated/dataModel";
-import { Heart, Flash, Hammer, LightBulb, OpenNewWindow } from "iconoir-react";
+import { Heart, Flash, Hammer, LightBulb, OpenNewWindow, Medal1stSolid } from "iconoir-react";
 import { SectionOption } from "./idea-filter";
 import { CompletionForm } from "./completion-form";
 import { UserAvatar } from "./ui/user-avatar";
@@ -148,6 +148,17 @@ const CardUpvoteButton = ({
       <span className="text-sm font-semibold">{optimisticCount ?? upvotes}</span>
       {isLoading && <span className="text-xs text-gray-400">...</span>}
     </button>
+  );
+};
+
+const EndorsementCountBadge = ({ ideaId }: { ideaId: Id<"ideas"> }) => {
+  const count = useQuery(api.endorsements.getEndorsementCount, { ideaId });
+  if (!count) return null;
+  return (
+    <span className="flex items-center gap-1">
+      <Medal1stSolid width={15} height={15} className="text-yellow-500" />
+      <span className="text-xs font-semibold text-gray-600">{count}</span>
+    </span>
   );
 };
 
@@ -524,7 +535,7 @@ export const IdeasBoard = ({ onViewChange, onProfileClick, openIdeaId, onIdeaOpe
                 onRemoveUpvote={handleRemoveUpvote}
                 address={address}
               />
-              {idea.status !== "completed" && (
+              {idea.status !== "completed" ? (
                 <button
                   onClick={(e) => handleButtonClick(e, () => handleRemix(idea._id))}
                   className="flex items-center gap-1 transition-colors cursor-pointer text-gray-400 hover:text-yellow-500"
@@ -533,6 +544,8 @@ export const IdeasBoard = ({ onViewChange, onProfileClick, openIdeaId, onIdeaOpe
                   <Flash width={15} height={15} />
                   <span className="text-xs font-semibold">{idea.remixCount ?? 0}</span>
                 </button>
+              ) : (
+                <EndorsementCountBadge ideaId={idea._id} />
               )}
               {/* Ideasboard: claim hammer */}
               {idea.status === "open" && (
@@ -623,7 +636,7 @@ export const IdeasBoard = ({ onViewChange, onProfileClick, openIdeaId, onIdeaOpe
                 address={address}
               />
 
-              {idea.status !== "completed" && (
+              {idea.status !== "completed" ? (
                 <button
                   onClick={(e) => handleButtonClick(e, () => handleRemix(idea._id))}
                   className="flex items-center gap-1.5 transition-colors cursor-pointer text-gray-400 hover:text-yellow-500"
@@ -632,6 +645,8 @@ export const IdeasBoard = ({ onViewChange, onProfileClick, openIdeaId, onIdeaOpe
                   <Flash width={18} height={18} />
                   <span className="text-sm font-semibold">{idea.remixCount ?? 0}</span>
                 </button>
+              ) : (
+                <EndorsementCountBadge ideaId={idea._id} />
               )}
 
               {idea.status === "completed" && (idea.deploymentUrl || idea.githubUrl) && (
