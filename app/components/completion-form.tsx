@@ -9,22 +9,35 @@ import { handleError, handleSuccess } from "../lib/error-handler";
 import { Id } from "../../convex/_generated/dataModel";
 import { Tools, Xmark } from "iconoir-react";
 import { StandardButton } from "./ui/standard-button";
-import { useEAS, createCompletionAttestation } from "../lib/eas";
+import { useEAS, createCompletionAttestation, revokeAttestation, SCHEMAS } from "../lib/eas";
 import { useFarcasterData } from "../hooks/use-farcaster-data";
 
 interface CompletionFormProps {
   ideaId: Id<"ideas">;
+  mode?: "create" | "edit";
+  initialGithubUrl?: string;
+  initialDeploymentUrl?: string;
+  oldAttestationUid?: string;
   onSuccess?: () => void;
   onCancel?: () => void;
 }
 
-export const CompletionForm = ({ ideaId, onSuccess, onCancel }: CompletionFormProps) => {
-  const [githubUrl, setGithubUrl] = useState("");
-  const [deploymentUrl, setDeploymentUrl] = useState("");
+export const CompletionForm = ({
+  ideaId,
+  mode = "create",
+  initialGithubUrl = "",
+  initialDeploymentUrl = "",
+  oldAttestationUid,
+  onSuccess,
+  onCancel,
+}: CompletionFormProps) => {
+  const [githubUrl, setGithubUrl] = useState(initialGithubUrl);
+  const [deploymentUrl, setDeploymentUrl] = useState(initialDeploymentUrl);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { address } = useAccount();
   const farcasterData = useFarcasterData();
   const completeIdea = useMutation(api.claims.completeIdea);
+  const updateBuild = useMutation(api.claims.updateBuild);
   const { eas, isEASConfigured } = useEAS();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -57,7 +70,7 @@ export const CompletionForm = ({ ideaId, onSuccess, onCancel }: CompletionFormPr
 
     setIsSubmitting(true);
     try {
-      // EAS completion attestation first (required/blocking)
+      // EAS attestation first (required/blocking)
       const attestationUid = await createCompletionAttestation(
         eas,
         ideaId,
@@ -66,14 +79,29 @@ export const CompletionForm = ({ ideaId, onSuccess, onCancel }: CompletionFormPr
         farcasterData?.fid?.toString()
       );
 
-      await completeIdea({
-        ideaId,
-        claimer: address,
-        githubUrl: trimmedGithubUrl,
-        deploymentUrl: trimmedDeploymentUrl,
-        attestationUid,
-      });
-      handleSuccess("Build submitted! This idea is now marked as complete.");
+      if (mode === "edit") {
+        await updateBuild({
+          ideaId,
+          claimer: address,
+          githubUrl: trimmedGithubUrl,
+          deploymentUrl: trimmedDeploymentUrl,
+          attestationUid,
+        });
+        // Revoke old attestation best-effort after Convex is updated
+        if (oldAttestationUid && eas) {
+          revokeAttestation(eas, oldAttestationUid, SCHEMAS.COMPLETION).catch(() => {});
+        }
+        handleSuccess("Build updated!");
+      } else {
+        await completeIdea({
+          ideaId,
+          claimer: address,
+          githubUrl: trimmedGithubUrl,
+          deploymentUrl: trimmedDeploymentUrl,
+          attestationUid,
+        });
+        handleSuccess("Build submitted! This idea is now marked as complete.");
+      }
       setGithubUrl("");
       setDeploymentUrl("");
       onSuccess?.();
@@ -96,9 +124,13 @@ export const CompletionForm = ({ ideaId, onSuccess, onCancel }: CompletionFormPr
         </button>
       )}
       <div className="mb-6">
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">Submit Your Build</h2>
+        <h2 className="text-2xl font-bold text-gray-900 mb-2">
+          {mode === "edit" ? "Edit Your Build" : "Submit Your Build"}
+        </h2>
         <p className="text-gray-500 text-sm">
-          Share your Deployment URL to complete your build for others to test
+          {mode === "edit"
+            ? "Update your deployment URL or GitHub link"
+            : "Share your Deployment URL to complete your build for others to test"}
         </p>
       </div>
 

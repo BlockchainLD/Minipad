@@ -61,6 +61,28 @@ export const completeIdea = mutation({
   },
 });
 
+export const updateBuild = mutation({
+  args: {
+    ideaId: v.id("ideas"),
+    claimer: v.string(),
+    githubUrl: v.string(),
+    deploymentUrl: v.string(),
+    attestationUid: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const idea = await ctx.db.get(args.ideaId);
+    if (!idea) throw new ConvexError("Idea not found");
+    if (idea.status !== "completed" || idea.claimedBy !== args.claimer) {
+      throw new ConvexError("Only the builder can edit their completed build");
+    }
+    await ctx.db.patch(args.ideaId, {
+      githubUrl: args.githubUrl,
+      deploymentUrl: args.deploymentUrl,
+      completionAttestationUid: args.attestationUid,
+    });
+  },
+});
+
 export const unclaimIdea = mutation({
   args: {
     ideaId: v.id("ideas"),

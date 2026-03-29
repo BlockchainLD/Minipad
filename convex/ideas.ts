@@ -72,6 +72,7 @@ export const deleteIdea = mutation({
     const idea = await ctx.db.get(args.ideaId);
     if (!idea) throw new ConvexError("Idea not found");
     if (idea.author !== args.author) throw new ConvexError("Only the author can delete their idea");
+    if (idea.status !== "open") throw new ConvexError("Cannot delete a claimed or completed idea");
 
     const upvotes = await ctx.db
       .query("upvotes")
