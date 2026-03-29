@@ -119,6 +119,7 @@ export const adminDeleteAllIdeas = mutation({
     for (const ru of await ctx.db.query("remixUpvotes").collect()) await ctx.db.delete(ru._id);
     for (const r of await ctx.db.query("remixes").collect()) await ctx.db.delete(r._id);
     for (const c of await ctx.db.query("claims").collect()) await ctx.db.delete(c._id);
+    for (const e of await ctx.db.query("buildEndorsements").collect()) await ctx.db.delete(e._id);
     for (const i of await ctx.db.query("ideas").collect()) await ctx.db.delete(i._id);
   },
 });

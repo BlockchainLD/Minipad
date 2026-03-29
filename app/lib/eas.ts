@@ -69,7 +69,8 @@ export function useEAS() {
   const isEASConfigured = Object.values(SCHEMAS).every(s => s && s.length > 0);
 
   const eas: EASContext | null =
-    walletClient && publicClient && walletClient.chain && publicClient.chain?.id === base.id
+    walletClient && publicClient &&
+    walletClient.chain?.id === base.id && publicClient.chain?.id === base.id
       ? { walletClient: walletClient as WalletClient<Transport, Chain>, publicClient }
       : null;
 
