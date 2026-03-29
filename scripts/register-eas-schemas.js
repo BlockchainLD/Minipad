@@ -16,11 +16,11 @@ const SCHEMA_REGISTRY_ADDRESS = "0x4200000000000000000000000000000000000020";
 
 // Schema definitions
 const SCHEMA_DEFINITIONS = {
-  IDEA: "string title, string description, string author, string authorFid, string ideaId, uint256 timestamp",
-  REMIX: "string title, string description, string remixer, string remixerFid, string originalIdeaId, string remixId, uint256 timestamp",
-  CLAIM: "string ideaId, string claimer, string claimerFid, uint256 timestamp",
-  COMPLETION: "string ideaId, string claimer, string miniappUrl, string claimerFid, uint256 timestamp",
-  BUILD_ENDORSEMENT: "string ideaId, string buildUrl, string endorser, string endorserFid, string builderId, uint256 timestamp",
+  IDEA: "string title,string description,string author,string authorFid,string ideaId,uint256 timestamp",
+  REMIX: "string title,string description,string remixer,string remixerFid,string originalIdeaId,string remixId,uint256 timestamp",
+  CLAIM: "string ideaId,string claimer,string claimerFid,uint256 timestamp",
+  COMPLETION: "string ideaId,string claimer,string miniappUrl,string claimerFid,uint256 timestamp",
+  BUILD_ENDORSEMENT: "string ideaId,string buildUrl,string endorser,string endorserFid,string builderId,uint256 timestamp",
 };
 
 async function registerSchemas() {
@@ -59,7 +59,7 @@ async function registerSchemas() {
 
         const schemaUid = await schemaRegistry.register({
           schema: schemaDefinition,
-          resolverAddress: EAS_CONTRACT_ADDRESS,
+          resolverAddress: "0x0000000000000000000000000000000000000000",
           revocable: true,
         });
 

@@ -89,8 +89,8 @@ export const IdeaSubmissionForm = ({ onSuccess, onCancel }: IdeaSubmissionFormPr
       if (ideaId) {
         try {
           await deleteIdea({ ideaId, author: address });
-        } catch {
-          // Rollback failure is silent — the idea may appear without an attestation
+        } catch (rollbackErr) {
+          console.error("Rollback failed — orphaned idea in DB:", ideaId, rollbackErr);
         }
       }
       handleError(error, { operation: "submit idea", component: "IdeaSubmissionForm" });

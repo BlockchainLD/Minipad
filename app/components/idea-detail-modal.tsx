@@ -13,7 +13,7 @@ import { toast } from "sonner";
 import { ErrorBoundary } from "./error-boundary";
 import { RemixForm } from "./remix-form";
 import { useFarcasterData } from "../hooks/use-farcaster-data";
-import { useEAS, createBuildEndorsementAttestation, revokeAttestation, SCHEMAS } from "../lib/eas";
+import { useEAS, createBuildEndorsementAttestation, createRemixAttestation, revokeAttestation, SCHEMAS } from "../lib/eas";
 
 type Idea = {
   _id: Id<"ideas">;
@@ -405,6 +405,7 @@ export const IdeaDetailModal = ({
   const [isEndorsing, setIsEndorsing] = useState(false);
 
   const createRemix = useMutation(api.remixes.createRemix);
+  const deleteRemix = useMutation(api.remixes.deleteRemix);
   const endorseBuildMutation = useMutation(api.endorsements.endorseBuild);
   const removeEndorsementMutation = useMutation(api.endorsements.removeEndorsement);
   const farcasterData = useFarcasterData();
@@ -445,8 +446,11 @@ export const IdeaDetailModal = ({
     authorUsername?: string;
   }) => {
     if (!address) { toast.error("Please connect your wallet"); return; }
+    if (!eas || !isEASConfigured) { toast.error("Wallet not ready or EAS not configured"); return; }
+    let remixId: Id<"remixes"> | null = null;
     try {
-      await createRemix({
+      // Step 1: Save to Convex to get the remixId
+      remixId = await createRemix({
         ideaId: idea._id,
         author: address,
         content: data.content,
@@ -456,11 +460,23 @@ export const IdeaDetailModal = ({
         authorDisplayName: data.authorDisplayName ?? farcasterData?.displayName ?? undefined,
         authorUsername: data.authorUsername ?? farcasterData?.username ?? undefined,
       });
+      // Step 2: Create EAS attestation (required/blocking — rolls back if it fails)
+      await createRemixAttestation(
+        eas,
+        idea.title,
+        data.content,
+        address,
+        idea._id,
+        remixId,
+        (data.authorFid ?? farcasterData?.fid)?.toString()
+      );
       toast.success("Added!");
       setShowRemixForm(false);
-      // No need to manually refresh — RemixesSection's Convex subscription
-      // auto-delivers the new remix because it never unmounted.
+      remixId = null;
     } catch (error) {
+      if (remixId) {
+        deleteRemix({ remixId, author: address }).catch(() => {});
+      }
       handleError(error, { operation: "create remix", component: "IdeaDetailModal" });
       throw error; // rethrow so RemixForm knows submission failed and keeps the text
     }
@@ -490,10 +506,14 @@ export const IdeaDetailModal = ({
         }
       } else {
         // Endorse: EAS first (required/blocking), then Convex
+        if (!idea.deploymentUrl) {
+          toast.error("This build has no deployment URL");
+          return;
+        }
         const attestationUid = await createBuildEndorsementAttestation(
           eas,
           idea._id.toString(),
-          idea.deploymentUrl ?? "",
+          idea.deploymentUrl,
           address,
           farcasterData?.fid?.toString(),
           idea.claimedBy
