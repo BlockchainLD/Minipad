@@ -182,6 +182,7 @@ export const IdeasBoard = ({ onViewChange, onProfileClick, openIdeaId, onIdeaOpe
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [showCompletionForm, setShowCompletionForm] = useState(false);
   const [showEditBuildForm, setShowEditBuildForm] = useState(false);
+  const [claimingIdeaId, setClaimingIdeaId] = useState<Id<"ideas"> | null>(null);
   // autoOpenRemixForm: when set, IdeaDetailModal opens its remix form immediately
   const [autoOpenRemixForm, setAutoOpenRemixForm] = useState(false);
   const [currentSection, setCurrentSection] = useState<SectionOption>("ideasboard");
@@ -250,6 +251,8 @@ export const IdeasBoard = ({ onViewChange, onProfileClick, openIdeaId, onIdeaOpe
   const handleClaim = async (ideaId: Id<"ideas">) => {
     if (!address) { toast.error("Please connect your wallet"); return; }
     if (!eas || !isEASConfigured) { toast.error("Wallet not ready or EAS not configured"); return; }
+    if (claimingIdeaId) return;
+    setClaimingIdeaId(ideaId);
     try {
       // EAS attestation first (required/blocking)
       const attestationUid = await createClaimAttestation(
@@ -270,6 +273,8 @@ export const IdeasBoard = ({ onViewChange, onProfileClick, openIdeaId, onIdeaOpe
       toast.success("Idea claimed! Start building.");
     } catch (error) {
       handleError(error, { operation: "claim idea", component: "IdeasBoard" });
+    } finally {
+      setClaimingIdeaId(null);
     }
   };
 
@@ -554,7 +559,8 @@ export const IdeasBoard = ({ onViewChange, onProfileClick, openIdeaId, onIdeaOpe
               {idea.status === "open" && (
                 <button
                   onClick={(e) => handleButtonClick(e, () => handleClaim(idea._id))}
-                  className="ml-auto text-gray-400 hover:text-yellow-500 transition-colors"
+                  disabled={claimingIdeaId === idea._id}
+                  className="ml-auto text-gray-400 hover:text-yellow-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   title="Claim this idea"
                 >
                   <Hammer width={15} height={15} />
@@ -685,7 +691,11 @@ export const IdeasBoard = ({ onViewChange, onProfileClick, openIdeaId, onIdeaOpe
 
               {idea.status === "open" && (
                 <div className="ml-auto">
-                  <ClaimButton onClick={(e) => handleButtonClick(e, () => handleClaim(idea._id))} />
+                  <ClaimButton
+                    onClick={(e) => handleButtonClick(e, () => handleClaim(idea._id))}
+                    loading={claimingIdeaId === idea._id}
+                    disabled={!!claimingIdeaId}
+                  />
                 </div>
               )}
 
@@ -809,6 +819,7 @@ export const IdeasBoard = ({ onViewChange, onProfileClick, openIdeaId, onIdeaOpe
             onProfileClick={onProfileClick}
             address={address}
             autoOpenRemixForm={autoOpenRemixForm}
+            isClaimLoading={claimingIdeaId === selectedIdea?._id}
           />
         </ErrorBoundary>
       )}

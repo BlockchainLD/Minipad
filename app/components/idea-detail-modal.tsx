@@ -262,6 +262,7 @@ interface IdeaDetailModalProps {
   address: string | undefined;
   // When true, the remix form opens immediately (e.g. from card Flash button)
   autoOpenRemixForm?: boolean;
+  isClaimLoading?: boolean;
 }
 
 // Isolated component so useQuery errors are caught by ErrorBoundary
@@ -408,6 +409,7 @@ export const IdeaDetailModal = ({
   onProfileClick,
   address,
   autoOpenRemixForm = false,
+  isClaimLoading = false,
 }: IdeaDetailModalProps) => {
   const [optimisticUpvotes, setOptimisticUpvotes] = useState<number | null>(null);
   const [showRemixForm, setShowRemixForm] = useState(false);
@@ -772,7 +774,11 @@ export const IdeaDetailModal = ({
             )}
 
             {idea.status === "open" && (
-              <ClaimButton onClick={(e) => handleButtonClick(e, () => onClaim(idea._id))} />
+              <ClaimButton
+                onClick={(e) => handleButtonClick(e, () => onClaim(idea._id))}
+                loading={isClaimLoading}
+                disabled={isClaimLoading}
+              />
             )}
 
             {isBuiltByMe && (
