@@ -272,7 +272,7 @@ export async function revokeAttestation(
   if (!attestationUid) throw new Error("Attestation UID is required for revocation");
   if (!schemaUid) throw new Error("Schema UID is required for revocation");
 
-  await eas.walletClient.writeContract({
+  const hash = await eas.walletClient.writeContract({
     address: EAS_CONTRACT_ADDRESS,
     abi: EAS_ABI,
     functionName: "revoke",
@@ -286,4 +286,6 @@ export async function revokeAttestation(
       },
     }],
   });
+
+  await eas.publicClient.waitForTransactionReceipt({ hash });
 }

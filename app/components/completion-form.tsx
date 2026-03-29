@@ -176,7 +176,7 @@ export const CompletionForm = ({
             fullWidth={true}
             icon={<Tools width={16} height={16} />}
           >
-            Submit Build
+            {mode === "edit" ? "Update Build" : "Submit Build"}
           </StandardButton>
           <StandardButton
             type="button"

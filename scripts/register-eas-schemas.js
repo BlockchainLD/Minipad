@@ -6,9 +6,7 @@
  */
 
 const { SchemaRegistry } = require("@ethereum-attestation-service/eas-sdk");
-const { createWalletClient, http } = require("viem");
-const { base } = require("viem/chains");
-const { privateKeyToAccount } = require("viem/accounts");
+const { ethers } = require("ethers");
 
 // EAS Configuration for Base
 const EAS_CONTRACT_ADDRESS = "0x4200000000000000000000000000000000000021";
@@ -33,18 +31,13 @@ async function registerSchemas() {
   }
 
   try {
-    // Create account and clients
-    const account = privateKeyToAccount(privateKey);
-    console.log("🔑 Using account:", account.address);
-
-    const walletClient = createWalletClient({
-      account,
-      chain: base,
-      transport: http("https://mainnet.base.org"),
-    });
+    // Create ethers signer — EAS SDK requires an ethers v6 Signer
+    const provider = new ethers.JsonRpcProvider("https://mainnet.base.org");
+    const signer = new ethers.Wallet(privateKey, provider);
+    console.log("🔑 Using account:", signer.address);
 
     const schemaRegistry = new SchemaRegistry(SCHEMA_REGISTRY_ADDRESS);
-    schemaRegistry.connect(walletClient);
+    schemaRegistry.connect(signer);
 
     console.log("🌐 Connected to Base mainnet");
     console.log("📋 Registering schemas...\n");
@@ -75,7 +68,7 @@ async function registerSchemas() {
     // Output environment variables
     console.log("🎉 All schemas registered successfully!\n");
     console.log("📋 Add these environment variables to your .env.local file:\n");
-    
+
     for (const [schemaName, schemaUid] of Object.entries(registeredSchemas)) {
       console.log(`NEXT_PUBLIC_${schemaName}_SCHEMA_UID=${schemaUid}`);
     }
