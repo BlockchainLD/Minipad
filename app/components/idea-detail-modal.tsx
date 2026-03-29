@@ -15,6 +15,7 @@ import { RemixForm } from "./remix-form";
 import { useFarcasterData } from "../hooks/use-farcaster-data";
 import { useEAS, createBuildEndorsementAttestation, createRemixAttestation, revokeAttestation, SCHEMAS } from "../lib/eas";
 
+
 type Idea = {
   _id: Id<"ideas">;
   title: string;
@@ -53,6 +54,7 @@ type Remix = {
   type: "addition" | "edit" | "comment";
   timestamp: number;
   upvotes: number;
+  attestationUid?: string;
 };
 
 const TYPE_CONFIG = {
@@ -278,14 +280,21 @@ const RemixesSection = ({
   const deleteRemix = useMutation(api.remixes.deleteRemix);
   const [deleteConfirmingRemixId, setDeleteConfirmingRemixId] = useState<Id<"remixes"> | null>(null);
   const [deletingId, setDeletingId] = useState<Id<"remixes"> | null>(null);
+  const { eas } = useEAS();
 
   const handleRemixDelete = async (remixId: Id<"remixes">) => {
     if (!address || deletingId) return;
     setDeleteConfirmingRemixId(null);
     setDeletingId(remixId);
     try {
-      await deleteRemix({ remixId, author: address });
+      const attestationUid = await deleteRemix({ remixId, author: address });
       toast.success("Deleted.");
+      // Best-effort EAS revocation after Convex delete succeeds
+      if (attestationUid && eas) {
+        revokeAttestation(eas, attestationUid, SCHEMAS.REMIX).catch(() => {
+          toast.warning("Deleted, but failed to revoke on-chain attestation.");
+        });
+      }
     } catch (error) {
       handleError(error, { operation: "delete remix", component: "IdeaDetailModal" });
     } finally {
@@ -409,6 +418,7 @@ export const IdeaDetailModal = ({
 
   const createRemix = useMutation(api.remixes.createRemix);
   const deleteRemix = useMutation(api.remixes.deleteRemix);
+  const updateRemixAttestation = useMutation(api.remixes.updateRemixAttestation);
   const endorseBuildMutation = useMutation(api.endorsements.endorseBuild);
   const removeEndorsementMutation = useMutation(api.endorsements.removeEndorsement);
   const farcasterData = useFarcasterData();
@@ -464,7 +474,7 @@ export const IdeaDetailModal = ({
         authorUsername: data.authorUsername ?? farcasterData?.username ?? undefined,
       });
       // Step 2: Create EAS attestation (required/blocking — rolls back if it fails)
-      await createRemixAttestation(
+      const attestationUid = await createRemixAttestation(
         eas,
         idea.title,
         data.content,
@@ -473,6 +483,8 @@ export const IdeaDetailModal = ({
         remixId,
         (data.authorFid ?? farcasterData?.fid)?.toString()
       );
+      // Step 3: Persist attestation UID back to Convex (best-effort — remix already exists)
+      updateRemixAttestation({ remixId, attestationUid }).catch(() => {});
       toast.success("Added!");
       setShowRemixForm(false);
       remixId = null;

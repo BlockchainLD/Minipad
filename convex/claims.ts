@@ -51,13 +51,29 @@ export const completeIdea = mutation({
       throw new ConvexError("Idea is not claimed by this user");
     }
 
+    const completedAt = Date.now();
+
     await ctx.db.patch(args.ideaId, {
       status: "completed",
       githubUrl: args.githubUrl,
       deploymentUrl: args.deploymentUrl,
-      completedAt: Date.now(),
+      completedAt,
       completionAttestationUid: args.attestationUid,
     });
+
+    // Keep claims table in sync
+    const claim = await ctx.db
+      .query("claims")
+      .withIndex("by_idea", (q) => q.eq("ideaId", args.ideaId))
+      .filter((q) => q.eq(q.field("claimer"), args.claimer))
+      .first();
+    if (claim) {
+      await ctx.db.patch(claim._id, {
+        status: "completed",
+        completedAt,
+        miniappUrl: args.deploymentUrl,
+      });
+    }
   },
 });
 
@@ -80,6 +96,16 @@ export const updateBuild = mutation({
       deploymentUrl: args.deploymentUrl,
       completionAttestationUid: args.attestationUid,
     });
+
+    // Keep claims table in sync
+    const claim = await ctx.db
+      .query("claims")
+      .withIndex("by_idea", (q) => q.eq("ideaId", args.ideaId))
+      .filter((q) => q.eq(q.field("claimer"), args.claimer))
+      .first();
+    if (claim) {
+      await ctx.db.patch(claim._id, { miniappUrl: args.deploymentUrl });
+    }
   },
 });
 

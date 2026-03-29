@@ -43,6 +43,8 @@ export const deleteRemix = mutation({
     if (!remix) throw new ConvexError("Remix not found");
     if (remix.author.toLowerCase() !== args.author.toLowerCase()) throw new ConvexError("Only the author can delete their remix");
 
+    const attestationUid = remix.attestationUid ?? null;
+
     const upvotes = await ctx.db
       .query("remixUpvotes")
       .withIndex("by_remix", (q) => q.eq("remixId", args.remixId))
@@ -51,6 +53,18 @@ export const deleteRemix = mutation({
       await ctx.db.delete(upvote._id);
     }
     await ctx.db.delete(args.remixId);
+
+    return attestationUid;
+  },
+});
+
+export const updateRemixAttestation = mutation({
+  args: {
+    remixId: v.id("remixes"),
+    attestationUid: v.string(),
+  },
+  handler: async (ctx, args) => {
+    await ctx.db.patch(args.remixId, { attestationUid: args.attestationUid });
   },
 });
 
