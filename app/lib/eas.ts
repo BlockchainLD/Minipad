@@ -1,11 +1,46 @@
-import { EAS, SchemaEncoder } from "@ethereum-attestation-service/eas-sdk";
-import { BrowserProvider, JsonRpcSigner } from "ethers";
+import { SchemaEncoder } from "@ethereum-attestation-service/eas-sdk";
 import { usePublicClient, useWalletClient } from "wagmi";
 import { base } from "viem/chains";
-import { useCallback, useEffect, useState } from "react";
+import type { WalletClient, PublicClient } from "viem";
 
 // EAS Configuration for Base
-const EAS_CONTRACT_ADDRESS = "0x4200000000000000000000000000000000000021";
+const EAS_CONTRACT_ADDRESS = "0x4200000000000000000000000000000000000021" as const;
+
+// Attested(address indexed recipient, address indexed attester, bytes32 uid, bytes32 indexed schemaUID)
+const ATTESTED_TOPIC = "0x8bf46bf4cfd674fa735a3d63ec1c9ad4153f033c290341f3a588b75685141b35" as const;
+
+const EAS_ABI = [
+  {
+    name: "attest",
+    type: "function",
+    stateMutability: "payable",
+    inputs: [{ name: "request", type: "tuple", components: [
+      { name: "schema", type: "bytes32" },
+      { name: "data", type: "tuple", components: [
+        { name: "recipient", type: "address" },
+        { name: "expirationTime", type: "uint64" },
+        { name: "revocable", type: "bool" },
+        { name: "refUID", type: "bytes32" },
+        { name: "data", type: "bytes" },
+        { name: "value", type: "uint256" },
+      ]},
+    ]}],
+    outputs: [{ name: "", type: "bytes32" }],
+  },
+  {
+    name: "revoke",
+    type: "function",
+    stateMutability: "payable",
+    inputs: [{ name: "request", type: "tuple", components: [
+      { name: "schema", type: "bytes32" },
+      { name: "data", type: "tuple", components: [
+        { name: "uid", type: "bytes32" },
+        { name: "value", type: "uint256" },
+      ]},
+    ]}],
+    outputs: [],
+  },
+] as const;
 
 // Schema definitions for different types of attestations
 export const SCHEMA_DEFINITIONS = {
@@ -16,7 +51,7 @@ export const SCHEMA_DEFINITIONS = {
   BUILD_ENDORSEMENT: "string ideaID,string buildUrl,string endorser,string endorseFid,string builderId,uint256 timestamp",
 };
 
-// Schema UIDs - these will be registered and populated
+// Schema UIDs populated from environment variables
 export const SCHEMAS = {
   IDEA: process.env.NEXT_PUBLIC_IDEA_SCHEMA_UID || "",
   REMIX: process.env.NEXT_PUBLIC_REMIX_SCHEMA_UID || "",
@@ -25,67 +60,61 @@ export const SCHEMAS = {
   BUILD_ENDORSEMENT: process.env.NEXT_PUBLIC_BUILD_ENDORSEMENT_SCHEMA_UID || "",
 };
 
-// Custom hook for EAS functionality following Base/Farcaster best practices
+export type EASContext = { walletClient: WalletClient; publicClient: PublicClient };
+
 export function useEAS() {
   const publicClient = usePublicClient();
   const { data: walletClient } = useWalletClient();
-  const [eas, setEas] = useState<EAS | null>(null);
-  const [isInitialized, setIsInitialized] = useState(false);
 
-  const initializeEAS = useCallback(async () => {
-    if (!publicClient || !walletClient) {
-      throw new Error("Wallet not connected");
-    }
+  const isEASConfigured = Object.values(SCHEMAS).every(s => s && s.length > 0);
 
-    // Ensure we're on Base network
-    if (publicClient.chain?.id !== base.id) {
-      throw new Error("Please switch to Base network");
-    }
+  const eas: EASContext | null =
+    walletClient && publicClient && publicClient.chain?.id === base.id
+      ? { walletClient, publicClient }
+      : null;
 
-    // Convert viem wallet client to ethers signer (EAS SDK requires ethers)
-    const { account, chain, transport } = walletClient;
-    const network = { chainId: chain.id, name: chain.name };
-    const provider = new BrowserProvider(transport, network);
-    const ethersSigner = new JsonRpcSigner(provider, account.address);
-
-    // Initialize EAS
-    const easInstance = new EAS(EAS_CONTRACT_ADDRESS);
-    easInstance.connect(ethersSigner);
-    setEas(easInstance);
-
-    // Check if schemas are configured via environment variables
-    const hasAllSchemas = Object.values(SCHEMAS).every(schema => schema && schema.length > 0);
-
-    if (hasAllSchemas) {
-      setIsInitialized(true);
-    } else {
-      console.error("EAS schemas not configured. Please run the schema registration script and update environment variables.");
-      throw new Error("EAS schemas not configured. Please run the schema registration script and update environment variables.");
-    }
-  }, [publicClient, walletClient]);
-
-  useEffect(() => {
-    if (publicClient && walletClient && !isInitialized) {
-      initializeEAS().catch(console.error);
-    }
-  }, [publicClient, walletClient, isInitialized, initializeEAS]);
-
-  // Check if EAS is properly configured
-  const isEASConfigured = Object.values(SCHEMAS).every(schema => schema && schema.length > 0);
-
-  return {
-    eas,
-    isInitialized,
-    isEASConfigured,
-    walletClient,
-    initializeEAS
-  };
+  return { eas, isEASConfigured };
 }
 
-// EAS helper functions — all return the attestation UID string directly
+// Internal helper — sends an attestation via viem and returns the UID from the receipt
+async function sendAttestation(
+  ctx: EASContext,
+  schemaUid: string,
+  encodedData: string,
+  recipient: string
+): Promise<string> {
+  const hash = await ctx.walletClient.writeContract({
+    address: EAS_CONTRACT_ADDRESS,
+    abi: EAS_ABI,
+    functionName: "attest",
+    args: [{
+      schema: schemaUid as `0x${string}`,
+      data: {
+        recipient: recipient as `0x${string}`,
+        expirationTime: 0n,
+        revocable: true,
+        refUID: "0x0000000000000000000000000000000000000000000000000000000000000000",
+        data: encodedData as `0x${string}`,
+        value: 0n,
+      },
+    }],
+  });
+
+  const receipt = await ctx.publicClient.waitForTransactionReceipt({ hash });
+
+  for (const log of receipt.logs) {
+    if (
+      log.address.toLowerCase() === EAS_CONTRACT_ADDRESS.toLowerCase() &&
+      log.topics[0] === ATTESTED_TOPIC
+    ) {
+      return log.data; // uid is the only non-indexed field — lives in log.data
+    }
+  }
+  throw new Error("Attestation UID not found in receipt");
+}
 
 export async function createIdeaAttestation(
-  eas: EAS,
+  eas: EASContext,
   title: string,
   description: string,
   author: string,
@@ -95,9 +124,8 @@ export async function createIdeaAttestation(
   if (!title || !description || !author) {
     throw new Error("Missing required fields for idea attestation");
   }
-
   if (!SCHEMAS.IDEA) {
-    throw new Error("Idea schema not registered. Please ensure EAS is properly initialized.");
+    throw new Error("Idea schema not configured.");
   }
 
   const schemaEncoder = new SchemaEncoder(SCHEMA_DEFINITIONS.IDEA);
@@ -110,22 +138,11 @@ export async function createIdeaAttestation(
     { name: "timestamp", value: BigInt(Math.floor(Date.now() / 1000)), type: "uint256" },
   ]);
 
-  const tx = await eas.attest({
-    schema: SCHEMAS.IDEA,
-    data: {
-      recipient: author,
-      expirationTime: BigInt(0),
-      revocable: true,
-      data: encodedData,
-    },
-  });
-
-  return await tx.wait();
+  return sendAttestation(eas, SCHEMAS.IDEA, encodedData, author);
 }
 
-// Create a remix attestation
 export async function createRemixAttestation(
-  eas: EAS,
+  eas: EASContext,
   title: string,
   description: string,
   remixer: string,
@@ -133,15 +150,14 @@ export async function createRemixAttestation(
   remixId: string | { toString(): string },
   remixerFid?: string
 ): Promise<string> {
-  const originalIdeaIdStr = typeof originalIdeaId === 'string' ? originalIdeaId : originalIdeaId.toString();
-  const remixIdStr = typeof remixId === 'string' ? remixId : remixId.toString();
+  const originalIdeaIdStr = typeof originalIdeaId === "string" ? originalIdeaId : originalIdeaId.toString();
+  const remixIdStr = typeof remixId === "string" ? remixId : remixId.toString();
 
   if (!title || !description || !remixer || !originalIdeaIdStr || !remixIdStr) {
     throw new Error("Missing required fields for remix attestation");
   }
-
   if (!SCHEMAS.REMIX) {
-    throw new Error("Remix schema not registered. Please ensure EAS is properly initialized.");
+    throw new Error("Remix schema not configured.");
   }
 
   const schemaEncoder = new SchemaEncoder(SCHEMA_DEFINITIONS.REMIX);
@@ -155,34 +171,22 @@ export async function createRemixAttestation(
     { name: "timestamp", value: BigInt(Math.floor(Date.now() / 1000)), type: "uint256" },
   ]);
 
-  const tx = await eas.attest({
-    schema: SCHEMAS.REMIX,
-    data: {
-      recipient: remixer,
-      expirationTime: BigInt(0),
-      revocable: true,
-      data: encodedData,
-    },
-  });
-
-  return await tx.wait();
+  return sendAttestation(eas, SCHEMAS.REMIX, encodedData, remixer);
 }
 
-// Create a claim attestation
 export async function createClaimAttestation(
-  eas: EAS,
+  eas: EASContext,
   ideaId: string | { toString(): string },
   claimer: string,
   claimerFid?: string
 ): Promise<string> {
-  const ideaIdStr = typeof ideaId === 'string' ? ideaId : ideaId.toString();
+  const ideaIdStr = typeof ideaId === "string" ? ideaId : ideaId.toString();
 
   if (!ideaIdStr || !claimer) {
     throw new Error("Missing required fields for claim attestation");
   }
-
   if (!SCHEMAS.CLAIM) {
-    throw new Error("Claim schema not registered. Please ensure EAS is properly initialized.");
+    throw new Error("Claim schema not configured.");
   }
 
   const schemaEncoder = new SchemaEncoder(SCHEMA_DEFINITIONS.CLAIM);
@@ -193,41 +197,28 @@ export async function createClaimAttestation(
     { name: "timestamp", value: BigInt(Math.floor(Date.now() / 1000)), type: "uint256" },
   ]);
 
-  const tx = await eas.attest({
-    schema: SCHEMAS.CLAIM,
-    data: {
-      recipient: claimer,
-      expirationTime: BigInt(0),
-      revocable: true,
-      data: encodedData,
-    },
-  });
-
-  return await tx.wait();
+  return sendAttestation(eas, SCHEMAS.CLAIM, encodedData, claimer);
 }
 
-// Create a completion attestation
 export async function createCompletionAttestation(
-  eas: EAS,
+  eas: EASContext,
   ideaId: string | { toString(): string },
   claimer: string,
   miniappUrl: string,
   claimerFid?: string
 ): Promise<string> {
-  const ideaIdStr = typeof ideaId === 'string' ? ideaId : ideaId.toString();
+  const ideaIdStr = typeof ideaId === "string" ? ideaId : ideaId.toString();
 
   if (!ideaIdStr || !claimer || !miniappUrl) {
     throw new Error("Missing required fields for completion attestation");
   }
-
   try {
     new URL(miniappUrl);
   } catch {
     throw new Error("Invalid miniapp URL format");
   }
-
   if (!SCHEMAS.COMPLETION) {
-    throw new Error("Completion schema not registered. Please ensure EAS is properly initialized.");
+    throw new Error("Completion schema not configured.");
   }
 
   const schemaEncoder = new SchemaEncoder(SCHEMA_DEFINITIONS.COMPLETION);
@@ -239,22 +230,11 @@ export async function createCompletionAttestation(
     { name: "timestamp", value: BigInt(Math.floor(Date.now() / 1000)), type: "uint256" },
   ]);
 
-  const tx = await eas.attest({
-    schema: SCHEMAS.COMPLETION,
-    data: {
-      recipient: claimer,
-      expirationTime: BigInt(0),
-      revocable: true,
-      data: encodedData,
-    },
-  });
-
-  return await tx.wait();
+  return sendAttestation(eas, SCHEMAS.COMPLETION, encodedData, claimer);
 }
 
-// Create a build endorsement attestation (user attesting they've tried the build)
 export async function createBuildEndorsementAttestation(
-  eas: EAS,
+  eas: EASContext,
   ideaId: string,
   buildUrl: string,
   endorser: string,
@@ -264,9 +244,8 @@ export async function createBuildEndorsementAttestation(
   if (!ideaId || !endorser) {
     throw new Error("Missing required fields for build endorsement attestation");
   }
-
   if (!SCHEMAS.BUILD_ENDORSEMENT) {
-    throw new Error("Build endorsement schema not registered. Please ensure EAS is properly initialized.");
+    throw new Error("Build endorsement schema not configured.");
   }
 
   const schemaEncoder = new SchemaEncoder(SCHEMA_DEFINITIONS.BUILD_ENDORSEMENT);
@@ -279,39 +258,27 @@ export async function createBuildEndorsementAttestation(
     { name: "timestamp", value: BigInt(Math.floor(Date.now() / 1000)), type: "uint256" },
   ]);
 
-  const tx = await eas.attest({
-    schema: SCHEMAS.BUILD_ENDORSEMENT,
-    data: {
-      recipient: endorser,
-      expirationTime: BigInt(0),
-      revocable: true,
-      data: encodedData,
-    },
-  });
-
-  return await tx.wait();
+  return sendAttestation(eas, SCHEMAS.BUILD_ENDORSEMENT, encodedData, endorser);
 }
 
-// Revoke an attestation by UID
 export async function revokeAttestation(
-  eas: EAS,
+  eas: EASContext,
   attestationUid: string,
   schemaUid: string
 ): Promise<void> {
-  if (!attestationUid) {
-    throw new Error("Attestation UID is required for revocation");
-  }
+  if (!attestationUid) throw new Error("Attestation UID is required for revocation");
+  if (!schemaUid) throw new Error("Schema UID is required for revocation");
 
-  if (!schemaUid) {
-    throw new Error("Schema UID is required for revocation");
-  }
-
-  const tx = await eas.revoke({
-    schema: schemaUid,
-    data: {
-      uid: attestationUid,
-    },
+  await eas.walletClient.writeContract({
+    address: EAS_CONTRACT_ADDRESS,
+    abi: EAS_ABI,
+    functionName: "revoke",
+    args: [{
+      schema: schemaUid as `0x${string}`,
+      data: {
+        uid: attestationUid as `0x${string}`,
+        value: 0n,
+      },
+    }],
   });
-
-  await tx.wait();
 }
