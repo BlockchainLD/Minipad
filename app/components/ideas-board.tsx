@@ -37,6 +37,7 @@ type Idea = {
   isRemix?: boolean;
   originalIdeaId?: Id<"ideas">;
   attestationUid?: string;
+  completionAttestationUid?: string;
   githubUrl?: string;
   deploymentUrl?: string;
   remixCount?: number;
@@ -180,6 +181,7 @@ export const IdeasBoard = ({ onViewChange, onProfileClick, openIdeaId, onIdeaOpe
   const [selectedIdea, setSelectedIdea] = useState<Idea | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [showCompletionForm, setShowCompletionForm] = useState(false);
+  const [showEditBuildForm, setShowEditBuildForm] = useState(false);
   // autoOpenRemixForm: when set, IdeaDetailModal opens its remix form immediately
   const [autoOpenRemixForm, setAutoOpenRemixForm] = useState(false);
   const [currentSection, setCurrentSection] = useState<SectionOption>("ideasboard");
@@ -317,6 +319,7 @@ export const IdeasBoard = ({ onViewChange, onProfileClick, openIdeaId, onIdeaOpe
     setIsModalOpen(false);
     setAutoOpenRemixForm(false);
     setShowCompletionForm(false);
+    setShowEditBuildForm(false);
     setSelectedIdea(null);
   };
 
@@ -753,10 +756,29 @@ export const IdeasBoard = ({ onViewChange, onProfileClick, openIdeaId, onIdeaOpe
         </div>
       )}
 
+      {/* Edit Build Form Modal */}
+      {showEditBuildForm && selectedIdea && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-3xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <CompletionForm
+              ideaId={selectedIdea._id}
+              mode="edit"
+              initialGithubUrl={selectedIdea.githubUrl ?? ""}
+              initialDeploymentUrl={selectedIdea.deploymentUrl ?? ""}
+              oldAttestationUid={selectedIdea.completionAttestationUid}
+              onSuccess={() => {
+                setShowEditBuildForm(false);
+              }}
+              onCancel={() => setShowEditBuildForm(false)}
+            />
+          </div>
+        </div>
+      )}
+
       {/* Idea Detail Modal — RemixForm is now rendered inside IdeaDetailModal
           as a z-[60] overlay so RemixesSection stays mounted and its Convex
           subscription delivers new remixes the moment createRemix completes. */}
-      {selectedIdea && !showCompletionForm && (
+      {selectedIdea && !showCompletionForm && !showEditBuildForm && (
         <ErrorBoundary
           fallback={
             <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50">
@@ -783,6 +805,7 @@ export const IdeasBoard = ({ onViewChange, onProfileClick, openIdeaId, onIdeaOpe
             onUnclaim={handleUnclaim}
             onDelete={handleDelete}
             onOpenCompletionForm={() => setShowCompletionForm(true)}
+            onOpenEditBuildForm={() => setShowEditBuildForm(true)}
             onProfileClick={onProfileClick}
             address={address}
             autoOpenRemixForm={autoOpenRemixForm}

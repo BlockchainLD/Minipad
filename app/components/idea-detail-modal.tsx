@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { Id } from "../../convex/_generated/dataModel";
-import { Heart, Flash, Xmark, Trash, Plus, EditPencil, MessageText, Medal1stSolid } from "iconoir-react";
+import { Heart, Flash, Xmark, Trash, Plus, EditPencil, MessageText, Medal1stSolid, Tools } from "iconoir-react";
 import { UserAvatar } from "./ui/user-avatar";
 import { StatusBadge } from "./ui/status-badge";
 import { ClaimButton, UnclaimButton, SubmitBuildButton } from "./ui/standard-button";
@@ -35,6 +35,7 @@ type Idea = {
   isRemix?: boolean;
   originalIdeaId?: Id<"ideas">;
   attestationUid?: string;
+  completionAttestationUid?: string;
   githubUrl?: string;
   deploymentUrl?: string;
 };
@@ -254,6 +255,7 @@ interface IdeaDetailModalProps {
   onUnclaim: (id: Id<"ideas">) => void;
   onDelete: (id: Id<"ideas">) => void;
   onOpenCompletionForm: () => void;
+  onOpenEditBuildForm: () => void;
   onProfileClick?: (user: { address: string; avatarUrl?: string; displayName?: string; username?: string; fid?: number }) => void;
   address: string | undefined;
   // When true, the remix form opens immediately (e.g. from card Flash button)
@@ -393,6 +395,7 @@ export const IdeaDetailModal = ({
   onUnclaim,
   onDelete,
   onOpenCompletionForm,
+  onOpenEditBuildForm,
   onProfileClick,
   address,
   autoOpenRemixForm = false,
@@ -478,7 +481,11 @@ export const IdeaDetailModal = ({
         deleteRemix({ remixId, author: address }).catch(() => {});
       }
       handleError(error, { operation: "create remix", component: "IdeaDetailModal" });
-      throw error; // rethrow so RemixForm knows submission failed and keeps the text
+      const msg = error instanceof Error ? error.message : String(error);
+      // Don't rethrow user rejections — toast already shown, no inline error needed
+      if (!msg.includes("User rejected") && !msg.includes("rejected the request")) {
+        throw error;
+      }
     }
   };
 
@@ -555,6 +562,7 @@ export const IdeaDetailModal = ({
   if (!isOpen || !idea) return null;
 
   const isClaimedByMe = idea.status === "claimed" && !!address && idea.claimedBy === address;
+  const isBuiltByMe = idea.status === "completed" && !!address && idea.claimedBy === address;
 
   return (
     <div
@@ -755,6 +763,17 @@ export const IdeaDetailModal = ({
               <ClaimButton onClick={(e) => handleButtonClick(e, () => onClaim(idea._id))} />
             )}
 
+            {isBuiltByMe && (
+              <button
+                onClick={(e) => handleButtonClick(e, onOpenEditBuildForm)}
+                className="flex items-center gap-1 px-2 py-1 text-xs text-gray-500 bg-transparent hover:bg-gray-100 border border-transparent hover:border-gray-200 rounded-xl transition-all duration-200 font-medium cursor-pointer active:scale-95"
+                title="Edit your build"
+              >
+                <Tools width={12} height={12} />
+                Edit Build
+              </button>
+            )}
+
             {isClaimedByMe && (
               <>
                 <SubmitBuildButton
@@ -797,7 +816,7 @@ export const IdeaDetailModal = ({
               </>
             )}
 
-            {address && idea.author === address && (
+            {address && idea.author === address && idea.status === "open" && (
               showDeleteConfirm ? (
                 <div className="flex items-center gap-1.5">
                   <span className="text-sm text-red-600">Delete idea?</span>
