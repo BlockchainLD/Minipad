@@ -1,4 +1,5 @@
 import { EAS, SchemaEncoder } from "@ethereum-attestation-service/eas-sdk";
+import { BrowserProvider, JsonRpcSigner } from "ethers";
 import { usePublicClient, useWalletClient } from "wagmi";
 import { base } from "viem/chains";
 import { useCallback, useEffect, useState } from "react";
@@ -41,10 +42,15 @@ export function useEAS() {
       throw new Error("Please switch to Base network");
     }
 
+    // Convert viem wallet client to ethers signer (EAS SDK requires ethers)
+    const { account, chain, transport } = walletClient;
+    const network = { chainId: chain.id, name: chain.name };
+    const provider = new BrowserProvider(transport, network);
+    const ethersSigner = new JsonRpcSigner(provider, account.address);
+
     // Initialize EAS
     const easInstance = new EAS(EAS_CONTRACT_ADDRESS);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    easInstance.connect(walletClient as any);
+    easInstance.connect(ethersSigner);
     setEas(easInstance);
 
     // Check if schemas are configured via environment variables
