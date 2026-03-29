@@ -6,7 +6,7 @@ import { api } from "../../convex/_generated/api";
 import { useAccount } from "wagmi";
 import { toast } from "sonner";
 import { Id } from "../../convex/_generated/dataModel";
-import { Heart, Flash, Hammer, LightBulb, OpenNewWindow } from "iconoir-react";
+import { Heart, Flash, Hammer, LightBulb, OpenNewWindow, Medal1stSolid } from "iconoir-react";
 import { SectionOption } from "./idea-filter";
 import { CompletionForm } from "./completion-form";
 import { UserAvatar } from "./ui/user-avatar";
@@ -15,6 +15,7 @@ import { handleError } from "../lib/error-handler";
 import { IdeaDetailModal } from "./idea-detail-modal";
 import { ErrorBoundary } from "./error-boundary";
 import { useFarcasterData } from "../hooks/use-farcaster-data";
+import { useEAS, createClaimAttestation, revokeAttestation, SCHEMAS } from "../lib/eas";
 
 type Idea = {
   _id: Id<"ideas">;
@@ -150,6 +151,17 @@ const CardUpvoteButton = ({
   );
 };
 
+const EndorsementCountBadge = ({ ideaId }: { ideaId: Id<"ideas"> }) => {
+  const count = useQuery(api.endorsements.getEndorsementCount, { ideaId });
+  if (!count) return null;
+  return (
+    <span className="flex items-center gap-1">
+      <Medal1stSolid width={15} height={15} className="text-yellow-500" />
+      <span className="text-xs font-semibold text-gray-600">{count}</span>
+    </span>
+  );
+};
+
 interface IdeasBoardProps {
   onViewChange?: (view: "board" | "submit" | "complete" | "confirmation") => void;
   onProfileClick?: (user: { address: string; avatarUrl?: string; displayName?: string; username?: string; fid?: number }) => void;
@@ -163,6 +175,7 @@ interface IdeasBoardProps {
 export const IdeasBoard = ({ onViewChange, onProfileClick, openIdeaId, onIdeaOpened, isGridView = false, onToggleGrid, isAllFeed = false }: IdeasBoardProps) => {
   const { address } = useAccount();
   const farcasterData = useFarcasterData();
+  const { eas, isEASConfigured } = useEAS();
 
   const [selectedIdea, setSelectedIdea] = useState<Idea | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -234,10 +247,19 @@ export const IdeasBoard = ({ onViewChange, onProfileClick, openIdeaId, onIdeaOpe
 
   const handleClaim = async (ideaId: Id<"ideas">) => {
     if (!address) { toast.error("Please connect your wallet"); return; }
+    if (!eas || !isEASConfigured) { toast.error("Wallet not ready or EAS not configured"); return; }
     try {
+      // EAS attestation first (required/blocking)
+      const attestationUid = await createClaimAttestation(
+        eas,
+        ideaId,
+        address,
+        farcasterData?.fid?.toString()
+      );
       await claimIdea({
         ideaId,
         claimer: address,
+        attestationUid,
         claimerFid: farcasterData?.fid,
         claimerAvatar: farcasterData?.pfp?.url,
         claimerDisplayName: farcasterData?.displayName,
@@ -252,8 +274,15 @@ export const IdeasBoard = ({ onViewChange, onProfileClick, openIdeaId, onIdeaOpe
   const handleUnclaim = async (ideaId: Id<"ideas">) => {
     if (!address) { toast.error("Please connect your wallet"); return; }
     try {
-      await unclaimIdea({ ideaId, claimer: address });
+      // Convex first — returns the claim's attestation UID
+      const attestationUid = await unclaimIdea({ ideaId, claimer: address });
       toast.success("Idea unclaimed.");
+      // Best-effort EAS revocation after Convex succeeds
+      if (attestationUid && eas) {
+        revokeAttestation(eas, attestationUid, SCHEMAS.CLAIM).catch(() => {
+          toast.warning("Unclaimed, but failed to revoke on-chain attestation.");
+        });
+      }
     } catch (error) {
       handleError(error, { operation: "unclaim idea", component: "IdeasBoard" });
     }
@@ -261,10 +290,18 @@ export const IdeasBoard = ({ onViewChange, onProfileClick, openIdeaId, onIdeaOpe
 
   const handleDelete = async (ideaId: Id<"ideas">) => {
     if (!address) { toast.error("Please connect your wallet"); return; }
+    // Capture attestation UID before deletion (selectedIdea holds current state)
+    const attestationUid = selectedIdea?.attestationUid;
     try {
       await deleteIdea({ ideaId, author: address });
       toast.success("Idea deleted.");
       closeModal();
+      // Best-effort EAS revocation after Convex succeeds
+      if (attestationUid && eas) {
+        revokeAttestation(eas, attestationUid, SCHEMAS.IDEA).catch(() => {
+          toast.warning("Deleted, but failed to revoke on-chain attestation.");
+        });
+      }
     } catch (error) {
       handleError(error, { operation: "delete idea", component: "IdeasBoard" });
     }
@@ -498,7 +535,7 @@ export const IdeasBoard = ({ onViewChange, onProfileClick, openIdeaId, onIdeaOpe
                 onRemoveUpvote={handleRemoveUpvote}
                 address={address}
               />
-              {idea.status !== "completed" && (
+              {idea.status !== "completed" ? (
                 <button
                   onClick={(e) => handleButtonClick(e, () => handleRemix(idea._id))}
                   className="flex items-center gap-1 transition-colors cursor-pointer text-gray-400 hover:text-yellow-500"
@@ -507,6 +544,8 @@ export const IdeasBoard = ({ onViewChange, onProfileClick, openIdeaId, onIdeaOpe
                   <Flash width={15} height={15} />
                   <span className="text-xs font-semibold">{idea.remixCount ?? 0}</span>
                 </button>
+              ) : (
+                <EndorsementCountBadge ideaId={idea._id} />
               )}
               {/* Ideasboard: claim hammer */}
               {idea.status === "open" && (
@@ -597,7 +636,7 @@ export const IdeasBoard = ({ onViewChange, onProfileClick, openIdeaId, onIdeaOpe
                 address={address}
               />
 
-              {idea.status !== "completed" && (
+              {idea.status !== "completed" ? (
                 <button
                   onClick={(e) => handleButtonClick(e, () => handleRemix(idea._id))}
                   className="flex items-center gap-1.5 transition-colors cursor-pointer text-gray-400 hover:text-yellow-500"
@@ -606,6 +645,8 @@ export const IdeasBoard = ({ onViewChange, onProfileClick, openIdeaId, onIdeaOpe
                   <Flash width={18} height={18} />
                   <span className="text-sm font-semibold">{idea.remixCount ?? 0}</span>
                 </button>
+              ) : (
+                <EndorsementCountBadge ideaId={idea._id} />
               )}
 
               {idea.status === "completed" && (idea.deploymentUrl || idea.githubUrl) && (

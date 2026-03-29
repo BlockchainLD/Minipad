@@ -9,6 +9,8 @@ import { handleError } from "../lib/error-handler";
 import { StandardButton } from "./ui/standard-button";
 import { Xmark } from "iconoir-react";
 import { toast } from "sonner";
+import { useEAS, createIdeaAttestation } from "../lib/eas";
+import { Id } from "../../convex/_generated/dataModel";
 
 interface IdeaSubmissionFormProps {
   onSuccess?: (title: string) => void;
@@ -25,6 +27,9 @@ export const IdeaSubmissionForm = ({ onSuccess, onCancel }: IdeaSubmissionFormPr
   const farcasterData = useFarcasterData();
   const { address } = useAccount();
   const submitIdea = useMutation(api.ideas.submitIdea);
+  const updateIdeaAttestation = useMutation(api.ideas.updateIdeaAttestation);
+  const deleteIdea = useMutation(api.ideas.deleteIdea);
+  const { eas, isEASConfigured } = useEAS();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -39,23 +44,55 @@ export const IdeaSubmissionForm = ({ onSuccess, onCancel }: IdeaSubmissionFormPr
       return;
     }
 
+    if (!eas || !isEASConfigured) {
+      toast.error("Wallet not ready or EAS not configured");
+      return;
+    }
+
     setIsSubmitting(true);
+    let ideaId: Id<"ideas"> | null = null;
     try {
       const submittedTitle = title.trim();
-      await submitIdea({
+      const submittedDescription = description.trim();
+
+      // Step 1: Save to Convex first to get the ideaId
+      ideaId = await submitIdea({
         title: submittedTitle,
-        description: description.trim(),
+        description: submittedDescription,
         author: address,
         authorFid: farcasterData?.fid,
         authorAvatar: farcasterData?.pfp?.url,
         authorDisplayName: farcasterData?.displayName,
         authorUsername: farcasterData?.username,
       });
+
+      // Step 2: Create EAS attestation (required — rolls back if it fails)
+      const attestationUid = await createIdeaAttestation(
+        eas,
+        submittedTitle,
+        submittedDescription,
+        address,
+        farcasterData?.fid?.toString(),
+        ideaId
+      );
+
+      // Step 3: Save attestation UID back to Convex
+      await updateIdeaAttestation({ ideaId, attestationUid });
+
       toast.success("Idea submitted!");
       setTitle("");
       setDescription("");
+      ideaId = null;
       onSuccess?.(submittedTitle);
     } catch (error) {
+      // Roll back Convex insert if EAS attestation failed
+      if (ideaId) {
+        try {
+          await deleteIdea({ ideaId, author: address });
+        } catch {
+          // Rollback failure is silent — the idea may appear without an attestation
+        }
+      }
       handleError(error, { operation: "submit idea", component: "IdeaSubmissionForm" });
     } finally {
       setIsSubmitting(false);

@@ -94,6 +94,20 @@ const schema = defineSchema({
     .index("by_claimer", ["claimer"])
     .index("by_status", ["status"]),
 
+  // Build endorsements — users attesting they've tried a completed build
+  buildEndorsements: defineTable({
+    ideaId: v.id("ideas"),
+    builderId: v.string(), // builder's wallet address (denormalized from idea.claimedBy)
+    endorser: v.string(), // endorser's wallet address
+    endorserFid: v.optional(v.number()),
+    attestationUid: v.optional(v.string()), // EAS attestation UID
+    timestamp: v.number(),
+  })
+    .index("by_idea", ["ideaId"])
+    .index("by_endorser", ["endorser"])
+    .index("by_idea_endorser", ["ideaId", "endorser"])
+    .index("by_builder", ["builderId"]),
+
 });
 
 export default schema;

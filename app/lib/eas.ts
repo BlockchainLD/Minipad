@@ -1,11 +1,10 @@
-import { EAS, SchemaEncoder, SchemaRegistry } from "@ethereum-attestation-service/eas-sdk";
+import { EAS, SchemaEncoder } from "@ethereum-attestation-service/eas-sdk";
 import { usePublicClient, useWalletClient } from "wagmi";
 import { base } from "viem/chains";
 import { useCallback, useEffect, useState } from "react";
 
 // EAS Configuration for Base
 const EAS_CONTRACT_ADDRESS = "0x4200000000000000000000000000000000000021";
-const SCHEMA_REGISTRY_ADDRESS = "0x4200000000000000000000000000000000000020";
 
 // Schema definitions for different types of attestations
 export const SCHEMA_DEFINITIONS = {
@@ -13,6 +12,7 @@ export const SCHEMA_DEFINITIONS = {
   REMIX: "string title, string description, string remixer, string remixerFid, string originalIdeaId, string remixId, uint256 timestamp",
   CLAIM: "string ideaId, string claimer, string claimerFid, uint256 timestamp",
   COMPLETION: "string ideaId, string claimer, string miniappUrl, string claimerFid, uint256 timestamp",
+  BUILD_ENDORSEMENT: "string ideaId, string buildUrl, string endorser, string endorserFid, string builderId, uint256 timestamp",
 };
 
 // Schema UIDs - these will be registered and populated
@@ -21,6 +21,7 @@ export const SCHEMAS = {
   REMIX: process.env.NEXT_PUBLIC_REMIX_SCHEMA_UID || "",
   CLAIM: process.env.NEXT_PUBLIC_CLAIM_SCHEMA_UID || "",
   COMPLETION: process.env.NEXT_PUBLIC_COMPLETION_SCHEMA_UID || "",
+  BUILD_ENDORSEMENT: process.env.NEXT_PUBLIC_BUILD_ENDORSEMENT_SCHEMA_UID || "",
 };
 
 // Custom hook for EAS functionality following Base/Farcaster best practices
@@ -28,9 +29,7 @@ export function useEAS() {
   const publicClient = usePublicClient();
   const { data: walletClient } = useWalletClient();
   const [eas, setEas] = useState<EAS | null>(null);
-  const [schemaRegistry, setSchemaRegistry] = useState<SchemaRegistry | null>(null);
   const [isInitialized, setIsInitialized] = useState(false);
-
 
   const initializeEAS = useCallback(async () => {
     if (!publicClient || !walletClient) {
@@ -42,30 +41,19 @@ export function useEAS() {
       throw new Error("Please switch to Base network");
     }
 
-    console.log("🔗 Initializing EAS on Base mainnet...");
-
-    // Initialize EAS with gasless transactions support
+    // Initialize EAS
     const easInstance = new EAS(EAS_CONTRACT_ADDRESS);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     easInstance.connect(walletClient as any);
-    
-    // Configure for gasless transactions using Base Account
     setEas(easInstance);
-
-    // Initialize Schema Registry
-    const schemaRegistryInstance = new SchemaRegistry(SCHEMA_REGISTRY_ADDRESS);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    schemaRegistryInstance.connect(walletClient as any);
-    setSchemaRegistry(schemaRegistryInstance);
 
     // Check if schemas are configured via environment variables
     const hasAllSchemas = Object.values(SCHEMAS).every(schema => schema && schema.length > 0);
-    
+
     if (hasAllSchemas) {
-      console.log("✅ All EAS schemas configured via environment variables");
       setIsInitialized(true);
     } else {
-      console.error("❌ EAS schemas not configured. Please register schemas and add UIDs to environment variables.");
+      console.error("EAS schemas not configured. Please run the schema registration script and update environment variables.");
       throw new Error("EAS schemas not configured. Please run the schema registration script and update environment variables.");
     }
   }, [publicClient, walletClient]);
@@ -81,7 +69,6 @@ export function useEAS() {
 
   return {
     eas,
-    schemaRegistry,
     isInitialized,
     isEASConfigured,
     walletClient,
@@ -89,7 +76,8 @@ export function useEAS() {
   };
 }
 
-// EAS helper functions
+// EAS helper functions — all return the attestation UID string directly
+
 export async function createIdeaAttestation(
   eas: EAS,
   title: string,
@@ -97,8 +85,7 @@ export async function createIdeaAttestation(
   author: string,
   authorFid?: string,
   ideaId?: string
-) {
-  // Validate inputs
+): Promise<string> {
   if (!title || !description || !author) {
     throw new Error("Missing required fields for idea attestation");
   }
@@ -107,7 +94,6 @@ export async function createIdeaAttestation(
     throw new Error("Idea schema not registered. Please ensure EAS is properly initialized.");
   }
 
-  // Encode the data
   const schemaEncoder = new SchemaEncoder(SCHEMA_DEFINITIONS.IDEA);
   const encodedData = schemaEncoder.encodeData([
     { name: "title", value: title, type: "string" },
@@ -118,7 +104,6 @@ export async function createIdeaAttestation(
     { name: "timestamp", value: BigInt(Math.floor(Date.now() / 1000)), type: "uint256" },
   ]);
 
-  // Create the attestation
   const tx = await eas.attest({
     schema: SCHEMAS.IDEA,
     data: {
@@ -129,7 +114,7 @@ export async function createIdeaAttestation(
     },
   });
 
-  return tx;
+  return await tx.wait();
 }
 
 // Create a remix attestation
@@ -141,11 +126,10 @@ export async function createRemixAttestation(
   originalIdeaId: string | { toString(): string },
   remixId: string | { toString(): string },
   remixerFid?: string
-) {
-  // Convert IDs to strings if needed
+): Promise<string> {
   const originalIdeaIdStr = typeof originalIdeaId === 'string' ? originalIdeaId : originalIdeaId.toString();
   const remixIdStr = typeof remixId === 'string' ? remixId : remixId.toString();
-  
+
   if (!title || !description || !remixer || !originalIdeaIdStr || !remixIdStr) {
     throw new Error("Missing required fields for remix attestation");
   }
@@ -175,7 +159,7 @@ export async function createRemixAttestation(
     },
   });
 
-  return tx;
+  return await tx.wait();
 }
 
 // Create a claim attestation
@@ -184,10 +168,9 @@ export async function createClaimAttestation(
   ideaId: string | { toString(): string },
   claimer: string,
   claimerFid?: string
-) {
-  // Convert ID to string if needed
+): Promise<string> {
   const ideaIdStr = typeof ideaId === 'string' ? ideaId : ideaId.toString();
-  
+
   if (!ideaIdStr || !claimer) {
     throw new Error("Missing required fields for claim attestation");
   }
@@ -214,7 +197,7 @@ export async function createClaimAttestation(
     },
   });
 
-  return tx;
+  return await tx.wait();
 }
 
 // Create a completion attestation
@@ -224,15 +207,13 @@ export async function createCompletionAttestation(
   claimer: string,
   miniappUrl: string,
   claimerFid?: string
-) {
-  // Convert ID to string if needed
+): Promise<string> {
   const ideaIdStr = typeof ideaId === 'string' ? ideaId : ideaId.toString();
-  
+
   if (!ideaIdStr || !claimer || !miniappUrl) {
     throw new Error("Missing required fields for completion attestation");
   }
 
-  // Validate URL format
   try {
     new URL(miniappUrl);
   } catch {
@@ -262,22 +243,59 @@ export async function createCompletionAttestation(
     },
   });
 
-  return tx;
+  return await tx.wait();
 }
 
+// Create a build endorsement attestation (user attesting they've tried the build)
+export async function createBuildEndorsementAttestation(
+  eas: EAS,
+  ideaId: string,
+  buildUrl: string,
+  endorser: string,
+  endorserFid?: string,
+  builderId?: string
+): Promise<string> {
+  if (!ideaId || !endorser) {
+    throw new Error("Missing required fields for build endorsement attestation");
+  }
+
+  if (!SCHEMAS.BUILD_ENDORSEMENT) {
+    throw new Error("Build endorsement schema not registered. Please ensure EAS is properly initialized.");
+  }
+
+  const schemaEncoder = new SchemaEncoder(SCHEMA_DEFINITIONS.BUILD_ENDORSEMENT);
+  const encodedData = schemaEncoder.encodeData([
+    { name: "ideaId", value: ideaId, type: "string" },
+    { name: "buildUrl", value: buildUrl || "", type: "string" },
+    { name: "endorser", value: endorser, type: "string" },
+    { name: "endorserFid", value: endorserFid || "", type: "string" },
+    { name: "builderId", value: builderId || "", type: "string" },
+    { name: "timestamp", value: BigInt(Math.floor(Date.now() / 1000)), type: "uint256" },
+  ]);
+
+  const tx = await eas.attest({
+    schema: SCHEMAS.BUILD_ENDORSEMENT,
+    data: {
+      recipient: endorser,
+      expirationTime: BigInt(0),
+      revocable: true,
+      data: encodedData,
+    },
+  });
+
+  return await tx.wait();
+}
 
 // Revoke an attestation by UID
 export async function revokeAttestation(
   eas: EAS,
   attestationUid: string,
-  schemaUid?: string
-) {
+  schemaUid: string
+): Promise<void> {
   if (!attestationUid) {
     throw new Error("Attestation UID is required for revocation");
   }
 
-  // If schema UID is not provided, we need to determine it from the attestation
-  // For now, we'll require the schema UID to be passed
   if (!schemaUid) {
     throw new Error("Schema UID is required for revocation");
   }
@@ -289,7 +307,5 @@ export async function revokeAttestation(
     },
   });
 
-  return tx;
+  await tx.wait();
 }
-
-
