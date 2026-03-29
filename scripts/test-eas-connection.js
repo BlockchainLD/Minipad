@@ -6,8 +6,7 @@
  */
 
 const { EAS, SchemaRegistry } = require("@ethereum-attestation-service/eas-sdk");
-const { createPublicClient, http } = require("viem");
-const { base } = require("viem/chains");
+const { ethers } = require("ethers");
 
 // EAS Configuration for Base
 const EAS_CONTRACT_ADDRESS = "0x4200000000000000000000000000000000000021";
@@ -17,22 +16,19 @@ async function testEASConnection() {
   try {
     console.log("🔍 Testing EAS connection on Base mainnet...\n");
 
-    // Create public client
-    const publicClient = createPublicClient({
-      chain: base,
-      transport: http("https://mainnet.base.org"),
-    });
+    // Create ethers provider — EAS SDK requires an ethers v6 provider/signer
+    const provider = new ethers.JsonRpcProvider("https://mainnet.base.org");
 
     // Test network connection
     console.log("🌐 Testing network connection...");
-    const blockNumber = await publicClient.getBlockNumber();
+    const blockNumber = await provider.getBlockNumber();
     console.log(`✅ Connected to Base mainnet (Block: ${blockNumber})\n`);
 
     // Test EAS contract
     console.log("📋 Testing EAS contract...");
     const eas = new EAS(EAS_CONTRACT_ADDRESS);
-    eas.connect(publicClient);
-    
+    eas.connect(provider);
+
     // Try to get EAS version
     try {
       const version = await eas.getVersion();
@@ -44,7 +40,7 @@ async function testEASConnection() {
     // Test Schema Registry
     console.log("📝 Testing Schema Registry...");
     const schemaRegistry = new SchemaRegistry(SCHEMA_REGISTRY_ADDRESS);
-    schemaRegistry.connect(publicClient);
+    schemaRegistry.connect(provider);
     
     // Try to get a schema (this will fail if no schemas exist, but that's OK)
     try {
