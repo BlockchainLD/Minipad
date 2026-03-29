@@ -1,7 +1,7 @@
 import { SchemaEncoder } from "@ethereum-attestation-service/eas-sdk";
 import { usePublicClient, useWalletClient } from "wagmi";
 import { base } from "viem/chains";
-import type { WalletClient, PublicClient } from "viem";
+import type { WalletClient, PublicClient, Chain, Transport } from "viem";
 
 // EAS Configuration for Base
 const EAS_CONTRACT_ADDRESS = "0x4200000000000000000000000000000000000021" as const;
@@ -60,7 +60,7 @@ export const SCHEMAS = {
   BUILD_ENDORSEMENT: process.env.NEXT_PUBLIC_BUILD_ENDORSEMENT_SCHEMA_UID || "",
 };
 
-export type EASContext = { walletClient: WalletClient; publicClient: PublicClient };
+export type EASContext = { walletClient: WalletClient<Transport, Chain>; publicClient: PublicClient };
 
 export function useEAS() {
   const publicClient = usePublicClient();
@@ -69,8 +69,8 @@ export function useEAS() {
   const isEASConfigured = Object.values(SCHEMAS).every(s => s && s.length > 0);
 
   const eas: EASContext | null =
-    walletClient && publicClient && publicClient.chain?.id === base.id
-      ? { walletClient, publicClient }
+    walletClient && publicClient && walletClient.chain && publicClient.chain?.id === base.id
+      ? { walletClient: walletClient as WalletClient<Transport, Chain>, publicClient }
       : null;
 
   return { eas, isEASConfigured };
@@ -87,6 +87,8 @@ async function sendAttestation(
     address: EAS_CONTRACT_ADDRESS,
     abi: EAS_ABI,
     functionName: "attest",
+    chain: base,
+    account: ctx.walletClient.account ?? null,
     args: [{
       schema: schemaUid as `0x${string}`,
       data: {
@@ -273,6 +275,8 @@ export async function revokeAttestation(
     address: EAS_CONTRACT_ADDRESS,
     abi: EAS_ABI,
     functionName: "revoke",
+    chain: base,
+    account: eas.walletClient.account ?? null,
     args: [{
       schema: schemaUid as `0x${string}`,
       data: {
