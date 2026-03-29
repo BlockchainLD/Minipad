@@ -11,8 +11,8 @@ export const SCHEMA_DEFINITIONS = {
   IDEA: "string title, string description, string author, string authorFid, string ideaId, uint256 timestamp",
   REMIX: "string title, string description, string remixer, string remixerFid, string originalIdeaId, string remixId, uint256 timestamp",
   CLAIM: "string ideaId, string claimer, string claimerFid, uint256 timestamp",
-  COMPLETION: "string ideaId, string claimer, string miniappUrl, string claimerFid, uint256 timestamp",
-  BUILD_ENDORSEMENT: "string ideaId, string buildUrl, string endorser, string endorserFid, string builderId, uint256 timestamp",
+  COMPLETION: "string ideaID,string claimer,string miniappUrl,string claimerFid,uint256 timestamp",
+  BUILD_ENDORSEMENT: "string ideaID,string buildUrl,string endorser,string endorseFid,string builderId,uint256 timestamp",
 };
 
 // Schema UIDs - these will be registered and populated
@@ -226,7 +226,7 @@ export async function createCompletionAttestation(
 
   const schemaEncoder = new SchemaEncoder(SCHEMA_DEFINITIONS.COMPLETION);
   const encodedData = schemaEncoder.encodeData([
-    { name: "ideaId", value: ideaIdStr, type: "string" },
+    { name: "ideaID", value: ideaIdStr, type: "string" },
     { name: "claimer", value: claimer, type: "string" },
     { name: "miniappUrl", value: miniappUrl, type: "string" },
     { name: "claimerFid", value: claimerFid || "", type: "string" },
@@ -265,10 +265,10 @@ export async function createBuildEndorsementAttestation(
 
   const schemaEncoder = new SchemaEncoder(SCHEMA_DEFINITIONS.BUILD_ENDORSEMENT);
   const encodedData = schemaEncoder.encodeData([
-    { name: "ideaId", value: ideaId, type: "string" },
+    { name: "ideaID", value: ideaId, type: "string" },
     { name: "buildUrl", value: buildUrl || "", type: "string" },
     { name: "endorser", value: endorser, type: "string" },
-    { name: "endorserFid", value: endorserFid || "", type: "string" },
+    { name: "endorseFid", value: endorserFid || "", type: "string" },
     { name: "builderId", value: builderId || "", type: "string" },
     { name: "timestamp", value: BigInt(Math.floor(Date.now() / 1000)), type: "uint256" },
   ]);
