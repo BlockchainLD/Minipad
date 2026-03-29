@@ -38,6 +38,7 @@ export const remixType = v.object({
   type: v.union(v.literal("addition"), v.literal("edit"), v.literal("comment")),
   timestamp: v.number(),
   upvotes: v.number(),
+  attestationUid: v.optional(v.string()),
 });
 
 export const claimType = v.object({

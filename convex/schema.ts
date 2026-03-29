@@ -49,6 +49,7 @@ const schema = defineSchema({
     type: v.union(v.literal("addition"), v.literal("edit"), v.literal("comment")),
     timestamp: v.number(),
     upvotes: v.number(),
+    attestationUid: v.optional(v.string()), // EAS attestation UID for this community take
   })
     .index("by_idea", ["ideaId"])
     .index("by_author", ["author"])

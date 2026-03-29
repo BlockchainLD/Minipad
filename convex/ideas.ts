@@ -90,6 +90,21 @@ export const deleteIdea = mutation({
       await ctx.db.delete(claim._id);
     }
 
+    const remixes = await ctx.db
+      .query("remixes")
+      .withIndex("by_idea", (q) => q.eq("ideaId", args.ideaId))
+      .collect();
+    for (const remix of remixes) {
+      const remixUpvotes = await ctx.db
+        .query("remixUpvotes")
+        .withIndex("by_remix", (q) => q.eq("remixId", remix._id))
+        .collect();
+      for (const upvote of remixUpvotes) {
+        await ctx.db.delete(upvote._id);
+      }
+      await ctx.db.delete(remix._id);
+    }
+
     await ctx.db.delete(args.ideaId);
   },
 });
