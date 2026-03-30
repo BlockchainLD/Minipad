@@ -45,7 +45,6 @@ contract MinipadFeeResolver is ISchemaResolver {
     address public immutable eas;   // EAS contract on Base mainnet
     address public owner;
     uint256 public minFee;          // minimum wei per attestation
-    uint256 public totalCollected;  // lifetime total (informational)
 
     // ── Events ─────────────────────────────────────────────────────────────────
     event FeePaid(address indexed payer, bytes32 indexed schema, uint256 amount);
@@ -56,9 +55,11 @@ contract MinipadFeeResolver is ISchemaResolver {
     // ── Errors ─────────────────────────────────────────────────────────────────
     error NotOwner();
     error NotEAS();
+    error ZeroAddress();
     error FeeTooLow(uint256 sent, uint256 required);
+    error InvalidWinnerCount();     // n == 0 or n > 3
     error ArrayLengthMismatch();
-    error TooManyWinners();
+    error NothingToDistribute();    // perRecipient rounds to zero
     error TransferFailed();
 
     // ── Modifiers ──────────────────────────────────────────────────────────────
@@ -74,6 +75,7 @@ contract MinipadFeeResolver is ISchemaResolver {
 
     // ── Constructor ────────────────────────────────────────────────────────────
     constructor(address _eas, uint256 _minFee) {
+        if (_eas == address(0)) revert ZeroAddress();
         eas = _eas;
         owner = msg.sender;
         minFee = _minFee;
@@ -96,13 +98,14 @@ contract MinipadFeeResolver is ISchemaResolver {
         returns (bool)
     {
         if (msg.value < minFee) revert FeeTooLow(msg.value, minFee);
-        unchecked { totalCollected += msg.value; }
         emit FeePaid(attestation.attester, attestation.schema, msg.value);
         return true;
     }
 
     /// @notice Called by EAS for batch attestations (multiAttest).
-    ///         values[i] is the per-attestation ETH amount; sum == msg.value.
+    ///         values[i] is the per-attestation ETH amount forwarded by EAS;
+    ///         EAS guarantees values.length == attestations.length and
+    ///         msg.value == sum of non-zero entries in values[].
     function multiAttest(
         Attestation[] calldata attestations,
         uint256[] calldata values
@@ -110,14 +113,15 @@ contract MinipadFeeResolver is ISchemaResolver {
         uint256 len = attestations.length;
         for (uint256 i = 0; i < len; ) {
             if (values[i] < minFee) revert FeeTooLow(values[i], minFee);
-            unchecked { totalCollected += values[i]; }
             emit FeePaid(attestations[i].attester, attestations[i].schema, values[i]);
             unchecked { ++i; }
         }
         return true;
     }
 
-    /// @notice Called by EAS on revocation. Fee schemas allow free revocation.
+    /// @notice Called by EAS on revocation. Revocations are free; any ETH
+    ///         forwarded by EAS (from RevocationRequestData.value) stays in
+    ///         the fee pool.
     function revoke(Attestation calldata)
         external
         payable
@@ -151,14 +155,15 @@ contract MinipadFeeResolver is ISchemaResolver {
         address[] calldata creators,
         address[] calldata builders
     ) external onlyOwner {
-        if (creators.length != builders.length) revert ArrayLengthMismatch();
-        if (creators.length > 3) revert TooManyWinners();
-
         uint256 n = creators.length;
-        uint256 perPair = address(this).balance / n;    // share per winner slot
-        uint256 perRecipient = perPair / 2;             // 50% each
+        if (n == 0 || n > 3) revert InvalidWinnerCount();
+        if (builders.length != n) revert ArrayLengthMismatch();
+
+        uint256 perRecipient = (address(this).balance / n) / 2;
+        if (perRecipient == 0) revert NothingToDistribute();
 
         for (uint256 i = 0; i < n; ) {
+            if (creators[i] == address(0) || builders[i] == address(0)) revert ZeroAddress();
             (bool ok1,) = payable(creators[i]).call{value: perRecipient}("");
             if (!ok1) revert TransferFailed();
             (bool ok2,) = payable(builders[i]).call{value: perRecipient}("");
@@ -176,18 +181,15 @@ contract MinipadFeeResolver is ISchemaResolver {
 
     /// @notice Transfer contract ownership to a new address.
     function transferOwnership(address newOwner) external onlyOwner {
+        if (newOwner == address(0)) revert ZeroAddress();
         emit OwnershipTransferred(owner, newOwner);
         owner = newOwner;
     }
 
     /// @notice Emergency withdrawal of the full contract balance to `to`.
     function withdraw(address payable to) external onlyOwner {
+        if (to == address(0)) revert ZeroAddress();
         (bool ok,) = to.call{value: address(this).balance}("");
         if (!ok) revert TransferFailed();
-    }
-
-    /// @notice Convenience view: current ETH balance held by this contract.
-    function getBalance() external view returns (uint256) {
-        return address(this).balance;
     }
 }
