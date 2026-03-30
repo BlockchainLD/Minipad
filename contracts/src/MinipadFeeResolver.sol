@@ -42,24 +42,28 @@ interface ISchemaResolver {
 // ──────────────────────────────────────────────────────────────────────────────
 contract MinipadFeeResolver is ISchemaResolver {
     // ── State ──────────────────────────────────────────────────────────────────
-    address public immutable eas;   // EAS contract on Base mainnet
+    address public immutable eas;       // EAS contract on Base mainnet
     address public owner;
-    uint256 public minFee;          // minimum wei per attestation
+    address public pendingOwner;        // two-step ownership transfer
+    uint256 public minFee;              // minimum wei per attestation
 
     // ── Events ─────────────────────────────────────────────────────────────────
     event FeePaid(address indexed payer, bytes32 indexed schema, uint256 amount);
     event Distributed(address indexed creator, address indexed builder, uint256 perRecipient);
     event MinFeeUpdated(uint256 newMinFee);
+    event OwnershipTransferStarted(address indexed previousOwner, address indexed newOwner);
     event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
 
     // ── Errors ─────────────────────────────────────────────────────────────────
     error NotOwner();
+    error NotPendingOwner();
     error NotEAS();
     error ZeroAddress();
     error FeeTooLow(uint256 sent, uint256 required);
     error InvalidWinnerCount();     // n == 0 or n > 3
     error ArrayLengthMismatch();
     error NothingToDistribute();    // perRecipient rounds to zero
+    error EmptyBalance();           // withdraw() called with no balance
     error TransferFailed();
 
     // ── Modifiers ──────────────────────────────────────────────────────────────
@@ -79,6 +83,15 @@ contract MinipadFeeResolver is ISchemaResolver {
         eas = _eas;
         owner = msg.sender;
         minFee = _minFee;
+        emit OwnershipTransferred(address(0), msg.sender);
+    }
+
+    // ── Receive ────────────────────────────────────────────────────────────────
+
+    /// @dev Accept direct ETH from the owner only (e.g. to bootstrap the fee pool).
+    ///      All other plain transfers are rejected to prevent accidental sends.
+    receive() external payable {
+        if (msg.sender != owner) revert NotOwner();
     }
 
     // ── ISchemaResolver ────────────────────────────────────────────────────────
@@ -98,7 +111,7 @@ contract MinipadFeeResolver is ISchemaResolver {
         returns (bool)
     {
         if (msg.value < minFee) revert FeeTooLow(msg.value, minFee);
-        emit FeePaid(attestation.attester, attestation.schema, msg.value);
+        if (msg.value > 0) emit FeePaid(attestation.attester, attestation.schema, msg.value);
         return true;
     }
 
@@ -113,7 +126,7 @@ contract MinipadFeeResolver is ISchemaResolver {
         uint256 len = attestations.length;
         for (uint256 i = 0; i < len; ) {
             if (values[i] < minFee) revert FeeTooLow(values[i], minFee);
-            emit FeePaid(attestations[i].attester, attestations[i].schema, values[i]);
+            if (values[i] > 0) emit FeePaid(attestations[i].attester, attestations[i].schema, values[i]);
             unchecked { ++i; }
         }
         return true;
@@ -179,17 +192,28 @@ contract MinipadFeeResolver is ISchemaResolver {
         emit MinFeeUpdated(_minFee);
     }
 
-    /// @notice Transfer contract ownership to a new address.
+    /// @notice Step 1 of two-step ownership transfer. Proposes a new owner.
+    ///         The new owner must call acceptOwnership() to complete the transfer.
     function transferOwnership(address newOwner) external onlyOwner {
         if (newOwner == address(0)) revert ZeroAddress();
-        emit OwnershipTransferred(owner, newOwner);
-        owner = newOwner;
+        pendingOwner = newOwner;
+        emit OwnershipTransferStarted(owner, newOwner);
+    }
+
+    /// @notice Step 2 of two-step ownership transfer. Must be called by the pending owner.
+    function acceptOwnership() external {
+        if (msg.sender != pendingOwner) revert NotPendingOwner();
+        emit OwnershipTransferred(owner, pendingOwner);
+        owner = pendingOwner;
+        pendingOwner = address(0);
     }
 
     /// @notice Emergency withdrawal of the full contract balance to `to`.
     function withdraw(address payable to) external onlyOwner {
         if (to == address(0)) revert ZeroAddress();
-        (bool ok,) = to.call{value: address(this).balance}("");
+        uint256 balance = address(this).balance;
+        if (balance == 0) revert EmptyBalance();
+        (bool ok,) = to.call{value: balance}("");
         if (!ok) revert TransferFailed();
     }
 }
