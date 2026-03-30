@@ -5,20 +5,19 @@ export async function GET() {
     (
       <div
         style={{
-          width: 200,
-          height: 200,
+          width: 1200,
+          height: 800,
           background: 'linear-gradient(135deg, #7c3aed 0%, #a855f7 50%, #7c3aed 100%)',
-          borderRadius: 40,
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
           justifyContent: 'center',
-          gap: 8,
+          gap: 32,
         }}
       >
         <svg
-          width="90"
-          height="105"
+          width="160"
+          height="190"
           viewBox="57 25 86 138"
           fill="none"
           xmlns="http://www.w3.org/2000/svg"
@@ -36,19 +35,28 @@ export async function GET() {
         </svg>
         <div
           style={{
-            fontSize: 24,
+            fontSize: 80,
             fontWeight: 700,
             color: 'white',
-            letterSpacing: '-0.02em',
+            letterSpacing: '-0.03em',
           }}
         >
           Minipad
         </div>
+        <div
+          style={{
+            fontSize: 36,
+            color: 'rgba(255, 255, 255, 0.8)',
+            letterSpacing: '-0.01em',
+          }}
+        >
+          Submit and vote on miniapp ideas for Base
+        </div>
       </div>
     ),
     {
-      width: 200,
-      height: 200,
+      width: 1200,
+      height: 800,
       headers: {
         'Cache-Control': 'public, immutable, no-transform, max-age=31536000',
       },

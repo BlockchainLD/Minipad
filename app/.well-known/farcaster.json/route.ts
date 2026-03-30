@@ -1,19 +1,20 @@
 import { APP_METADATA } from "../../lib/utils";
 
-const APP_URL = process.env.SITE_URL || 'https://minipad-app.vercel.app';
-
 export async function GET() {
   const miniappConfig = {
     version: "1",
     name: APP_METADATA.title,
-    iconUrl: APP_METADATA.imageUrl,
-    splashImageUrl: `${APP_URL}/splash.png`,
-    splashBackgroundColor: APP_METADATA.splash.backgroundColor,
+    subtitle: "Ideas for Base miniapps",
+    description: APP_METADATA.description,
+    iconUrl: APP_METADATA.iconUrl,
     homeUrl: APP_METADATA.url,
-    imageUrl: APP_METADATA.imageUrl,
-    buttonTitle: "Open Minipad",
-    requiredChains: ['eip155:8453'],
-    requiredCapabilities: ['actions.ready'],
+    splashImageUrl: APP_METADATA.splash.imageUrl,
+    splashBackgroundColor: APP_METADATA.splash.backgroundColor,
+    heroImageUrl: APP_METADATA.embedImageUrl,
+    ogImageUrl: APP_METADATA.embedImageUrl,
+    primaryCategory: "developer-tools",
+    tags: ["miniapp", "base", "ideas", "farcaster"],
+    canonicalDomain: "minipad-app.vercel.app",
   };
 
   const manifest = {

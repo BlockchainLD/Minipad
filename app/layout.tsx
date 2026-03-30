@@ -14,7 +14,8 @@ const splashConfig = {
 
 const miniAppEmbed = {
   version: "1",
-  imageUrl: APP_METADATA.imageUrl,
+  imageUrl: APP_METADATA.embedImageUrl,
+  aspectRatio: "3:2",
   button: {
     title: "Open Minipad",
     action: {
@@ -28,7 +29,8 @@ const miniAppEmbed = {
 
 const frameEmbed = {
   version: "next",
-  imageUrl: APP_METADATA.imageUrl,
+  imageUrl: APP_METADATA.embedImageUrl,
+  aspectRatio: "3:2",
   button: {
     title: "Open Minipad",
     action: {
