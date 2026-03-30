@@ -46,6 +46,7 @@ contract MinipadFeeResolver is ISchemaResolver {
     address public owner;
     address public pendingOwner;        // two-step ownership transfer
     uint256 public minFee;              // minimum wei per attestation
+    uint256 private _locked;            // reentrancy guard (1 = unlocked, 2 = locked)
 
     // ── Events ─────────────────────────────────────────────────────────────────
     event FeePaid(address indexed payer, bytes32 indexed schema, uint256 amount);
@@ -59,6 +60,7 @@ contract MinipadFeeResolver is ISchemaResolver {
     error NotPendingOwner();
     error NotEAS();
     error ZeroAddress();
+    error Reentrancy();
     error FeeTooLow(uint256 sent, uint256 required);
     error InvalidWinnerCount();     // n == 0 or n > 3
     error ArrayLengthMismatch();
@@ -77,12 +79,20 @@ contract MinipadFeeResolver is ISchemaResolver {
         _;
     }
 
+    modifier nonReentrant() {
+        if (_locked == 2) revert Reentrancy();
+        _locked = 2;
+        _;
+        _locked = 1;
+    }
+
     // ── Constructor ────────────────────────────────────────────────────────────
     constructor(address _eas, uint256 _minFee) {
         if (_eas == address(0)) revert ZeroAddress();
         eas = _eas;
         owner = msg.sender;
         minFee = _minFee;
+        _locked = 1;
         emit OwnershipTransferred(address(0), msg.sender);
     }
 
@@ -124,10 +134,9 @@ contract MinipadFeeResolver is ISchemaResolver {
         uint256[] calldata values
     ) external payable override onlyEAS returns (bool) {
         uint256 len = attestations.length;
-        for (uint256 i = 0; i < len; ) {
+        for (uint256 i = 0; i < len; ++i) {
             if (values[i] < minFee) revert FeeTooLow(values[i], minFee);
             if (values[i] > 0) emit FeePaid(attestations[i].attester, attestations[i].schema, values[i]);
-            unchecked { ++i; }
         }
         return true;
     }
@@ -167,7 +176,7 @@ contract MinipadFeeResolver is ISchemaResolver {
     function distribute(
         address[] calldata creators,
         address[] calldata builders
-    ) external onlyOwner {
+    ) external onlyOwner nonReentrant {
         uint256 n = creators.length;
         if (n == 0 || n > 3) revert InvalidWinnerCount();
         if (builders.length != n) revert ArrayLengthMismatch();
@@ -175,14 +184,13 @@ contract MinipadFeeResolver is ISchemaResolver {
         uint256 perRecipient = (address(this).balance / n) / 2;
         if (perRecipient == 0) revert NothingToDistribute();
 
-        for (uint256 i = 0; i < n; ) {
+        for (uint256 i = 0; i < n; ++i) {
             if (creators[i] == address(0) || builders[i] == address(0)) revert ZeroAddress();
             (bool ok1,) = payable(creators[i]).call{value: perRecipient}("");
             if (!ok1) revert TransferFailed();
             (bool ok2,) = payable(builders[i]).call{value: perRecipient}("");
             if (!ok2) revert TransferFailed();
             emit Distributed(creators[i], builders[i], perRecipient);
-            unchecked { ++i; }
         }
     }
 
@@ -209,7 +217,7 @@ contract MinipadFeeResolver is ISchemaResolver {
     }
 
     /// @notice Emergency withdrawal of the full contract balance to `to`.
-    function withdraw(address payable to) external onlyOwner {
+    function withdraw(address payable to) external onlyOwner nonReentrant {
         if (to == address(0)) revert ZeroAddress();
         uint256 balance = address(this).balance;
         if (balance == 0) revert EmptyBalance();
