@@ -3,6 +3,15 @@
 /**
  * Script to register EAS schemas on Base mainnet
  * Run this script to register all required schemas for the Minipad platform
+ *
+ * Usage (zero-resolver, free attestations):
+ *   PRIVATE_KEY=0x... node scripts/register-eas-schemas.js
+ *
+ * Usage (with fee resolver for IDEA, CLAIM, COMPLETION):
+ *   PRIVATE_KEY=0x... RESOLVER_ADDRESS=0x... node scripts/register-eas-schemas.js
+ *
+ * Set RESOLVER_ADDRESS after deploying MinipadFeeResolver:
+ *   PRIVATE_KEY=0x... MIN_FEE_WEI=3300000000000 node scripts/deploy-resolver.js
  */
 
 const { SchemaRegistry } = require("@ethereum-attestation-service/eas-sdk");
@@ -21,6 +30,10 @@ const SCHEMA_DEFINITIONS = {
   BUILD_ENDORSEMENT: "string ideaId,string buildUrl,string endorser,string endorserFid,string builderId,uint256 timestamp",
 };
 
+// Schemas that route through MinipadFeeResolver when RESOLVER_ADDRESS is set.
+// REMIX and BUILD_ENDORSEMENT remain zero-cost (zero resolver).
+const FEE_SCHEMAS = new Set(["IDEA", "CLAIM", "COMPLETION"]);
+
 async function registerSchemas() {
   // Check for private key
   const privateKey = process.env.PRIVATE_KEY;
@@ -28,6 +41,18 @@ async function registerSchemas() {
     console.error("❌ PRIVATE_KEY environment variable is required");
     console.log("Please set your private key: export PRIVATE_KEY=0x...");
     process.exit(1);
+  }
+
+  // Optional resolver address — if omitted all schemas use the zero resolver
+  const resolverAddress = process.env.RESOLVER_ADDRESS || ethers.ZeroAddress;
+  const usingResolver = resolverAddress !== ethers.ZeroAddress;
+
+  if (usingResolver) {
+    console.log(`🔗 Using fee resolver: ${resolverAddress}`);
+    console.log("   IDEA, CLAIM, COMPLETION → resolver");
+    console.log("   REMIX, BUILD_ENDORSEMENT → zero resolver (free)\n");
+  } else {
+    console.log("ℹ️  No RESOLVER_ADDRESS set — all schemas use zero resolver (free)\n");
   }
 
   try {
@@ -47,12 +72,16 @@ async function registerSchemas() {
     // Register each schema
     for (const [schemaName, schemaDefinition] of Object.entries(SCHEMA_DEFINITIONS)) {
       try {
+        const schemaResolver =
+          usingResolver && FEE_SCHEMAS.has(schemaName) ? resolverAddress : ethers.ZeroAddress;
+
         console.log(`📝 Registering ${schemaName} schema...`);
         console.log(`   Definition: ${schemaDefinition}`);
+        console.log(`   Resolver:   ${schemaResolver}`);
 
         const schemaUid = await schemaRegistry.register({
           schema: schemaDefinition,
-          resolverAddress: "0x0000000000000000000000000000000000000000",
+          resolverAddress: schemaResolver,
           revocable: true,
         });
 

@@ -60,6 +60,11 @@ export const SCHEMAS = {
   BUILD_ENDORSEMENT: process.env.NEXT_PUBLIC_BUILD_ENDORSEMENT_SCHEMA_UID || "",
 };
 
+// Fee (in wei) required by MinipadFeeResolver for IDEA, CLAIM, and COMPLETION attestations.
+// REMIX and BUILD_ENDORSEMENT use a zero resolver and remain free.
+// Default: 3300000000000 wei ≈ $0.01 at $3,000/ETH. Adjust NEXT_PUBLIC_MIN_FEE_WEI as needed.
+export const ATTESTATION_FEE = BigInt(process.env.NEXT_PUBLIC_MIN_FEE_WEI || "3300000000000");
+
 export type EASContext = { walletClient: WalletClient<Transport, Chain>; publicClient: PublicClient };
 
 export function useEAS() {
@@ -77,12 +82,16 @@ export function useEAS() {
   return { eas, isEASConfigured };
 }
 
-// Internal helper — sends an attestation via viem and returns the UID from the receipt
+// Internal helper — sends an attestation via viem and returns the UID from the receipt.
+// `fee` must be non-zero for schemas backed by MinipadFeeResolver (IDEA, CLAIM, COMPLETION).
+// It is sent both as the transaction's ETH value (msg.value to EAS) and as
+// AttestationRequestData.value so EAS forwards it to the resolver.
 async function sendAttestation(
   ctx: EASContext,
   schemaUid: string,
   encodedData: string,
-  recipient: string
+  recipient: string,
+  fee: bigint = 0n
 ): Promise<string> {
   const hash = await ctx.walletClient.writeContract({
     address: EAS_CONTRACT_ADDRESS,
@@ -90,6 +99,7 @@ async function sendAttestation(
     functionName: "attest",
     chain: base,
     account: ctx.walletClient.account ?? null,
+    value: fee,
     args: [{
       schema: schemaUid as `0x${string}`,
       data: {
@@ -98,7 +108,7 @@ async function sendAttestation(
         revocable: true,
         refUID: "0x0000000000000000000000000000000000000000000000000000000000000000",
         data: encodedData as `0x${string}`,
-        value: 0n,
+        value: fee,
       },
     }],
   });
@@ -141,7 +151,7 @@ export async function createIdeaAttestation(
     { name: "timestamp", value: BigInt(Math.floor(Date.now() / 1000)), type: "uint256" },
   ]);
 
-  return sendAttestation(eas, SCHEMAS.IDEA, encodedData, author);
+  return sendAttestation(eas, SCHEMAS.IDEA, encodedData, author, ATTESTATION_FEE);
 }
 
 export async function createRemixAttestation(
@@ -200,7 +210,7 @@ export async function createClaimAttestation(
     { name: "timestamp", value: BigInt(Math.floor(Date.now() / 1000)), type: "uint256" },
   ]);
 
-  return sendAttestation(eas, SCHEMAS.CLAIM, encodedData, claimer);
+  return sendAttestation(eas, SCHEMAS.CLAIM, encodedData, claimer, ATTESTATION_FEE);
 }
 
 export async function createCompletionAttestation(
@@ -233,7 +243,7 @@ export async function createCompletionAttestation(
     { name: "timestamp", value: BigInt(Math.floor(Date.now() / 1000)), type: "uint256" },
   ]);
 
-  return sendAttestation(eas, SCHEMAS.COMPLETION, encodedData, claimer);
+  return sendAttestation(eas, SCHEMAS.COMPLETION, encodedData, claimer, ATTESTATION_FEE);
 }
 
 export async function createBuildEndorsementAttestation(
