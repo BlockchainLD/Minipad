@@ -146,7 +146,7 @@ export const UserProfileModal = ({ isOpen, onClose, user, onIdeaClick }: UserPro
                   </span>
                 )}
               </div>
-              {username && <p className="text-sm text-gray-500">@{username}</p>}
+              {username && <p className="text-sm text-gray-500">{username}</p>}
               <p className="text-[11px] italic text-gray-400 mt-0.5">Developer</p>
             </div>
           </div>
