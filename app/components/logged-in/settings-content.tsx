@@ -55,10 +55,13 @@ function ProfileIdeas({ onIdeaClick }: { onIdeaClick: (id: string) => void }) {
   if (submittedIdeas.length === 0) return null;
 
   return (
-    <div className="flex flex-wrap gap-2">
-      {submittedIdeas.map((idea) => (
-        <IdeaTile key={idea._id} idea={idea} onIdeaClick={onIdeaClick} />
-      ))}
+    <div className="space-y-2">
+      <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Ideas</p>
+      <div className="flex flex-wrap gap-2">
+        {submittedIdeas.map((idea) => (
+          <IdeaTile key={idea._id} idea={idea} onIdeaClick={onIdeaClick} />
+        ))}
+      </div>
     </div>
   );
 }
@@ -87,7 +90,7 @@ function ProfileClaimedIdeas({ onIdeaClick }: { onIdeaClick: (id: string) => voi
     <>
       {claimedIdeas.length > 0 && (
         <div className="space-y-2">
-          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Claimed</p>
+          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Claims</p>
           <div className="flex flex-wrap gap-2">
             {claimedIdeas.map((idea) => (
               <IdeaTile key={idea._id} idea={idea} onIdeaClick={onIdeaClick} />
@@ -97,7 +100,7 @@ function ProfileClaimedIdeas({ onIdeaClick }: { onIdeaClick: (id: string) => voi
       )}
       {completedIdeas.length > 0 && (
         <div className="space-y-2">
-          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Completed</p>
+          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Miniapps</p>
           <div className="flex flex-wrap gap-2">
             {completedIdeas.map((idea) => (
               <IdeaTile key={idea._id} idea={idea} onIdeaClick={onIdeaClick} />
