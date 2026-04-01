@@ -134,6 +134,7 @@ contract MinipadFeeResolver is ISchemaResolver {
         uint256[] calldata values
     ) external payable override onlyEAS returns (bool) {
         uint256 len = attestations.length;
+        if (values.length != len) revert ArrayLengthMismatch();
         for (uint256 i = 0; i < len; ++i) {
             if (values[i] < minFee) revert FeeTooLow(values[i], minFee);
             if (values[i] > 0) emit FeePaid(attestations[i].attester, attestations[i].schema, values[i]);
