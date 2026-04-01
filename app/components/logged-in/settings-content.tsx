@@ -111,16 +111,13 @@ export const SettingsContent = ({
         <FarcasterProfile />
       </ErrorBoundary>
 
-      <div className="space-y-3">
-        <p className="font-semibold text-black">Your Ideas</p>
-        <div className="space-y-4">
-          <ErrorBoundary fallback={null}>
-            <ProfileIdeas onIdeaClick={onIdeaClick} />
-          </ErrorBoundary>
-          <ErrorBoundary fallback={null}>
-            <ProfileClaimedIdeas onIdeaClick={onIdeaClick} />
-          </ErrorBoundary>
-        </div>
+      <div className="space-y-4">
+        <ErrorBoundary fallback={null}>
+          <ProfileIdeas onIdeaClick={onIdeaClick} />
+        </ErrorBoundary>
+        <ErrorBoundary fallback={null}>
+          <ProfileClaimedIdeas onIdeaClick={onIdeaClick} />
+        </ErrorBoundary>
       </div>
 
       <div className="space-y-3">
