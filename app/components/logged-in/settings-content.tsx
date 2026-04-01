@@ -6,7 +6,7 @@ import { ErrorBoundary } from "../error-boundary";
 import { useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { useAccount } from "wagmi";
-import { StatusBadge } from "../ui/status-badge";
+import { IdeaTile } from "../ui/idea-tile";
 
 interface SettingsContentProps {
   walletAddress: string;
@@ -17,23 +17,6 @@ interface SettingsContentProps {
   isAllFeed: boolean;
   onToggleFeed: () => void;
   onAdminDeleteAll?: () => void;
-}
-
-type IdeaLike = { _id: string; title: string; status: "open" | "claimed" | "completed" };
-
-function IdeaTile({ idea, onIdeaClick }: { idea: IdeaLike; onIdeaClick: (id: string) => void }) {
-  return (
-    <button
-      key={idea._id}
-      onClick={() => onIdeaClick(idea._id)}
-      title={idea.title}
-      className="flex items-center gap-1.5 bg-white rounded-lg px-3 py-2.5 border border-gray-200 hover:border-gray-300 hover:shadow-sm transition-colors duration-150 min-w-0 cursor-pointer"
-      style={{ flexBasis: "calc(50% - 0.25rem)", maxWidth: "calc(50% - 0.25rem)" }}
-    >
-      <span className="font-medium text-gray-900 text-xs truncate flex-1 min-w-0">{idea.title}</span>
-      <StatusBadge status={idea.status} className="px-1.5 py-0.5 text-[10px] flex-shrink-0" />
-    </button>
-  );
 }
 
 // useQuery lives inside this component so the ErrorBoundary above it catches errors.

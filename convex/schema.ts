@@ -25,6 +25,7 @@ const schema = defineSchema({
     githubUrl: v.optional(v.string()),
     deploymentUrl: v.optional(v.string()),
     completionAttestationUid: v.optional(v.string()), // EAS attestation UID for completion
+    remixCount: v.optional(v.number()), // denormalized count of remixes for this idea
     // Remix-specific fields
     isRemix: v.optional(v.boolean()), // true if this is a remix
     originalIdeaId: v.optional(v.id("ideas")), // ID of the original idea being remixed

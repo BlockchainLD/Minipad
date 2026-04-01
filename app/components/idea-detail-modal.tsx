@@ -14,48 +14,8 @@ import { ErrorBoundary } from "./error-boundary";
 import { RemixForm } from "./remix-form";
 import { useFarcasterData } from "../hooks/use-farcaster-data";
 import { useEAS, createBuildEndorsementAttestation, createRemixAttestation, revokeAttestation, SCHEMAS } from "../lib/eas";
-
-
-type Idea = {
-  _id: Id<"ideas">;
-  title: string;
-  description: string;
-  author: string;
-  authorFid?: number;
-  authorAvatar?: string;
-  authorDisplayName?: string;
-  authorUsername?: string;
-  timestamp: number;
-  upvotes: number;
-  status: "open" | "claimed" | "completed";
-  claimedBy?: string;
-  claimedByFid?: number;
-  claimedByAvatar?: string;
-  claimedByDisplayName?: string;
-  claimedByUsername?: string;
-  isRemix?: boolean;
-  originalIdeaId?: Id<"ideas">;
-  attestationUid?: string;
-  completionAttestationUid?: string;
-  githubUrl?: string;
-  deploymentUrl?: string;
-};
-
-type Remix = {
-  _id: Id<"remixes">;
-  _creationTime: number;
-  ideaId: Id<"ideas">;
-  author: string;
-  authorFid?: number;
-  authorAvatar?: string;
-  authorDisplayName?: string;
-  authorUsername?: string;
-  content: string;
-  type: "addition" | "edit" | "comment";
-  timestamp: number;
-  upvotes: number;
-  attestationUid?: string;
-};
+import { type Idea, type Remix } from "../lib/types";
+import { handleButtonClick } from "../lib/utils";
 
 const TYPE_CONFIG = {
   addition: {
@@ -74,12 +34,6 @@ const TYPE_CONFIG = {
     className: "text-gray-700 bg-gray-50 border border-gray-200",
   },
 } as const;
-
-const handleButtonClick = (e: React.MouseEvent, callback: () => void) => {
-  e.preventDefault();
-  e.stopPropagation();
-  callback();
-};
 
 // Upvote button for the main idea
 const UpvoteButton = ({
@@ -148,7 +102,7 @@ const UpvoteButton = ({
   };
 
   const isUpvoted = currentUpvotedState === true;
-  const isLoading = (hasUpvoted === undefined && !!address) || isProcessing;
+  const isLoading = (hasUpvoted === undefined && address !== undefined) || isProcessing;
 
   return (
     <button
@@ -575,8 +529,8 @@ export const IdeaDetailModal = ({
 
   if (!isOpen || !idea) return null;
 
-  const isClaimedByMe = idea.status === "claimed" && !!address && idea.claimedBy === address;
-  const isBuiltByMe = idea.status === "completed" && !!address && idea.claimedBy === address;
+  const isClaimedByMe = idea.status === "claimed" && idea.claimedBy === address;
+  const isBuiltByMe = idea.status === "completed" && idea.claimedBy === address;
 
   return (
     <div

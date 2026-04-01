@@ -16,46 +16,14 @@ import { IdeaDetailModal } from "./idea-detail-modal";
 import { ErrorBoundary } from "./error-boundary";
 import { useFarcasterData } from "../hooks/use-farcaster-data";
 import { useEAS, createClaimAttestation, revokeAttestation, SCHEMAS } from "../lib/eas";
-
-type Idea = {
-  _id: Id<"ideas">;
-  title: string;
-  description: string;
-  author: string;
-  authorFid?: number;
-  authorAvatar?: string;
-  authorDisplayName?: string;
-  authorUsername?: string;
-  timestamp: number;
-  upvotes: number;
-  status: "open" | "claimed" | "completed";
-  claimedBy?: string;
-  claimedByFid?: number;
-  claimedByAvatar?: string;
-  claimedByDisplayName?: string;
-  claimedByUsername?: string;
-  isRemix?: boolean;
-  originalIdeaId?: Id<"ideas">;
-  attestationUid?: string;
-  completionAttestationUid?: string;
-  githubUrl?: string;
-  deploymentUrl?: string;
-  remixCount?: number;
-  claimedAt?: number;
-  completedAt?: number;
-};
+import { type Idea } from "../lib/types";
+import { handleButtonClick } from "../lib/utils";
 
 const TABS: { value: SectionOption; label: string }[] = [
   { value: "ideasboard", label: "Ideasboard" },
   { value: "buildboard", label: "Buildboard" },
   { value: "miniapps", label: "Miniapps" },
 ];
-
-const handleButtonClick = (e: React.MouseEvent, callback: () => void) => {
-  e.preventDefault();
-  e.stopPropagation();
-  callback();
-};
 
 // Inline upvote button for the card list
 const CardUpvoteButton = ({
@@ -89,16 +57,6 @@ const CardUpvoteButton = ({
     }
   }, [hasUpvoted, optimisticUpvoted]);
 
-  useEffect(() => {
-    if (optimisticUpvoted !== null) {
-      const t = setTimeout(() => {
-        setOptimisticUpvoted(null);
-        setOptimisticCount(null);
-      }, 5000);
-      return () => clearTimeout(t);
-    }
-  }, [optimisticUpvoted]);
-
   const handleClick = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -128,7 +86,7 @@ const CardUpvoteButton = ({
   };
 
   const isUpvoted = currentUpvotedState === true;
-  const isLoading = (hasUpvoted === undefined && !!address) || isProcessing;
+  const isLoading = (hasUpvoted === undefined && address !== undefined) || isProcessing;
 
   return (
     <button

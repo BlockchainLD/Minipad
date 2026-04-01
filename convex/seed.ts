@@ -1,7 +1,6 @@
 import { mutation } from "./_generated/server";
 import { ConvexError, v } from "convex/values";
-
-const ADMIN_ADDRESS = "0x6A0bA3707dF9D13A4445cD7E04274B2725930cD7";
+import { ADMIN_ADDRESS } from "./constants";
 
 const ideaArg = v.object({
   title: v.string(),

@@ -29,7 +29,9 @@ export const createRemix = mutation({
     if (args.authorDisplayName !== undefined) doc.authorDisplayName = args.authorDisplayName;
     if (args.authorUsername !== undefined) doc.authorUsername = args.authorUsername;
 
-    return await ctx.db.insert("remixes", doc as any);
+    const remixId = await ctx.db.insert("remixes", doc as any);
+    await ctx.db.patch(args.ideaId, { remixCount: (idea.remixCount ?? 0) + 1 });
+    return remixId;
   },
 });
 
@@ -53,6 +55,11 @@ export const deleteRemix = mutation({
       await ctx.db.delete(upvote._id);
     }
     await ctx.db.delete(args.remixId);
+
+    const idea = await ctx.db.get(remix.ideaId);
+    if (idea) {
+      await ctx.db.patch(remix.ideaId, { remixCount: Math.max(0, (idea.remixCount ?? 0) - 1) });
+    }
 
     return attestationUid;
   },
