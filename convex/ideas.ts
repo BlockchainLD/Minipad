@@ -1,7 +1,6 @@
 import { mutation, query } from "./_generated/server";
 import { ConvexError, v } from "convex/values";
-
-const ADMIN_ADDRESS = "0x6A0bA3707dF9D13A4445cD7E04274B2725930cD7";
+import { ADMIN_ADDRESS } from "./constants";
 
 export const submitIdea = mutation({
   args: {
@@ -40,16 +39,13 @@ export const getIdeas = query({
   handler: async (ctx, args) => {
     const limit = args.limit ?? 50;
     const ideas = await ctx.db.query("ideas").order("desc").take(limit);
-    const filtered = ideas.filter(idea => !idea.isRemix);
-    return Promise.all(
-      filtered.map(async ({ _creationTime, ...idea }) => {
-        const remixes = await ctx.db
-          .query("remixes")
-          .withIndex("by_idea", (q) => q.eq("ideaId", idea._id))
-          .collect();
-        return { ...idea, upvotes: idea.upvotes ?? 0, remixCount: remixes.length };
-      })
-    );
+    return ideas
+      .filter(idea => !idea.isRemix)
+      .map(({ _creationTime, ...idea }) => ({
+        ...idea,
+        upvotes: idea.upvotes ?? 0,
+        remixCount: idea.remixCount ?? 0,
+      }));
   },
 });
 

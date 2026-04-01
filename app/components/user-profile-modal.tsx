@@ -5,8 +5,8 @@ import { Xmark } from "iconoir-react";
 import { useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { sdk } from "@farcaster/miniapp-sdk";
-import { StatusBadge } from "./ui/status-badge";
 import { UserAvatar } from "./ui/user-avatar";
+import { IdeaTile } from "./ui/idea-tile";
 
 export interface UserProfile {
   address: string;
@@ -21,22 +21,6 @@ interface UserProfileModalProps {
   onClose: () => void;
   user: UserProfile | null;
   onIdeaClick: (id: string) => void;
-}
-
-type IdeaLike = { _id: string; title: string; status: "open" | "claimed" | "completed" };
-
-function IdeaTile({ idea, onIdeaClick }: { idea: IdeaLike; onIdeaClick: (id: string) => void }) {
-  return (
-    <button
-      onClick={() => onIdeaClick(idea._id)}
-      title={idea.title}
-      className="flex items-center gap-1.5 bg-white rounded-lg px-3 py-2.5 border border-gray-200 hover:border-gray-300 hover:shadow-sm transition-colors duration-150 min-w-0 cursor-pointer"
-      style={{ flexBasis: "calc(50% - 0.25rem)", maxWidth: "calc(50% - 0.25rem)" }}
-    >
-      <span className="font-medium text-gray-900 text-xs truncate flex-1 min-w-0">{idea.title}</span>
-      <StatusBadge status={idea.status} className="px-1.5 py-0.5 text-[10px] flex-shrink-0" />
-    </button>
-  );
 }
 
 function UserIdeas({ address, onIdeaClick }: { address: string; onIdeaClick: (id: string) => void }) {
@@ -63,7 +47,7 @@ function UserIdeas({ address, onIdeaClick }: { address: string; onIdeaClick: (id
     <div className="space-y-4">
       {submittedIdeas.length > 0 && (
         <div className="space-y-2">
-          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Submitted</p>
+          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Ideas</p>
           <div className="flex flex-wrap gap-2">
             {submittedIdeas.map((idea) => (
               <IdeaTile key={idea._id} idea={idea} onIdeaClick={onIdeaClick} />
@@ -73,7 +57,7 @@ function UserIdeas({ address, onIdeaClick }: { address: string; onIdeaClick: (id
       )}
       {claimedIdeas.length > 0 && (
         <div className="space-y-2">
-          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Claimed</p>
+          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Claims</p>
           <div className="flex flex-wrap gap-2">
             {claimedIdeas.map((idea) => (
               <IdeaTile key={idea._id} idea={idea} onIdeaClick={onIdeaClick} />
@@ -83,7 +67,7 @@ function UserIdeas({ address, onIdeaClick }: { address: string; onIdeaClick: (id
       )}
       {completedIdeas.length > 0 && (
         <div className="space-y-2">
-          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Completed</p>
+          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Miniapps</p>
           <div className="flex flex-wrap gap-2">
             {completedIdeas.map((idea) => (
               <IdeaTile key={idea._id} idea={idea} onIdeaClick={onIdeaClick} />

@@ -1,3 +1,10 @@
+import React from "react";
+
+export const handleButtonClick = (e: React.MouseEvent, callback: () => void) => {
+  e.preventDefault();
+  e.stopPropagation();
+  callback();
+};
 
 const APP_URL = process.env.SITE_URL || 'https://minipad-app.vercel.app';
 
