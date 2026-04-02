@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useAccount, useConnect } from "wagmi";
 import { useIsMobile } from "../../hooks/use-is-mobile";
 import { useFarcasterData } from "../../hooks/use-farcaster-data";
 import { SettingsContent } from "./settings-content";
@@ -24,6 +25,19 @@ export const LoggedIn = () => {
     walletAddress,
     handleCopyAddress,
   } = useLoggedIn();
+
+  const { isConnected } = useAccount();
+  const { connectAsync, connectors, isPending: isConnecting } = useConnect();
+
+  const handleConnectWallet = async () => {
+    try {
+      const baseConnector =
+        connectors.find((c) => c.name.toLowerCase().includes("base")) || connectors[0];
+      await connectAsync({ connector: baseConnector });
+    } catch (error) {
+      console.error("Wallet connection error:", error);
+    }
+  };
 
   const isMobile = useIsMobile();
   const [currentView, setCurrentView] = useState<"board" | "submit" | "complete" | "confirmation">(
@@ -114,9 +128,12 @@ export const LoggedIn = () => {
         <div className="bg-slate-50 min-h-dvh flex flex-col">
           <Header
             avatarUrl={avatarUrl}
+            isConnected={isConnected}
+            isConnecting={isConnecting}
             onLogoClick={handleLogoClick}
             onAvatarClick={handleAvatarClick}
             onTrophyClick={() => setShowLeaderboard(true)}
+            onConnectWallet={handleConnectWallet}
           />
           <div className="flex-1 px-6 pb-6 pt-3">
             {activeTab === TABS.HOME && homeContent}
