@@ -146,7 +146,6 @@ export const UserProfileModal = ({ isOpen, onClose, user, onIdeaClick }: UserPro
                   </span>
                 )}
               </div>
-              {username && username !== displayName && <p className="text-sm text-gray-500">{username}</p>}
             </div>
           </div>
           <button
