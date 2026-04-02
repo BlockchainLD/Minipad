@@ -187,11 +187,7 @@ export const LoggedIn = () => {
       <LeaderboardModal
         isOpen={showLeaderboard}
         onClose={() => setShowLeaderboard(false)}
-        onProfileClick={(user) => {
-          setShowLeaderboard(false);
-          if (user.address === walletAddress) { setActiveTab(TABS.SETTINGS); }
-          else { setProfileModalUser(user); }
-        }}
+        onProfileClick={(user) => { setShowLeaderboard(false); handleProfileClick(user); }}
       />
       <UserProfileModal
         isOpen={!!profileModalUser}

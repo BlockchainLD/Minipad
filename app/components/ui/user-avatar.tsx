@@ -22,7 +22,7 @@ export function UserAvatar({
   };
 
   const backgroundColor = `hsl(${(author?.charCodeAt(0) ?? 0) * 137.5 % 360}, 70%, 50%)`;
-  const sizeClass = size <= 20 ? "w-5 h-5 text-xs" : size === 24 ? "w-6 h-6 text-xs" : size === 32 ? "w-8 h-8 text-xs" : "w-12 h-12 text-lg";
+  const sizeClass = size <= 20 ? "w-5 h-5 text-xs" : size <= 24 ? "w-6 h-6 text-xs" : size <= 28 ? "w-7 h-7 text-xs" : size <= 32 ? "w-8 h-8 text-xs" : size <= 36 ? "w-9 h-9 text-xs" : "w-12 h-12 text-lg";
 
   return (
     <>
