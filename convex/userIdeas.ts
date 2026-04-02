@@ -21,7 +21,7 @@ export const getUserClaimedIdeas = query({
   handler: async (ctx, args) => {
     const ideas = await ctx.db
       .query("ideas")
-      .filter((q) => q.eq(q.field("claimedBy"), args.claimer))
+      .withIndex("by_claimed_by", (q) => q.eq("claimedBy", args.claimer))
       .order("desc")
       .collect();
     return ideas.map(({ _creationTime, ...idea }) => idea);

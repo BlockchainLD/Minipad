@@ -74,7 +74,8 @@ const schema = defineSchema({
   })
     .index("by_idea", ["ideaId"])
     .index("by_voter", ["voter"])
-    .index("by_timestamp", ["timestamp"]),
+    .index("by_timestamp", ["timestamp"])
+    .index("by_idea_voter", ["ideaId", "voter"]),
 
   // User profiles (tagline / public nickname)
   users: defineTable({

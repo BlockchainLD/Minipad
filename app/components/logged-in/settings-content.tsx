@@ -1,5 +1,4 @@
 "use client";
-import React from "react";
 import { Copy, LogOut, CheckCircle, Wallet } from "iconoir-react";
 import { FarcasterProfile } from "../farcaster-profile";
 import { ErrorBoundary } from "../error-boundary";
