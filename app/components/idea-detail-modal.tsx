@@ -318,20 +318,20 @@ const RemixesSection = ({
                       {address && remix.author.toLowerCase() === address.toLowerCase() && (
                         deleteConfirmingRemixId === remix._id ? (
                           <div className="flex items-center gap-1.5" onClick={(e) => e.stopPropagation()}>
-                            <span className="text-xs text-red-600">Delete?</span>
+                            <span className="text-sm text-red-600">Delete?</span>
                             <button
                               onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleRemixDelete(remix._id); }}
                               disabled={deletingId === remix._id}
-                              className="text-xs px-2 py-0.5 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors cursor-pointer disabled:opacity-50"
+                              className="text-sm px-3 py-1.5 bg-red-500 text-white rounded-xl hover:bg-red-600 transition-colors font-medium cursor-pointer disabled:opacity-50"
                             >
-                              {deletingId === remix._id ? "..." : "Yes"}
+                              {deletingId === remix._id ? "..." : "Delete"}
                             </button>
                             <button
                               onClick={(e) => { e.preventDefault(); e.stopPropagation(); setDeleteConfirmingRemixId(null); }}
                               disabled={deletingId === remix._id}
-                              className="text-xs px-2 py-0.5 bg-gray-100 text-gray-600 rounded-lg hover:bg-gray-200 transition-colors cursor-pointer disabled:opacity-50"
+                              className="text-sm px-3 py-1.5 bg-gray-100 text-gray-600 rounded-xl hover:bg-gray-200 transition-colors cursor-pointer disabled:opacity-50"
                             >
-                              No
+                              Cancel
                             </button>
                           </div>
                         ) : (

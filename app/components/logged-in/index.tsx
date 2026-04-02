@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAccount, useConnect } from "wagmi";
 import { useIsMobile } from "../../hooks/use-is-mobile";
 import { useFarcasterData } from "../../hooks/use-farcaster-data";
@@ -67,6 +67,13 @@ export const LoggedIn = () => {
     setActiveTab(TABS.HOME);
     setCurrentView(VIEWS.BOARD);
   };
+
+  // Reset to home if the user disconnects while on the settings tab
+  useEffect(() => {
+    if (!isConnected && activeTab === TABS.SETTINGS) {
+      setActiveTab(TABS.HOME);
+    }
+  }, [isConnected, activeTab, setActiveTab]);
 
   const handleAvatarClick = () => {
     setActiveTab(TABS.SETTINGS);
@@ -166,9 +173,12 @@ export const LoggedIn = () => {
       <div className="bg-white rounded-3xl shadow-xl overflow-hidden border border-violet-100">
         <Header
           avatarUrl={avatarUrl}
+          isConnected={isConnected}
+          isConnecting={isConnecting}
           onLogoClick={handleLogoClick}
           onAvatarClick={handleAvatarClick}
           onTrophyClick={() => setShowLeaderboard(true)}
+          onConnectWallet={handleConnectWallet}
         />
         <div className="p-6 pt-3">
           {activeTab === TABS.HOME && homeContent}
