@@ -3,7 +3,6 @@ import { useAccount, useConnect } from "wagmi";
 import { useIsMobile } from "../../hooks/use-is-mobile";
 import { useFarcasterData } from "../../hooks/use-farcaster-data";
 import { SettingsContent } from "./settings-content";
-import { CopyNotification } from "./copy-notification";
 import { useLoggedIn } from "./use-logged-in";
 import { IdeasBoard } from "../ideas-board";
 import { IdeaSubmissionForm } from "../idea-submission-form";
@@ -150,7 +149,6 @@ export const LoggedIn = () => {
             {activeTab === TABS.SETTINGS && settingsContent}
           </div>
         </div>
-        <CopyNotification show={copied} />
         <LeaderboardModal
           isOpen={showLeaderboard}
           onClose={() => setShowLeaderboard(false)}
@@ -183,7 +181,6 @@ export const LoggedIn = () => {
           {activeTab === TABS.SETTINGS && settingsContent}
         </div>
       </div>
-      <CopyNotification show={copied} />
       <LeaderboardModal
         isOpen={showLeaderboard}
         onClose={() => setShowLeaderboard(false)}

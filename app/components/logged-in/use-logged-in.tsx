@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useAccount, useDisconnect } from "wagmi";
+import { toast } from "sonner";
 import { TABS, COPY_NOTIFICATION_TIMEOUT } from "../../lib/constants";
 
 type TabName = typeof TABS.HOME | typeof TABS.SETTINGS;
@@ -23,6 +24,7 @@ export const useLoggedIn = () => {
   const handleCopyAddress = async () => {
     if (walletAddress) {
       await navigator.clipboard.writeText(walletAddress);
+      toast.success("Address copied!");
       setCopied(true);
       setTimeout(() => setCopied(false), COPY_NOTIFICATION_TIMEOUT);
     }

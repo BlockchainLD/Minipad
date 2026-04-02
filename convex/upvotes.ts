@@ -12,8 +12,7 @@ export const upvoteIdea = mutation({
 
     const existing = await ctx.db
       .query("upvotes")
-      .withIndex("by_idea", (q) => q.eq("ideaId", args.ideaId))
-      .filter((q) => q.eq(q.field("voter"), args.voter))
+      .withIndex("by_idea_voter", (q) => q.eq("ideaId", args.ideaId).eq("voter", args.voter))
       .first();
 
     if (existing) return;
@@ -39,8 +38,7 @@ export const removeUpvote = mutation({
 
     const existing = await ctx.db
       .query("upvotes")
-      .withIndex("by_idea", (q) => q.eq("ideaId", args.ideaId))
-      .filter((q) => q.eq(q.field("voter"), args.voter))
+      .withIndex("by_idea_voter", (q) => q.eq("ideaId", args.ideaId).eq("voter", args.voter))
       .first();
 
     if (!existing) return;
@@ -59,8 +57,7 @@ export const hasUserUpvoted = query({
   handler: async (ctx, args) => {
     const existing = await ctx.db
       .query("upvotes")
-      .withIndex("by_idea", (q) => q.eq("ideaId", args.ideaId))
-      .filter((q) => q.eq(q.field("voter"), args.voter))
+      .withIndex("by_idea_voter", (q) => q.eq("ideaId", args.ideaId).eq("voter", args.voter))
       .first();
     return !!existing;
   },
