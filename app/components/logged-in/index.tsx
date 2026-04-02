@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useAccount, useConnect } from "wagmi";
 import { useIsMobile } from "../../hooks/use-is-mobile";
 import { useFarcasterData } from "../../hooks/use-farcaster-data";
 import { SettingsContent } from "./settings-content";
@@ -25,8 +26,21 @@ export const LoggedIn = () => {
     handleCopyAddress,
   } = useLoggedIn();
 
+  const { isConnected } = useAccount();
+  const { connectAsync, connectors, isPending: isConnecting } = useConnect();
+
+  const handleConnectWallet = async () => {
+    try {
+      const baseConnector =
+        connectors.find((c) => c.name.toLowerCase().includes("base")) || connectors[0];
+      await connectAsync({ connector: baseConnector });
+    } catch (error) {
+      console.error("Wallet connection error:", error);
+    }
+  };
+
   const isMobile = useIsMobile();
-  const [currentView, setCurrentView] = useState<"board" | "submit" | "complete" | "confirmation">(
+  const [currentView, setCurrentView] = useState<"board" | "submit" | "confirmation">(
     VIEWS.BOARD
   );
   const [pendingOpenIdeaId, setPendingOpenIdeaId] = useState<string | null>(null);
@@ -54,6 +68,13 @@ export const LoggedIn = () => {
     setCurrentView(VIEWS.BOARD);
   };
 
+  // Reset to home if the user disconnects while on the settings tab
+  useEffect(() => {
+    if (!isConnected && activeTab === TABS.SETTINGS) {
+      setActiveTab(TABS.HOME);
+    }
+  }, [isConnected, activeTab, setActiveTab]);
+
   const handleAvatarClick = () => {
     setActiveTab(TABS.SETTINGS);
   };
@@ -64,28 +85,31 @@ export const LoggedIn = () => {
     setCurrentView(VIEWS.BOARD);
   };
 
+  const handleProfileClick = (user: { address: string; avatarUrl?: string; displayName?: string; username?: string; fid?: number }) => {
+    if (user.address === walletAddress) {
+      setActiveTab(TABS.SETTINGS);
+    } else {
+      setProfileModalUser(user);
+    }
+  };
+
   const homeContent = (
     <>
       {currentView === VIEWS.BOARD && (
         <IdeasBoard
           onViewChange={setCurrentView}
-          onProfileClick={(user) => {
-            if (user.address === walletAddress) {
-              setActiveTab(TABS.SETTINGS);
-            } else {
-              setProfileModalUser(user);
-            }
-          }}
+          onProfileClick={handleProfileClick}
           openIdeaId={pendingOpenIdeaId}
           onIdeaOpened={() => setPendingOpenIdeaId(null)}
           isGridView={isGridView}
           onToggleGrid={() => setIsGridView((g) => !g)}
           isAllFeed={isAllFeed}
+          onConnectWallet={handleConnectWallet}
         />
       )}
       {currentView === VIEWS.SUBMIT && (
         <IdeaSubmissionForm
-          onSuccess={() => setCurrentView(VIEWS.BOARD)}
+          onSuccess={() => setCurrentView(VIEWS.CONFIRMATION)}
           onCancel={() => setCurrentView(VIEWS.BOARD)}
         />
       )}
@@ -114,9 +138,12 @@ export const LoggedIn = () => {
         <div className="bg-slate-50 min-h-dvh flex flex-col">
           <Header
             avatarUrl={avatarUrl}
+            isConnected={isConnected}
+            isConnecting={isConnecting}
             onLogoClick={handleLogoClick}
             onAvatarClick={handleAvatarClick}
             onTrophyClick={() => setShowLeaderboard(true)}
+            onConnectWallet={handleConnectWallet}
           />
           <div className="flex-1 px-6 pb-6 pt-3">
             {activeTab === TABS.HOME && homeContent}
@@ -127,11 +154,7 @@ export const LoggedIn = () => {
         <LeaderboardModal
           isOpen={showLeaderboard}
           onClose={() => setShowLeaderboard(false)}
-          onProfileClick={(user) => {
-            setShowLeaderboard(false);
-            if (user.address === walletAddress) { setActiveTab(TABS.SETTINGS); }
-            else { setProfileModalUser(user); }
-          }}
+          onProfileClick={(user) => { setShowLeaderboard(false); handleProfileClick(user); }}
         />
         <UserProfileModal
           isOpen={!!profileModalUser}
@@ -148,9 +171,12 @@ export const LoggedIn = () => {
       <div className="bg-white rounded-3xl shadow-xl overflow-hidden border border-violet-100">
         <Header
           avatarUrl={avatarUrl}
+          isConnected={isConnected}
+          isConnecting={isConnecting}
           onLogoClick={handleLogoClick}
           onAvatarClick={handleAvatarClick}
           onTrophyClick={() => setShowLeaderboard(true)}
+          onConnectWallet={handleConnectWallet}
         />
         <div className="p-6 pt-3">
           {activeTab === TABS.HOME && homeContent}

@@ -44,6 +44,7 @@ const UpvoteButton = ({
   address,
   optimisticUpvotes,
   onOptimisticUpvoteChange,
+  onConnectWallet,
 }: {
   ideaId: Id<"ideas">;
   upvotes: number;
@@ -52,6 +53,7 @@ const UpvoteButton = ({
   address: string | undefined;
   optimisticUpvotes?: number | null;
   onOptimisticUpvoteChange?: (count: number | null) => void;
+  onConnectWallet?: () => void;
 }) => {
   const [optimisticUpvoted, setOptimisticUpvoted] = useState<boolean | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -79,7 +81,7 @@ const UpvoteButton = ({
   const handleClick = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    if (!address) { toast.error("Please connect your wallet to upvote"); return; }
+    if (!address) { onConnectWallet?.(); return; }
     if (isProcessing) return;
     setIsProcessing(true);
     try {
@@ -107,7 +109,7 @@ const UpvoteButton = ({
   return (
     <button
       onClick={handleClick}
-      disabled={!address || isLoading}
+      disabled={isLoading}
       className={`relative flex items-center gap-2 px-3 py-2 rounded-xl transition-colors duration-150 disabled:opacity-50 disabled:cursor-not-allowed ${
         isUpvoted
           ? "text-red-500 hover:text-red-600 hover:bg-red-50"
@@ -132,9 +134,11 @@ const UpvoteButton = ({
 const RemixUpvoteButton = ({
   remix,
   address,
+  onConnectWallet,
 }: {
   remix: Remix;
   address: string | undefined;
+  onConnectWallet?: () => void;
 }) => {
   const [optimisticUpvoted, setOptimisticUpvoted] = useState<boolean | null>(null);
   const [optimisticCount, setOptimisticCount] = useState<number | null>(null);
@@ -160,7 +164,7 @@ const RemixUpvoteButton = ({
   const handleClick = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    if (!address) { toast.error("Please connect your wallet to upvote"); return; }
+    if (!address) { onConnectWallet?.(); return; }
     if (isProcessing) return;
     setIsProcessing(true);
     try {
@@ -188,7 +192,7 @@ const RemixUpvoteButton = ({
   return (
     <button
       onClick={handleClick}
-      disabled={!address || isProcessing}
+      disabled={isProcessing}
       className={`flex items-center gap-1 px-2 py-1 rounded-lg text-xs transition-colors duration-150 disabled:opacity-50 disabled:cursor-not-allowed ${
         isUpvoted ? "text-red-500 hover:text-red-600" : "text-gray-400 hover:text-gray-600"
       }`}
@@ -217,15 +221,18 @@ interface IdeaDetailModalProps {
   // When true, the remix form opens immediately (e.g. from card Flash button)
   autoOpenRemixForm?: boolean;
   isClaimLoading?: boolean;
+  onConnectWallet?: () => void;
 }
 
 // Isolated component so useQuery errors are caught by ErrorBoundary
 const RemixesSection = ({
   idea,
   address,
+  onConnectWallet,
 }: {
   idea: Idea;
   address: string | undefined;
+  onConnectWallet?: () => void;
 }) => {
   const remixes = useQuery(
     api.remixes.getRemixesForIdea,
@@ -307,24 +314,24 @@ const RemixesSection = ({
                       {remix.content}
                     </p>
                     <div className="flex items-center gap-2 mt-2">
-                      <RemixUpvoteButton remix={remix} address={address} />
+                      <RemixUpvoteButton remix={remix} address={address} onConnectWallet={onConnectWallet} />
                       {address && remix.author.toLowerCase() === address.toLowerCase() && (
                         deleteConfirmingRemixId === remix._id ? (
                           <div className="flex items-center gap-1.5" onClick={(e) => e.stopPropagation()}>
-                            <span className="text-xs text-red-600">Delete?</span>
+                            <span className="text-sm text-red-600">Delete?</span>
                             <button
                               onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleRemixDelete(remix._id); }}
                               disabled={deletingId === remix._id}
-                              className="text-xs px-2 py-0.5 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors cursor-pointer disabled:opacity-50"
+                              className="text-sm px-3 py-1.5 bg-red-500 text-white rounded-xl hover:bg-red-600 transition-colors font-medium cursor-pointer disabled:opacity-50"
                             >
-                              {deletingId === remix._id ? "..." : "Yes"}
+                              {deletingId === remix._id ? "..." : "Delete"}
                             </button>
                             <button
                               onClick={(e) => { e.preventDefault(); e.stopPropagation(); setDeleteConfirmingRemixId(null); }}
                               disabled={deletingId === remix._id}
-                              className="text-xs px-2 py-0.5 bg-gray-100 text-gray-600 rounded-lg hover:bg-gray-200 transition-colors cursor-pointer disabled:opacity-50"
+                              className="text-sm px-3 py-1.5 bg-gray-100 text-gray-600 rounded-xl hover:bg-gray-200 transition-colors cursor-pointer disabled:opacity-50"
                             >
-                              No
+                              Cancel
                             </button>
                           </div>
                         ) : (
@@ -364,6 +371,7 @@ export const IdeaDetailModal = ({
   address,
   autoOpenRemixForm = false,
   isClaimLoading = false,
+  onConnectWallet,
 }: IdeaDetailModalProps) => {
   const [optimisticUpvotes, setOptimisticUpvotes] = useState<number | null>(null);
   const [showRemixForm, setShowRemixForm] = useState(false);
@@ -414,7 +422,7 @@ export const IdeaDetailModal = ({
     authorDisplayName?: string;
     authorUsername?: string;
   }) => {
-    if (!address) { toast.error("Please connect your wallet"); return; }
+    if (!address) { onConnectWallet?.(); return; }
     if (!eas || !isEASConfigured) { toast.error("Wallet not ready or EAS not configured"); return; }
     let remixId: Id<"remixes"> | null = null;
     try {
@@ -465,7 +473,7 @@ export const IdeaDetailModal = ({
   };
 
   const handleEndorse = async () => {
-    if (!address) { toast.error("Please connect your wallet"); return; }
+    if (!address) { onConnectWallet?.(); return; }
     if (!eas || !isEASConfigured) { toast.error("Wallet not ready or EAS not configured"); return; }
     if (isEndorsing) return;
     setIsEndorsing(true);
@@ -671,7 +679,7 @@ export const IdeaDetailModal = ({
 
             {/* Remixes / Additions / Comments */}
             <ErrorBoundary fallback={null}>
-              <RemixesSection idea={idea} address={address} />
+              <RemixesSection idea={idea} address={address} onConnectWallet={onConnectWallet} />
             </ErrorBoundary>
           </div>
         </div>
@@ -689,12 +697,13 @@ export const IdeaDetailModal = ({
                 address={address}
                 optimisticUpvotes={optimisticUpvotes}
                 onOptimisticUpvoteChange={setOptimisticUpvotes}
+                onConnectWallet={onConnectWallet}
               />
             )}
 
             {idea.status !== "completed" ? (
               <button
-                onClick={(e) => { e.preventDefault(); e.stopPropagation(); setShowRemixForm(true); }}
+                onClick={(e) => { e.preventDefault(); e.stopPropagation(); if (!address) { onConnectWallet?.(); return; } setShowRemixForm(true); }}
                 className={`flex items-center gap-1 text-yellow-500 bg-transparent hover:bg-yellow-50 border border-transparent hover:border-yellow-200 rounded-xl transition-all duration-200 font-medium cursor-pointer active:scale-95 ${
                   isClaimedByMe ? "px-2 py-1 text-xs" : "px-3 py-2 text-sm"
                 }`}
@@ -706,7 +715,7 @@ export const IdeaDetailModal = ({
             ) : (
               <button
                 onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleEndorse(); }}
-                disabled={!address || isEndorsing || !hasVisited}
+                disabled={isEndorsing || !hasVisited}
                 className={`flex items-center gap-1.5 px-3 py-2 rounded-xl transition-all duration-200 font-medium cursor-pointer active:scale-95 text-sm disabled:opacity-50 disabled:cursor-not-allowed ${
                   hasEndorsed
                     ? "text-yellow-600 bg-yellow-50 border border-yellow-200 hover:bg-yellow-100"

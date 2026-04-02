@@ -1,6 +1,5 @@
 "use client";
 
-import { SignInForm } from "./components/sign-in-form";
 import { LoggedIn } from "./components/logged-in";
 import { AutoConnectWrapper, useFarcaster } from "./components/auto-connect-wrapper";
 import { useAccount } from "wagmi";
@@ -51,18 +50,11 @@ function AppContent() {
     );
   }
 
-  // Outside Farcaster (regular browser): show sign-in or app content.
+  // Outside Farcaster (regular browser): always show the app interface.
+  // Wallet connection is available via the header button.
   return (
     <div className="min-h-dvh bg-white">
-      {isConnected ? (
-        <LoggedIn />
-      ) : (
-        <div className="flex items-center justify-center min-h-dvh p-4">
-          <div className="w-full max-w-md">
-            <SignInForm />
-          </div>
-        </div>
-      )}
+      <LoggedIn />
     </div>
   );
 }

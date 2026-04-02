@@ -3,12 +3,15 @@ import { LightBulb, Medal1stSolid } from "iconoir-react";
 
 interface HeaderProps {
   avatarUrl: string | null;
+  isConnected: boolean;
+  isConnecting: boolean;
   onLogoClick: () => void;
   onAvatarClick: () => void;
   onTrophyClick: () => void;
+  onConnectWallet: () => void;
 }
 
-export const Header = ({ avatarUrl, onLogoClick, onAvatarClick, onTrophyClick }: HeaderProps) => (
+export const Header = ({ avatarUrl, isConnected, isConnecting, onLogoClick, onAvatarClick, onTrophyClick, onConnectWallet }: HeaderProps) => (
   <div className="flex items-center justify-center px-6 py-4 border-b border-violet-100 bg-white">
     <div className="flex items-center gap-3 w-full justify-between">
       <div className="flex items-center gap-2">
@@ -31,7 +34,7 @@ export const Header = ({ avatarUrl, onLogoClick, onAvatarClick, onTrophyClick }:
           <Medal1stSolid width={22} height={22} className="text-yellow-500" />
         </button>
 
-        {avatarUrl && (
+        {isConnected && avatarUrl ? (
           <button
             onClick={onAvatarClick}
             className="rounded-full focus:outline-none focus:ring-2 focus:ring-violet-300 hover:ring-2 hover:ring-violet-300 transition-all"
@@ -47,6 +50,30 @@ export const Header = ({ avatarUrl, onLogoClick, onAvatarClick, onTrophyClick }:
               className="w-7 h-7 rounded-full object-cover"
               onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
             />
+          </button>
+        ) : isConnected ? (
+          <button
+            onClick={onAvatarClick}
+            className="w-7 h-7 rounded-full bg-violet-100 flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-violet-300 hover:ring-2 hover:ring-violet-300 transition-all"
+            aria-label="Open settings"
+            title="Settings"
+          >
+            <span className="text-xs text-violet-600 font-medium">•••</span>
+          </button>
+        ) : (
+          <button
+            onClick={onConnectWallet}
+            disabled={isConnecting}
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-[#0052FF] hover:bg-[#0040CC] disabled:opacity-60 text-white text-sm font-semibold rounded-lg transition-colors duration-150"
+          >
+            {isConnecting ? (
+              <>
+                <span className="animate-spin w-3.5 h-3.5 border-2 border-white/40 rounded-full border-t-white" />
+                <span>Connecting...</span>
+              </>
+            ) : (
+              "Connect Wallet"
+            )}
           </button>
         )}
       </div>

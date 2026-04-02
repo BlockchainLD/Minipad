@@ -1,6 +1,12 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  turbopack: {
+    resolveAlias: {
+      "pino-pretty": { browser: "./app/lib/empty.ts" },
+      "@react-native-async-storage/async-storage": { browser: "./app/lib/empty.ts" },
+    },
+  },
   webpack: (config) => {
     config.resolve.alias = {
       ...config.resolve.alias,

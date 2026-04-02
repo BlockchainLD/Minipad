@@ -27,7 +27,9 @@ function ProfileIdeas({ onIdeaClick }: { onIdeaClick: (id: string) => void }) {
     address ? { author: address } : "skip"
   );
 
-  if (!address || submittedIdeas === undefined) {
+  if (!address) return null;
+
+  if (submittedIdeas === undefined) {
     return (
       <div className="space-y-2 animate-pulse">
         {[0, 1].map((i) => <div key={i} className="bg-gray-200 h-10 rounded-lg" />)}
@@ -56,7 +58,9 @@ function ProfileClaimedIdeas({ onIdeaClick }: { onIdeaClick: (id: string) => voi
     address ? { claimer: address } : "skip"
   );
 
-  if (!address || rawClaimedIdeas === undefined) {
+  if (!address) return null;
+
+  if (rawClaimedIdeas === undefined) {
     return (
       <div className="space-y-2 animate-pulse">
         {[0, 1].map((i) => <div key={i} className="bg-gray-200 h-10 rounded-lg" />)}
