@@ -124,7 +124,7 @@ const EndorsementCountBadge = ({ ideaId }: { ideaId: Id<"ideas"> }) => {
 };
 
 interface IdeasBoardProps {
-  onViewChange?: (view: "board" | "submit" | "complete" | "confirmation") => void;
+  onViewChange?: (view: "board" | "submit" | "confirmation") => void;
   onProfileClick?: (user: { address: string; avatarUrl?: string; displayName?: string; username?: string; fid?: number }) => void;
   openIdeaId?: string | null;
   onIdeaOpened?: () => void;

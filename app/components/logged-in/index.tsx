@@ -40,7 +40,7 @@ export const LoggedIn = () => {
   };
 
   const isMobile = useIsMobile();
-  const [currentView, setCurrentView] = useState<"board" | "submit" | "complete" | "confirmation">(
+  const [currentView, setCurrentView] = useState<"board" | "submit" | "confirmation">(
     VIEWS.BOARD
   );
   const [pendingOpenIdeaId, setPendingOpenIdeaId] = useState<string | null>(null);
@@ -85,18 +85,20 @@ export const LoggedIn = () => {
     setCurrentView(VIEWS.BOARD);
   };
 
+  const handleProfileClick = (user: { address: string; avatarUrl?: string; displayName?: string; username?: string; fid?: number }) => {
+    if (user.address === walletAddress) {
+      setActiveTab(TABS.SETTINGS);
+    } else {
+      setProfileModalUser(user);
+    }
+  };
+
   const homeContent = (
     <>
       {currentView === VIEWS.BOARD && (
         <IdeasBoard
           onViewChange={setCurrentView}
-          onProfileClick={(user) => {
-            if (user.address === walletAddress) {
-              setActiveTab(TABS.SETTINGS);
-            } else {
-              setProfileModalUser(user);
-            }
-          }}
+          onProfileClick={handleProfileClick}
           openIdeaId={pendingOpenIdeaId}
           onIdeaOpened={() => setPendingOpenIdeaId(null)}
           isGridView={isGridView}
@@ -107,7 +109,7 @@ export const LoggedIn = () => {
       )}
       {currentView === VIEWS.SUBMIT && (
         <IdeaSubmissionForm
-          onSuccess={() => setCurrentView(VIEWS.BOARD)}
+          onSuccess={() => setCurrentView(VIEWS.CONFIRMATION)}
           onCancel={() => setCurrentView(VIEWS.BOARD)}
         />
       )}
@@ -152,11 +154,7 @@ export const LoggedIn = () => {
         <LeaderboardModal
           isOpen={showLeaderboard}
           onClose={() => setShowLeaderboard(false)}
-          onProfileClick={(user) => {
-            setShowLeaderboard(false);
-            if (user.address === walletAddress) { setActiveTab(TABS.SETTINGS); }
-            else { setProfileModalUser(user); }
-          }}
+          onProfileClick={(user) => { setShowLeaderboard(false); handleProfileClick(user); }}
         />
         <UserProfileModal
           isOpen={!!profileModalUser}
