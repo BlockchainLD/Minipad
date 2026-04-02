@@ -95,6 +95,7 @@ export const LoggedIn = () => {
           isGridView={isGridView}
           onToggleGrid={() => setIsGridView((g) => !g)}
           isAllFeed={isAllFeed}
+          onConnectWallet={handleConnectWallet}
         />
       )}
       {currentView === VIEWS.SUBMIT && (

@@ -32,12 +32,14 @@ const CardUpvoteButton = ({
   onUpvote,
   onRemoveUpvote,
   address,
+  onConnectWallet,
 }: {
   ideaId: Id<"ideas">;
   upvotes: number;
   onUpvote: (id: Id<"ideas">) => void;
   onRemoveUpvote: (id: Id<"ideas">) => void;
   address: string | undefined;
+  onConnectWallet?: () => void;
 }) => {
   const [optimisticUpvoted, setOptimisticUpvoted] = useState<boolean | null>(null);
   const [optimisticCount, setOptimisticCount] = useState<number | null>(null);
@@ -61,7 +63,7 @@ const CardUpvoteButton = ({
     e.preventDefault();
     e.stopPropagation();
     if (!address) {
-      toast.error("Please connect your wallet to upvote");
+      onConnectWallet?.();
       return;
     }
     if (isProcessing) return;
@@ -91,7 +93,7 @@ const CardUpvoteButton = ({
   return (
     <button
       onClick={handleClick}
-      disabled={!address || isLoading}
+      disabled={isLoading}
       className={`relative flex items-center gap-2 transition-colors duration-150 disabled:opacity-50 disabled:cursor-not-allowed ${
         isUpvoted ? "text-red-500 hover:text-red-400" : "text-gray-400 hover:text-red-400"
       }`}
@@ -129,9 +131,10 @@ interface IdeasBoardProps {
   isGridView?: boolean;
   onToggleGrid?: () => void;
   isAllFeed?: boolean;
+  onConnectWallet?: () => void;
 }
 
-export const IdeasBoard = ({ onViewChange, onProfileClick, openIdeaId, onIdeaOpened, isGridView = false, onToggleGrid, isAllFeed = false }: IdeasBoardProps) => {
+export const IdeasBoard = ({ onViewChange, onProfileClick, openIdeaId, onIdeaOpened, isGridView = false, onToggleGrid, isAllFeed = false, onConnectWallet }: IdeasBoardProps) => {
   const { address } = useAccount();
   const farcasterData = useFarcasterData();
   const { eas, isEASConfigured } = useEAS();
@@ -177,7 +180,7 @@ export const IdeasBoard = ({ onViewChange, onProfileClick, openIdeaId, onIdeaOpe
   }, [openIdeaId, ideas]);
 
   const handleUpvote = async (ideaId: Id<"ideas">) => {
-    if (!address) { toast.error("Please connect your wallet"); return; }
+    if (!address) { onConnectWallet?.(); return; }
     try {
       await upvoteIdea({ ideaId, voter: address });
     } catch (error) {
@@ -186,7 +189,7 @@ export const IdeasBoard = ({ onViewChange, onProfileClick, openIdeaId, onIdeaOpe
   };
 
   const handleRemoveUpvote = async (ideaId: Id<"ideas">) => {
-    if (!address) { toast.error("Please connect your wallet"); return; }
+    if (!address) { onConnectWallet?.(); return; }
     try {
       await removeUpvote({ ideaId, voter: address });
     } catch (error) {
@@ -198,7 +201,7 @@ export const IdeasBoard = ({ onViewChange, onProfileClick, openIdeaId, onIdeaOpe
   // Remix submission is now handled entirely within IdeaDetailModal so
   // RemixesSection stays mounted and its Convex subscription stays alive.
   const handleRemix = (ideaId: Id<"ideas">) => {
-    if (!address) { toast.error("Please connect your wallet"); return; }
+    if (!address) { onConnectWallet?.(); return; }
     const original = ideas?.find((i) => i._id === ideaId);
     if (!original) { toast.error("Original idea not found"); return; }
     setSelectedIdea(original as Idea);
@@ -207,7 +210,7 @@ export const IdeasBoard = ({ onViewChange, onProfileClick, openIdeaId, onIdeaOpe
   };
 
   const handleClaim = async (ideaId: Id<"ideas">) => {
-    if (!address) { toast.error("Please connect your wallet"); return; }
+    if (!address) { onConnectWallet?.(); return; }
     if (!eas || !isEASConfigured) { toast.error("Wallet not ready or EAS not configured"); return; }
     if (claimingIdeaId) return;
     setClaimingIdeaId(ideaId);
@@ -237,7 +240,7 @@ export const IdeasBoard = ({ onViewChange, onProfileClick, openIdeaId, onIdeaOpe
   };
 
   const handleUnclaim = async (ideaId: Id<"ideas">) => {
-    if (!address) { toast.error("Please connect your wallet"); return; }
+    if (!address) { onConnectWallet?.(); return; }
     try {
       // Convex first — returns the claim's attestation UID
       const attestationUid = await unclaimIdea({ ideaId, claimer: address });
@@ -254,7 +257,7 @@ export const IdeasBoard = ({ onViewChange, onProfileClick, openIdeaId, onIdeaOpe
   };
 
   const handleDelete = async (ideaId: Id<"ideas">) => {
-    if (!address) { toast.error("Please connect your wallet"); return; }
+    if (!address) { onConnectWallet?.(); return; }
     // Capture attestation UID before deletion (selectedIdea holds current state)
     const attestationUid = selectedIdea?.attestationUid;
     try {
@@ -408,6 +411,7 @@ export const IdeasBoard = ({ onViewChange, onProfileClick, openIdeaId, onIdeaOpe
             variant="primary"
             size="sm"
             onClick={() => {
+              if (!address) { onConnectWallet?.(); return; }
               onViewChange?.("submit");
               if (typeof window !== "undefined") {
                 window.scrollTo({ top: 0, behavior: "smooth" });
@@ -500,6 +504,7 @@ export const IdeasBoard = ({ onViewChange, onProfileClick, openIdeaId, onIdeaOpe
                 onUpvote={handleUpvote}
                 onRemoveUpvote={handleRemoveUpvote}
                 address={address}
+                onConnectWallet={onConnectWallet}
               />
               {idea.status !== "completed" ? (
                 <button
@@ -601,6 +606,7 @@ export const IdeasBoard = ({ onViewChange, onProfileClick, openIdeaId, onIdeaOpe
                 onUpvote={handleUpvote}
                 onRemoveUpvote={handleRemoveUpvote}
                 address={address}
+                onConnectWallet={onConnectWallet}
               />
 
               {idea.status !== "completed" ? (
@@ -778,6 +784,7 @@ export const IdeasBoard = ({ onViewChange, onProfileClick, openIdeaId, onIdeaOpe
             address={address}
             autoOpenRemixForm={autoOpenRemixForm}
             isClaimLoading={claimingIdeaId === selectedIdea?._id}
+            onConnectWallet={onConnectWallet}
           />
         </ErrorBoundary>
       )}
