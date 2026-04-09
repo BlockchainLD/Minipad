@@ -51,6 +51,7 @@ contract MinipadFeeResolver is ISchemaResolver {
     // ── Events ─────────────────────────────────────────────────────────────────
     event FeePaid(address indexed payer, bytes32 indexed schema, uint256 amount);
     event Distributed(address indexed creator, address indexed builder, uint256 perRecipient);
+    event Withdrawn(address indexed to, uint256 amount);
     event MinFeeUpdated(uint256 newMinFee);
     event OwnershipTransferStarted(address indexed previousOwner, address indexed newOwner);
     event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
@@ -224,5 +225,6 @@ contract MinipadFeeResolver is ISchemaResolver {
         if (balance == 0) revert EmptyBalance();
         (bool ok,) = to.call{value: balance}("");
         if (!ok) revert TransferFailed();
+        emit Withdrawn(to, balance);
     }
 }
