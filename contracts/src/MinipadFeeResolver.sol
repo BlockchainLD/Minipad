@@ -61,7 +61,7 @@ contract MinipadFeeResolver is ISchemaResolver {
     address public pendingOwner;        // two-step ownership transfer
     uint256 public minFee;              // minimum wei per attestation
     bool public paused;                 // true → attest/multiAttest revert
-    bool private _guardianPaused;       // true → only guardian may unpause
+    bool public guardianPaused;         // true → only guardian may unpause (readable by dashboard)
     uint256 private _locked;            // reentrancy guard (1 = unlocked, 2 = locked)
 
     // ── Events ─────────────────────────────────────────────────────────────────
@@ -91,6 +91,7 @@ contract MinipadFeeResolver is ISchemaResolver {
     error NotPaused();            // unpause() called when not paused
     error AlreadyPaused();        // pause() called when already paused with no new effect
     error GuardianLocked();       // owner attempting to unpause a guardian-locked pause
+    error GuardianEqualsOwner();  // guardian must be a different address from the owner
 
     // ── Modifiers ──────────────────────────────────────────────────────────────
     modifier onlyOwner() {
@@ -119,6 +120,7 @@ contract MinipadFeeResolver is ISchemaResolver {
     constructor(address _eas, uint256 _minFee, address _guardian) {
         if (_eas == address(0)) revert ZeroAddress();
         if (_guardian == address(0)) revert ZeroAddress();
+        if (_guardian == msg.sender) revert GuardianEqualsOwner();
         eas = _eas;
         guardian = _guardian;
         owner = msg.sender;
@@ -213,10 +215,10 @@ contract MinipadFeeResolver is ISchemaResolver {
     function pause() external {
         if (msg.sender == guardian) {
             // Guardian is taking control. If guardian lock is already set, nothing to do.
-            if (_guardianPaused) revert AlreadyPaused();
+            if (guardianPaused) revert AlreadyPaused();
             // Set paused if it isn't already, then lock it to guardian.
             if (!paused) paused = true;
-            _guardianPaused = true;
+            guardianPaused = true;
             emit Paused(msg.sender);
         } else if (msg.sender == owner) {
             // Owner can only pause when nothing is already paused.
@@ -237,7 +239,7 @@ contract MinipadFeeResolver is ISchemaResolver {
     ///   anyone else — reverts NotAuthorized.
     function unpause() external {
         if (!paused) revert NotPaused();
-        if (_guardianPaused) {
+        if (guardianPaused) {
             // Guardian holds the lock — only guardian may release it.
             if (msg.sender != guardian) revert GuardianLocked();
         } else {
@@ -245,7 +247,7 @@ contract MinipadFeeResolver is ISchemaResolver {
             if (msg.sender != owner && msg.sender != guardian) revert NotAuthorized();
         }
         paused = false;
-        _guardianPaused = false;
+        guardianPaused = false;
         emit Unpaused(msg.sender);
     }
 
