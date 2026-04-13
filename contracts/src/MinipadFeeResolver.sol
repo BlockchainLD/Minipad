@@ -292,6 +292,7 @@ contract MinipadFeeResolver is ISchemaResolver {
     ///         The new owner must call acceptOwnership() to complete the transfer.
     function transferOwnership(address newOwner) external onlyOwner {
         if (newOwner == address(0)) revert ZeroAddress();
+        if (newOwner == guardian) revert GuardianEqualsOwner();
         pendingOwner = newOwner;
         emit OwnershipTransferStarted(owner, newOwner);
     }
