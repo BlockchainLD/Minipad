@@ -42,6 +42,8 @@ export const handleError = (error: unknown, context: ErrorContext) => {
     toast.error("EAS not properly configured. Please contact support.");
   } else if (msg.includes("User rejected") || msg.includes("rejected the request") || msg.includes("UserRejectedRequestError")) {
     toast.error("Transaction cancelled.");
+  } else if (msg.includes("FeeTooLow") || msg.includes("fee too low")) {
+    toast.error("Attestation fee too low. Please try again — your wallet may have a stale fee estimate.");
   } else if (msg.includes("insufficient funds")) {
     toast.error("Insufficient funds for transaction. Please add ETH to your wallet.");
   } else if (msg.includes("network")) {
