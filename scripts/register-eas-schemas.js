@@ -4,14 +4,15 @@
  * Script to register EAS schemas on Base mainnet
  * Run this script to register all required schemas for the Minipad platform
  *
- * Usage (zero-resolver, free attestations):
+ * Usage (zero-resolver, free attestations — first-time setup):
  *   PRIVATE_KEY=0x... node scripts/register-eas-schemas.js
  *
- * Usage (with fee resolver for IDEA, CLAIM, COMPLETION):
+ * Usage (with fee resolver for IDEA, CLAIM, COMPLETION — after deploying MinipadFeeResolver):
  *   PRIVATE_KEY=0x... RESOLVER_ADDRESS=0x... node scripts/register-eas-schemas.js
  *
- * Set RESOLVER_ADDRESS after deploying MinipadFeeResolver:
- *   PRIVATE_KEY=0x... MIN_FEE_WEI=3300000000000 node scripts/deploy-resolver.js
+ *   When RESOLVER_ADDRESS is set, only IDEA, CLAIM, and COMPLETION are registered
+ *   (with the resolver). REMIX and BUILD_ENDORSEMENT already exist on-chain with the
+ *   zero resolver from the initial setup — keep their UIDs from your .env.local.
  */
 
 const { SchemaRegistry } = require("@ethereum-attestation-service/eas-sdk");
@@ -31,7 +32,9 @@ const SCHEMA_DEFINITIONS = {
 };
 
 // Schemas that route through MinipadFeeResolver when RESOLVER_ADDRESS is set.
-// REMIX and BUILD_ENDORSEMENT remain zero-cost (zero resolver).
+// REMIX and BUILD_ENDORSEMENT remain zero-cost (zero resolver) and are only
+// registered during initial setup (no RESOLVER_ADDRESS). Re-running with
+// RESOLVER_ADDRESS skips them to avoid AlreadyExists errors on-chain.
 const FEE_SCHEMAS = new Set(["IDEA", "CLAIM", "COMPLETION"]);
 
 async function registerSchemas() {
@@ -47,12 +50,19 @@ async function registerSchemas() {
   const resolverAddress = process.env.RESOLVER_ADDRESS || ethers.ZeroAddress;
   const usingResolver = resolverAddress !== ethers.ZeroAddress;
 
+  // When using a fee resolver, only register the fee schemas.
+  // REMIX and BUILD_ENDORSEMENT were already registered with ZeroAddress on
+  // first setup and cannot be re-registered — their UIDs stay in .env.local.
+  const schemasToRegister = usingResolver
+    ? Object.fromEntries(Object.entries(SCHEMA_DEFINITIONS).filter(([name]) => FEE_SCHEMAS.has(name)))
+    : SCHEMA_DEFINITIONS;
+
   if (usingResolver) {
     console.log(`🔗 Using fee resolver: ${resolverAddress}`);
-    console.log("   IDEA, CLAIM, COMPLETION → resolver");
-    console.log("   REMIX, BUILD_ENDORSEMENT → zero resolver (free)\n");
+    console.log("   Registering: IDEA, CLAIM, COMPLETION → resolver");
+    console.log("   Skipping:    REMIX, BUILD_ENDORSEMENT (already on-chain with zero resolver)\n");
   } else {
-    console.log("ℹ️  No RESOLVER_ADDRESS set — all schemas use zero resolver (free)\n");
+    console.log("ℹ️  No RESOLVER_ADDRESS set — registering all schemas with zero resolver (free)\n");
   }
 
   try {
@@ -70,10 +80,9 @@ async function registerSchemas() {
     const registeredSchemas = {};
 
     // Register each schema
-    for (const [schemaName, schemaDefinition] of Object.entries(SCHEMA_DEFINITIONS)) {
+    for (const [schemaName, schemaDefinition] of Object.entries(schemasToRegister)) {
       try {
-        const schemaResolver =
-          usingResolver && FEE_SCHEMAS.has(schemaName) ? resolverAddress : ethers.ZeroAddress;
+        const schemaResolver = usingResolver ? resolverAddress : ethers.ZeroAddress;
 
         console.log(`📝 Registering ${schemaName} schema...`);
         console.log(`   Definition: ${schemaDefinition}`);
@@ -102,6 +111,10 @@ async function registerSchemas() {
       console.log(`NEXT_PUBLIC_${schemaName}_SCHEMA_UID=${schemaUid}`);
     }
 
+    if (usingResolver) {
+      console.log("\nℹ️  Keep your existing REMIX and BUILD_ENDORSEMENT UIDs from .env.local unchanged.");
+    }
+
     console.log("\n📋 Copy the above environment variables to your .env.local file");
     console.log("🚀 Restart your development server to use the new schemas");
 
@@ -113,3 +126,4 @@ async function registerSchemas() {
 
 // Run the script
 registerSchemas();
+
