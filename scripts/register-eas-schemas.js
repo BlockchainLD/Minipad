@@ -88,11 +88,23 @@ async function registerSchemas() {
         console.log(`   Definition: ${schemaDefinition}`);
         console.log(`   Resolver:   ${schemaResolver}`);
 
-        const schemaUid = await schemaRegistry.register({
+        const result = await schemaRegistry.register({
           schema: schemaDefinition,
           resolverAddress: schemaResolver,
           revocable: true,
         });
+
+        // SDK v2.x returns a transaction object — wait for confirmation then compute UID.
+        // UID is deterministic: keccak256(abi.encodePacked(schema, resolver, revocable))
+        if (result && typeof result.wait === "function") {
+          await result.wait();
+        }
+        const schemaUid = ethers.keccak256(
+          ethers.solidityPacked(
+            ["string", "address", "bool"],
+            [schemaDefinition, schemaResolver, true]
+          )
+        );
 
         registeredSchemas[schemaName] = schemaUid;
         console.log(`✅ ${schemaName} schema registered: ${schemaUid}\n`);
