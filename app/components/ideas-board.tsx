@@ -15,7 +15,7 @@ import { handleError } from "../lib/error-handler";
 import { IdeaDetailModal } from "./idea-detail-modal";
 import { ErrorBoundary } from "./error-boundary";
 import { useFarcasterData } from "../hooks/use-farcaster-data";
-import { useEAS, createClaimAttestation, revokeAttestation, SCHEMAS } from "../lib/eas";
+import { useEAS, createClaimAttestation, createBuildEndorsementAttestation, revokeAttestation, SCHEMAS } from "../lib/eas";
 import { type Idea } from "../lib/types";
 import { handleButtonClick } from "../lib/utils";
 
@@ -112,14 +112,97 @@ const CardUpvoteButton = ({
   );
 };
 
-const EndorsementCountBadge = ({ ideaId }: { ideaId: Id<"ideas"> }) => {
-  const count = useQuery(api.endorsements.getEndorsementCount, { ideaId });
-  if (!count) return null;
+const CardEndorsementButton = ({
+  idea,
+  address,
+  eas,
+  isEASConfigured,
+  farcasterData,
+  onConnectWallet,
+}: {
+  idea: Idea;
+  address: string | undefined;
+  eas: ReturnType<typeof useEAS>["eas"];
+  isEASConfigured: boolean;
+  farcasterData: ReturnType<typeof useFarcasterData>;
+  onConnectWallet?: () => void;
+}) => {
+  const [isEndorsing, setIsEndorsing] = useState(false);
+  const endorseBuildMutation = useMutation(api.endorsements.endorseBuild);
+  const removeEndorsementMutation = useMutation(api.endorsements.removeEndorsement);
+
+  const hasEndorsed = useQuery(
+    api.endorsements.hasUserEndorsedBuild,
+    address ? { ideaId: idea._id, endorser: address } : "skip"
+  );
+  const count = useQuery(api.endorsements.getEndorsementCount, { ideaId: idea._id });
+
+  const handleClick = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!address) { onConnectWallet?.(); return; }
+    if (!eas || !isEASConfigured) { toast.error("Wallet not ready or EAS not configured"); return; }
+    if (isEndorsing) return;
+
+    const visited = typeof window !== "undefined" && localStorage.getItem(`minipad_visited_${idea._id}`) === "true";
+    if (!visited && !hasEndorsed) {
+      toast.info("Try the app first to unlock endorsement");
+      return;
+    }
+
+    setIsEndorsing(true);
+    try {
+      if (hasEndorsed) {
+        const attestationUid = await removeEndorsementMutation({ ideaId: idea._id, endorser: address });
+        toast.success("Endorsement removed.");
+        if (attestationUid && eas) {
+          revokeAttestation(eas, attestationUid, SCHEMAS.BUILD_ENDORSEMENT).catch(() => {});
+        }
+      } else {
+        if (!idea.deploymentUrl) { toast.error("No deployment URL"); return; }
+        const attestationUid = await createBuildEndorsementAttestation(
+          eas,
+          idea._id.toString(),
+          idea.deploymentUrl,
+          address,
+          farcasterData?.fid?.toString(),
+          idea.claimedBy
+        );
+        await endorseBuildMutation({
+          ideaId: idea._id,
+          endorser: address,
+          endorserFid: farcasterData?.fid,
+          attestationUid,
+        });
+        toast.success("Build endorsed!");
+      }
+    } catch (error) {
+      handleError(error, { operation: "endorse build", component: "IdeasBoard" });
+    } finally {
+      setIsEndorsing(false);
+    }
+  };
+
+  const isLoading = isEndorsing || (address !== undefined && hasEndorsed === undefined);
+
   return (
-    <span className="flex items-center gap-1">
-      <Medal1stSolid width={15} height={15} className="text-yellow-500" />
-      <span className="text-xs font-semibold text-gray-600">{count}</span>
-    </span>
+    <button
+      onClick={handleClick}
+      disabled={isLoading}
+      className={`flex items-center gap-1 transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
+        hasEndorsed
+          ? "text-yellow-500"
+          : "text-gray-400 hover:text-yellow-500"
+      }`}
+      title={
+        !address ? "Connect wallet to endorse"
+          : hasEndorsed ? "Remove endorsement"
+          : "Endorse this build"
+      }
+    >
+      <Medal1stSolid width={15} height={15} />
+      <span className="text-xs font-semibold">{count ?? 0}</span>
+    </button>
   );
 };
 
@@ -518,9 +601,7 @@ export const IdeasBoard = ({ onViewChange, onClaimSuccess, onProfileClick, openI
                   <Flash width={15} height={15} />
                   <span className="text-xs font-semibold">{idea.remixCount ?? 0}</span>
                 </button>
-              ) : (
-                <EndorsementCountBadge ideaId={idea._id} />
-              )}
+              ) : null}
               {/* Ideasboard: claim hammer */}
               {idea.status === "open" && (
                 <button
@@ -532,18 +613,30 @@ export const IdeasBoard = ({ onViewChange, onClaimSuccess, onProfileClick, openI
                   <Hammer width={15} height={15} />
                 </button>
               )}
-              {/* Miniapps: deployment link */}
-              {idea.status === "completed" && idea.deploymentUrl && (
-                <a
-                  href={idea.deploymentUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  onClick={(e) => e.stopPropagation()}
-                  className="ml-auto text-gray-400 hover:text-violet-600 transition-colors"
-                  title="View live app"
-                >
-                  <OpenNewWindow width={15} height={15} />
-                </a>
+              {/* Completed: endorsement button left of app link */}
+              {idea.status === "completed" && (
+                <div className="ml-auto flex items-center gap-2">
+                  <CardEndorsementButton
+                    idea={idea as Idea}
+                    address={address}
+                    eas={eas}
+                    isEASConfigured={isEASConfigured}
+                    farcasterData={farcasterData}
+                    onConnectWallet={onConnectWallet}
+                  />
+                  {idea.deploymentUrl && (
+                    <a
+                      href={idea.deploymentUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={(e) => { e.stopPropagation(); localStorage.setItem(`minipad_visited_${idea._id}`, "true"); }}
+                      className="text-gray-400 hover:text-violet-600 transition-colors"
+                      title="View live app"
+                    >
+                      <OpenNewWindow width={15} height={15} />
+                    </a>
+                  )}
+                </div>
               )}
             </div>
           </div>
@@ -622,7 +715,14 @@ export const IdeasBoard = ({ onViewChange, onClaimSuccess, onProfileClick, openI
                   <span className="text-sm font-semibold">{idea.remixCount ?? 0}</span>
                 </button>
               ) : (
-                <EndorsementCountBadge ideaId={idea._id} />
+                <CardEndorsementButton
+                  idea={idea as Idea}
+                  address={address}
+                  eas={eas}
+                  isEASConfigured={isEASConfigured}
+                  farcasterData={farcasterData}
+                  onConnectWallet={onConnectWallet}
+                />
               )}
 
               {idea.status === "completed" && (idea.deploymentUrl || idea.githubUrl) && (
@@ -645,7 +745,7 @@ export const IdeasBoard = ({ onViewChange, onClaimSuccess, onProfileClick, openI
                       href={idea.deploymentUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      onClick={(e) => e.stopPropagation()}
+                      onClick={(e) => { e.stopPropagation(); localStorage.setItem(`minipad_visited_${idea._id}`, "true"); }}
                       className="flex items-center gap-1 px-2 py-1 bg-white text-black hover:bg-gray-50 border border-black rounded-lg text-xs font-medium transition-colors whitespace-nowrap"
                       title="View live app"
                     >
