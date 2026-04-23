@@ -20,6 +20,10 @@ const RANK_STYLES = [
 
 const RANK_LABELS = ["🥇", "🥈", "🥉"];
 
+// Height that reveals ~3 full rows + a visible peek of the 4th
+// Each row ≈ 68px tall, gap = 12px → 3 rows = 228px, plus ~36px peek
+const LIST_PEEK_HEIGHT = 264;
+
 export const LeaderboardModal = ({ isOpen, onClose, onProfileClick }: LeaderboardModalProps) => {
   const leaderboard = useQuery(api.endorsements.getLeaderboard, isOpen ? { limit: 10 } : "skip");
 
@@ -36,13 +40,15 @@ export const LeaderboardModal = ({ isOpen, onClose, onProfileClick }: Leaderboar
 
   if (!isOpen) return null;
 
+  const hasMore = leaderboard && leaderboard.length > 3;
+
   return (
     <div
       className="fixed inset-0 bg-violet-950 bg-opacity-60 flex items-center justify-center p-4 z-50"
       onClick={onClose}
     >
       <div
-        className="bg-white rounded-3xl shadow-2xl w-full max-w-lg max-h-[80vh] overflow-y-auto"
+        className="bg-white rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between p-6 border-b border-gray-100">
@@ -58,62 +64,70 @@ export const LeaderboardModal = ({ isOpen, onClose, onProfileClick }: Leaderboar
           </button>
         </div>
 
-        <div className="p-6">
+        <div className="p-6 pb-0">
           {leaderboard === undefined ? (
-            <div className="space-y-3">
-              {[...Array(5)].map((_, i) => (
+            <div className="space-y-3 pb-6">
+              {[...Array(3)].map((_, i) => (
                 <div key={i} className="h-16 bg-gray-100 rounded-2xl animate-pulse" />
               ))}
             </div>
           ) : leaderboard.length === 0 ? (
-            <div className="text-center py-12 text-gray-400">
+            <div className="text-center py-12 pb-6 text-gray-400">
               <Medal1stSolid width={40} height={40} className="text-yellow-300 mx-auto mb-3" />
               <p className="text-sm">No endorsements yet.</p>
               <p className="text-xs mt-1">Try a completed build and endorse it!</p>
             </div>
           ) : (
-            <div className="space-y-3">
-              {leaderboard.map((builder, index) => {
-                const rankStyle = RANK_STYLES[index] ?? "bg-white border-gray-100 text-gray-500";
-                const rankLabel = RANK_LABELS[index] ?? `#${index + 1}`;
-                const displayName = builder.displayName || builder.username || builder.builderId.slice(0, 6) + "…";
+            <div className="relative">
+              <div
+                className="space-y-3 overflow-y-auto pb-6"
+                style={{ maxHeight: hasMore ? LIST_PEEK_HEIGHT : "none" }}
+              >
+                {leaderboard.map((builder, index) => {
+                  const rankStyle = RANK_STYLES[index] ?? "bg-white border-gray-100 text-gray-500";
+                  const rankLabel = RANK_LABELS[index] ?? `#${index + 1}`;
+                  const displayName = builder.displayName || builder.username || builder.builderId.slice(0, 6) + "…";
 
-                return (
-                  <button
-                    key={builder.builderId}
-                    onClick={() => {
-                      onProfileClick?.({
-                        address: builder.builderId,
-                        displayName: builder.displayName,
-                        username: builder.username,
-                        fid: builder.fid,
-                        avatarUrl: builder.avatar,
-                      });
-                      onClose();
-                    }}
-                    className={`w-full flex items-center gap-4 p-4 rounded-2xl border transition-all hover:shadow-sm cursor-pointer text-left ${rankStyle}`}
-                  >
-                    <span className="text-xl w-8 text-center flex-shrink-0">{rankLabel}</span>
-                    <UserAvatar
-                      author={builder.builderId}
-                      authorAvatar={builder.avatar}
-                      authorDisplayName={builder.displayName}
-                      authorUsername={builder.username}
-                      size={36}
-                    />
-                    <div className="flex-1 min-w-0">
-                      <p className="font-semibold text-gray-900 truncate">{displayName}</p>
-                      <p className="text-xs text-gray-500">
-                        {builder.buildCount} build{builder.buildCount !== 1 ? "s" : ""} completed
-                      </p>
-                    </div>
-                    <div className="flex items-center gap-1 flex-shrink-0">
-                      <Medal1stSolid width={16} height={16} className="text-yellow-500" />
-                      <span className="font-bold text-gray-900">{builder.endorsementCount}</span>
-                    </div>
-                  </button>
-                );
-              })}
+                  return (
+                    <button
+                      key={builder.builderId}
+                      onClick={() => {
+                        onProfileClick?.({
+                          address: builder.builderId,
+                          displayName: builder.displayName,
+                          username: builder.username,
+                          fid: builder.fid,
+                          avatarUrl: builder.avatar,
+                        });
+                        onClose();
+                      }}
+                      className={`w-full flex items-center gap-4 p-4 rounded-2xl border transition-all hover:shadow-sm cursor-pointer text-left ${rankStyle}`}
+                    >
+                      <span className="text-xl w-8 text-center flex-shrink-0">{rankLabel}</span>
+                      <UserAvatar
+                        author={builder.builderId}
+                        authorAvatar={builder.avatar}
+                        authorDisplayName={builder.displayName}
+                        authorUsername={builder.username}
+                        size={36}
+                      />
+                      <div className="flex-1 min-w-0">
+                        <p className="font-semibold text-gray-900 truncate">{displayName}</p>
+                        <p className="text-xs text-gray-500">
+                          {builder.buildCount} build{builder.buildCount !== 1 ? "s" : ""} completed
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-1 flex-shrink-0">
+                        <Medal1stSolid width={16} height={16} className="text-yellow-500" />
+                        <span className="font-bold text-gray-900">{builder.endorsementCount}</span>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+              {hasMore && (
+                <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-white to-transparent pointer-events-none" />
+              )}
             </div>
           )}
         </div>
