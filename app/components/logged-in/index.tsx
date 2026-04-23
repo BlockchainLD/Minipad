@@ -7,6 +7,7 @@ import { useLoggedIn } from "./use-logged-in";
 import { IdeasBoard } from "../ideas-board";
 import { IdeaSubmissionForm } from "../idea-submission-form";
 import { IdeaSubmissionConfirmation } from "../idea-submission-confirmation";
+import { ClaimConfirmation } from "../claim-confirmation";
 import { Header } from "./header";
 import { LeaderboardModal } from "../leaderboard-modal";
 import { UserProfileModal, type UserProfile } from "../user-profile-modal";
@@ -28,7 +29,7 @@ export const LoggedIn = () => {
   } = useLoggedIn();
 
   const isMobile = useIsMobile();
-  const [currentView, setCurrentView] = useState<"board" | "submit" | "complete" | "confirmation">(
+  const [currentView, setCurrentView] = useState<"board" | "submit" | "complete" | "confirmation" | "claim_confirmation">(
     VIEWS.BOARD
   );
   const [pendingOpenIdeaId, setPendingOpenIdeaId] = useState<string | null>(null);
@@ -71,6 +72,7 @@ export const LoggedIn = () => {
       {currentView === VIEWS.BOARD && (
         <IdeasBoard
           onViewChange={setCurrentView}
+          onClaimSuccess={() => setCurrentView(VIEWS.CLAIM_CONFIRMATION)}
           onProfileClick={(user) => {
             if (user.address === walletAddress) {
               setActiveTab(TABS.SETTINGS);
@@ -87,12 +89,15 @@ export const LoggedIn = () => {
       )}
       {currentView === VIEWS.SUBMIT && (
         <IdeaSubmissionForm
-          onSuccess={() => setCurrentView(VIEWS.BOARD)}
+          onSuccess={() => setCurrentView(VIEWS.CONFIRMATION)}
           onCancel={() => setCurrentView(VIEWS.BOARD)}
         />
       )}
       {currentView === VIEWS.CONFIRMATION && (
         <IdeaSubmissionConfirmation onReturnHome={() => setCurrentView(VIEWS.BOARD)} />
+      )}
+      {currentView === VIEWS.CLAIM_CONFIRMATION && (
+        <ClaimConfirmation onReturnHome={() => setCurrentView(VIEWS.BOARD)} />
       )}
     </>
   );
