@@ -52,8 +52,7 @@ export const ClaimConfirmation = ({ onReturnHome }: ClaimConfirmationProps) => {
 
         <p className="text-lg text-slate-600 mb-6 leading-relaxed">
           You&apos;ve committed to building this.<br />
-          The community is counting on you!<br />
-          Will you ship?
+          The community is counting on you!
         </p>
 
         <div className="bg-blue-50 border border-blue-200 rounded-xl p-6 mb-8 text-left">
