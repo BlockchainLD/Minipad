@@ -51,7 +51,9 @@ export const ClaimConfirmation = ({ onReturnHome }: ClaimConfirmationProps) => {
         </h1>
 
         <p className="text-lg text-slate-600 mb-6 leading-relaxed">
-          You&apos;ve committed to building this. The community is counting on you — time to ship.
+          You&apos;ve committed to building this.<br />
+          The community is counting on you!<br />
+          Will you ship?
         </p>
 
         <div className="bg-blue-50 border border-blue-200 rounded-xl p-6 mb-8 text-left">
@@ -59,8 +61,8 @@ export const ClaimConfirmation = ({ onReturnHome }: ClaimConfirmationProps) => {
           <div className="space-y-2">
             {[
               "Build your miniapp and submit the live URL when ready",
-              "The idea creator gets notified when you complete the build",
-              "Top builders share in the prize pool each cycle",
+              "The idea creator can be rewarded when you complete the build",
+              "Top builders share in the prize pool each season",
             ].map((text, i) => (
               <div key={i} className="flex items-start space-x-3">
                 <div className="flex-shrink-0 w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center mt-0.5">
