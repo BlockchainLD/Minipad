@@ -8,12 +8,15 @@ export async function GET() {
     description: APP_METADATA.description,
     iconUrl: APP_METADATA.iconUrl,
     homeUrl: APP_METADATA.url,
+    imageUrl: APP_METADATA.embedImageUrl,
+    buttonTitle: "Open Minipad",
     splashImageUrl: APP_METADATA.splash.imageUrl,
     splashBackgroundColor: APP_METADATA.splash.backgroundColor,
     heroImageUrl: APP_METADATA.embedImageUrl,
     ogImageUrl: APP_METADATA.embedImageUrl,
     primaryCategory: "developer-tools",
     tags: ["miniapp", "base", "ideas", "farcaster"],
+    requiredChains: ["eip155:8453"],
     canonicalDomain: "minipad-app.vercel.app",
   };
 
