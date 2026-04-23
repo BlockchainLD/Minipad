@@ -125,6 +125,7 @@ const EndorsementCountBadge = ({ ideaId }: { ideaId: Id<"ideas"> }) => {
 
 interface IdeasBoardProps {
   onViewChange?: (view: "board" | "submit" | "confirmation") => void;
+  onClaimSuccess?: () => void;
   onProfileClick?: (user: { address: string; avatarUrl?: string; displayName?: string; username?: string; fid?: number }) => void;
   openIdeaId?: string | null;
   onIdeaOpened?: () => void;
@@ -134,7 +135,7 @@ interface IdeasBoardProps {
   onConnectWallet?: () => void;
 }
 
-export const IdeasBoard = ({ onViewChange, onProfileClick, openIdeaId, onIdeaOpened, isGridView = false, onToggleGrid, isAllFeed = false, onConnectWallet }: IdeasBoardProps) => {
+export const IdeasBoard = ({ onViewChange, onClaimSuccess, onProfileClick, openIdeaId, onIdeaOpened, isGridView = false, onToggleGrid, isAllFeed = false, onConnectWallet }: IdeasBoardProps) => {
   const { address } = useAccount();
   const farcasterData = useFarcasterData();
   const { eas, isEASConfigured } = useEAS();
@@ -232,6 +233,8 @@ export const IdeasBoard = ({ onViewChange, onProfileClick, openIdeaId, onIdeaOpe
         claimerUsername: farcasterData?.username,
       });
       toast.success("Idea claimed! Start building.");
+      setIsModalOpen(false);
+      onClaimSuccess?.();
     } catch (error) {
       handleError(error, { operation: "claim idea", component: "IdeasBoard" });
     } finally {
