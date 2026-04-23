@@ -44,7 +44,7 @@ const frameEmbed = {
 
 export const metadata: Metadata = {
   title: "Minipad",
-  description: "Submit and vote on miniapp ideas for Base",
+  description: "Submit and build miniapp ideas",
   other: {
     "fc:miniapp": JSON.stringify(miniAppEmbed),
     "fc:frame": JSON.stringify(frameEmbed),
