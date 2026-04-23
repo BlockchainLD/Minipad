@@ -20,7 +20,7 @@ export async function GET() {
         <svg
           width="160"
           height="190"
-          viewBox="57 25 86 138"
+          viewBox="44 15 112 155"
           fill="none"
           xmlns="http://www.w3.org/2000/svg"
         >
@@ -52,7 +52,7 @@ export async function GET() {
             letterSpacing: '-0.01em',
           }}
         >
-          Submit and vote on miniapp ideas for Base
+          Submit and build miniapp ideas
         </div>
       </div>
     ),
