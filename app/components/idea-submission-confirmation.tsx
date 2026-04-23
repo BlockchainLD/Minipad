@@ -24,7 +24,7 @@ export const IdeaSubmissionConfirmation = ({ onReturnHome }: IdeaSubmissionConfi
       >
         <div className="mb-6">
           <div className="inline-flex items-center justify-center w-20 h-20 mb-4" style={{ background: '#7c3aed', borderRadius: 16 }}>
-            <svg width="36" height="43" viewBox="57 25 86 138" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <svg width="36" height="43" viewBox="44 15 112 155" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path d="M100 28 C76 28 57 47 57 71 C57 86 64.5 99 76 107.5 L76 134 L124 134 L124 107.5 C135.5 99 143 86 143 71 C143 47 124 28 100 28 Z" stroke="white" strokeWidth="7.5" strokeLinecap="round" strokeLinejoin="round" />
               <line x1="80" y1="144" x2="120" y2="144" stroke="white" strokeWidth="7.5" strokeLinecap="round" />
               <line x1="86" y1="157" x2="114" y2="157" stroke="white" strokeWidth="7.5" strokeLinecap="round" />
