@@ -472,6 +472,15 @@ export const IdeaDetailModal = ({
     }
   };
 
+  const handleBuildWithNeynar = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const prompt = `Build a Farcaster mini app: ${idea.title}\n\n${idea.description}`;
+    navigator.clipboard.writeText(prompt).catch(() => {});
+    toast.success("Prompt copied! Paste it into Neynar Studio.");
+    window.open("https://neynar.com/app-studio", "_blank", "noopener,noreferrer");
+  };
+
   const handleEndorse = async () => {
     if (!address) { onConnectWallet?.(); return; }
     if (!eas || !isEASConfigured) { toast.error("Wallet not ready or EAS not configured"); return; }
@@ -733,6 +742,16 @@ export const IdeaDetailModal = ({
               >
                 <Medal1stSolid width={16} height={16} />
                 <span>{endorsementCount ?? 0}</span>
+              </button>
+            )}
+
+            {idea.status === "claimed" && (
+              <button
+                onClick={handleBuildWithNeynar}
+                className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium text-white bg-purple-600 hover:bg-purple-700 active:scale-95 transition-all duration-200 cursor-pointer"
+                title="Vibe this idea in Neynar Studio"
+              >
+                Build with Neynar
               </button>
             )}
 
