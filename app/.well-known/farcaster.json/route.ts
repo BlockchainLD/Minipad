@@ -26,7 +26,6 @@ export async function GET() {
       payload: "eyJkb21haW4iOiJtaW5pcGFkLWFwcC52ZXJjZWwuYXBwIn0",
       signature: "vGLpgtSANNGtbh/VSfm2nOKXCxAJBj80/hetNJPwu7kqZrLP05dj73woQvvaCttP0eq3JrWMiyMcG25zRr+ScRw=",
     },
-    frame: miniappConfig,
     miniapp: miniappConfig,
   };
 
