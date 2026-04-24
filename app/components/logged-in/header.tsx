@@ -1,5 +1,15 @@
 "use client";
 import { Medal1stSolid } from "iconoir-react";
+import { MINIPAD_TOKEN } from "../../lib/constants";
+
+// SWAP INTEGRATION — when MINIPAD_TOKEN.contractAddress is set:
+//   1. Replace `onLogoClick` with `onSwapClick` in HeaderProps
+//   2. In logged-in/index.tsx, set onLogoClick to open a swap modal
+//   3. Add Coinbase OnchainKit <Swap> with:
+//        fromToken = ETH (native)
+//        toToken   = MINIPAD_TOKEN.contractAddress
+// The isSwapEnabled flag below gates the future behaviour automatically.
+const isSwapEnabled = MINIPAD_TOKEN.contractAddress !== null;
 
 const MinipadLogo = () => (
   <div style={{
