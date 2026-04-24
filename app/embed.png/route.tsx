@@ -30,7 +30,7 @@ export async function GET() {
         >
           <svg
             width="80"
-            height="110"
+            height="111"
             viewBox="44 15 112 155"
             fill="none"
             xmlns="http://www.w3.org/2000/svg"

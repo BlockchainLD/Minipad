@@ -40,7 +40,7 @@ export const LoggedIn = () => {
   };
 
   const isMobile = useIsMobile();
-  const [currentView, setCurrentView] = useState<"board" | "submit" | "confirmation" | "claim_confirmation">(
+  const [currentView, setCurrentView] = useState<"board" | "submit" | "complete" | "confirmation" | "claim_confirmation">(
     VIEWS.BOARD
   );
   const [pendingOpenIdeaId, setPendingOpenIdeaId] = useState<string | null>(null);

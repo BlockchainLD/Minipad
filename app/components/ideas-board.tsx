@@ -207,7 +207,7 @@ const CardEndorsementButton = ({
 };
 
 interface IdeasBoardProps {
-  onViewChange?: (view: "board" | "submit" | "confirmation") => void;
+  onViewChange?: (view: "board" | "submit" | "complete" | "confirmation") => void;
   onClaimSuccess?: () => void;
   onProfileClick?: (user: { address: string; avatarUrl?: string; displayName?: string; username?: string; fid?: number }) => void;
   openIdeaId?: string | null;
