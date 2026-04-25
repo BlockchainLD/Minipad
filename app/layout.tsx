@@ -5,7 +5,7 @@ import { ConvexClientProvider } from "./providers/convex-client-provider";
 import { Toaster as SonnerToaster } from "sonner";
 import { APP_METADATA } from "./lib/utils";
 
-const appUrl = process.env.SITE_URL || 'https://minipad-app.vercel.app';
+const appUrl = (process.env.SITE_URL || 'https://minipad-app.vercel.app').trim();
 
 const splashConfig = {
   splashImageUrl: APP_METADATA.splash.imageUrl,
