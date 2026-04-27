@@ -17,14 +17,14 @@ export async function GET() {
     primaryCategory: "productivity",
     tags: ["miniapp", "base", "ideas", "farcaster"],
     requiredChains: ["eip155:8453"],
-    canonicalDomain: "minipad-app.vercel.app",
+    canonicalDomain: "minipad.xyz",
   };
 
   const manifest = {
     accountAssociation: {
       header: "eyJmaWQiOjgzOCwidHlwZSI6ImN1c3RvZHkiLCJrZXkiOiIweDAzMmJjNUI0NTVkOTlGQjhlMEM4MjcwMjk2YTNiNzExNkYwOTk1NTQifQ",
-      payload: "eyJkb21haW4iOiJtaW5pcGFkLWFwcC52ZXJjZWwuYXBwIn0",
-      signature: "vGLpgtSANNGtbh/VSfm2nOKXCxAJBj80/hetNJPwu7kqZrLP05dj73woQvvaCttP0eq3JrWMiyMcG25zRr+ScRw=",
+      payload: "eyJkb21haW4iOiJtaW5pcGFkLnh5eiJ9",
+      signature: "v5YRRaIogUBzUZgHh3yMQuOPG4/XgtLUGk/BaHineqgjffwHmy9asQl9NrBahLbm6rhpJSUHVX0VmAcmcUnUlxw=",
     },
     miniapp: miniappConfig,
   };

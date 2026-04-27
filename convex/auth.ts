@@ -32,7 +32,7 @@ export const createAuth = (
     baseURL: siteUrl,
     trustedOrigins: [
       "http://localhost:3000",
-      "https://minipad-app.vercel.app",
+      "https://minipad.xyz",
       "https://*.vercel.app",
       ...(process.env.SITE_URL ? [process.env.SITE_URL] : [])
     ],
