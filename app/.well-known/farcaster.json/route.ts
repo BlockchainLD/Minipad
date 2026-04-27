@@ -22,9 +22,9 @@ export async function GET() {
 
   const manifest = {
     accountAssociation: {
-      header: "eyJmaWQiOjgzOCwidHlwZSI6ImF1dGgiLCJrZXkiOiIweDZBMGJBMzcwN2RGOUQxM0E0NDQ1Y0Q3RTA0Mjc0QjI3MjU5MzBjRDcifQ",
+      header: "eyJmaWQiOjgzOCwidHlwZSI6ImN1c3RvZHkiLCJrZXkiOiIweDAzMmJjNUI0NTVkOTlGQjhlMEM4MjcwMjk2YTNiNzExNkYwOTk1NTQifQ",
       payload: "eyJkb21haW4iOiJtaW5pcGFkLnh5eiJ9",
-      signature: "zPP18yybIORyHvLM45+YUSJ8SDz3GHIAoGGX6dPsDNkyirU/n5eME3hgYK3jMnfRtVb4I6As5HDQ7HwTjf14SBw=",
+      signature: "v5YRRaIogUBzUZgHh3yMQuOPG4/XgtLUGk/BaHineqgjffwHmy9asQl9NrBahLbm6rhpJSUHVX0VmAcmcUnUlxw=",
     },
     miniapp: miniappConfig,
   };
