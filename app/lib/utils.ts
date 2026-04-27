@@ -6,7 +6,7 @@ export const handleButtonClick = (e: React.MouseEvent, callback: () => void) => 
   callback();
 };
 
-const APP_URL = (process.env.SITE_URL || 'https://minipad-app.vercel.app').trim();
+const APP_URL = (process.env.SITE_URL || 'https://minipad.xyz').trim();
 
 export const APP_METADATA = {
     title: 'Minipad',
@@ -17,5 +17,5 @@ export const APP_METADATA = {
         imageUrl: `${APP_URL}/splash.png`,
         backgroundColor: '#7c3aed',
     },
-    url: (process.env.SITE_URL || (typeof window !== 'undefined' ? window.location.origin : 'https://minipad-app.vercel.app')).trim(),
+    url: (process.env.SITE_URL || (typeof window !== 'undefined' ? window.location.origin : 'https://minipad.xyz')).trim(),
 };
