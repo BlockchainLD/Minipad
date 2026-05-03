@@ -55,6 +55,25 @@ export const updateIdeaAttestation = mutation({
   },
 });
 
+// Builder rename: only the claimer of a completed idea can edit its title.
+export const updateIdeaTitle = mutation({
+  args: {
+    ideaId: v.id("ideas"),
+    claimer: v.string(),
+    title: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const idea = await ctx.db.get(args.ideaId);
+    if (!idea) throw new ConvexError("Idea not found");
+    if (idea.status !== "completed" || idea.claimedBy !== args.claimer) {
+      throw new ConvexError("Only the builder can rename their completed build");
+    }
+    const trimmed = args.title.trim();
+    if (!trimmed) throw new ConvexError("Title cannot be empty");
+    await ctx.db.patch(args.ideaId, { title: trimmed });
+  },
+});
+
 export const deleteIdea = mutation({
   args: {
     ideaId: v.id("ideas"),

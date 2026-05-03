@@ -315,10 +315,14 @@ export const IdeaDetailModal = ({
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [showUnclaimConfirm, setShowUnclaimConfirm] = useState(false);
   const [hasVisited, setHasVisited] = useState(false);
+  const [isEditingTitle, setIsEditingTitle] = useState(false);
+  const [editTitleInput, setEditTitleInput] = useState("");
+  const [isSavingTitle, setIsSavingTitle] = useState(false);
 
   const createRemix = useMutation(api.remixes.createRemix);
   const deleteRemix = useMutation(api.remixes.deleteRemix);
   const updateRemixAttestation = useMutation(api.remixes.updateRemixAttestation);
+  const updateIdeaTitle = useMutation(api.ideas.updateIdeaTitle);
   const farcasterData = useFarcasterData();
   const { isInMiniApp } = useFarcaster();
   const { eas, isEASConfigured } = useEAS();
@@ -331,6 +335,7 @@ export const IdeaDetailModal = ({
     setOptimisticUpvotes(null);
     setShowDeleteConfirm(false);
     setShowUnclaimConfirm(false);
+    setIsEditingTitle(false);
     // Load visited state from localStorage
     if (idea?._id) {
       setHasVisited(localStorage.getItem(`minipad_visited_${idea._id}`) === "true");
@@ -409,6 +414,21 @@ export const IdeaDetailModal = ({
     window.open("https://neynar.com/app-studio", "_blank", "noopener,noreferrer");
   };
 
+  const handleSaveTitle = async () => {
+    if (!address || isSavingTitle) return;
+    const trimmed = editTitleInput.trim();
+    if (!trimmed || trimmed === idea.title) { setIsEditingTitle(false); return; }
+    setIsSavingTitle(true);
+    try {
+      await updateIdeaTitle({ ideaId: idea._id, claimer: address, title: trimmed });
+      setIsEditingTitle(false);
+    } catch (error) {
+      handleError(error, { operation: "rename idea", component: "IdeaDetailModal" });
+    } finally {
+      setIsSavingTitle(false);
+    }
+  };
+
   const handleShare = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -431,6 +451,7 @@ export const IdeaDetailModal = ({
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
+        if (isEditingTitle) { setIsEditingTitle(false); return; }
         if (showRemixForm) { setShowRemixForm(false); return; }
         if (showDeleteConfirm) { setShowDeleteConfirm(false); return; }
         if (showUnclaimConfirm) { setShowUnclaimConfirm(false); return; }
@@ -445,7 +466,7 @@ export const IdeaDetailModal = ({
       document.removeEventListener("keydown", handleEscape);
       document.body.style.overflow = "unset";
     };
-  }, [isOpen, onClose, showRemixForm, showDeleteConfirm, showUnclaimConfirm]);
+  }, [isOpen, onClose, showRemixForm, showDeleteConfirm, showUnclaimConfirm, isEditingTitle]);
 
   if (!isOpen || !idea) return null;
 
@@ -507,7 +528,45 @@ export const IdeaDetailModal = ({
         {/* Scrollable Content */}
         <div className="flex-1 overflow-y-auto">
           <div className="p-6">
-            <h1 className="text-2xl font-bold text-slate-900 mb-4">{idea.title}</h1>
+            {isEditingTitle && isBuiltByMe ? (
+              <div className="flex items-center gap-2 mb-4">
+                <input
+                  autoFocus
+                  value={editTitleInput}
+                  onChange={(e) => setEditTitleInput(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === "Enter") handleSaveTitle(); }}
+                  className="flex-1 text-2xl font-bold text-slate-900 border border-violet-300 rounded-xl px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent"
+                />
+                <button
+                  onClick={handleSaveTitle}
+                  disabled={isSavingTitle}
+                  className="text-sm font-medium px-3 py-1.5 bg-violet-600 text-white rounded-xl hover:bg-violet-700 transition-colors disabled:opacity-50 cursor-pointer"
+                >
+                  {isSavingTitle ? "..." : "Save"}
+                </button>
+                <button
+                  onClick={() => setIsEditingTitle(false)}
+                  disabled={isSavingTitle}
+                  className="text-sm font-medium px-3 py-1.5 bg-gray-100 text-gray-600 rounded-xl hover:bg-gray-200 transition-colors disabled:opacity-50 cursor-pointer"
+                >
+                  Cancel
+                </button>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2 mb-4">
+                <h1 className="text-2xl font-bold text-slate-900">{idea.title}</h1>
+                {isBuiltByMe && (
+                  <button
+                    onClick={() => { setEditTitleInput(idea.title); setIsEditingTitle(true); }}
+                    className="p-1.5 text-gray-400 hover:text-violet-600 hover:bg-violet-50 rounded-lg transition-colors cursor-pointer"
+                    aria-label="Rename build"
+                    title="Rename build"
+                  >
+                    <EditPencil width={16} height={16} />
+                  </button>
+                )}
+              </div>
+            )}
 
             {/* Author */}
             <div className="flex items-center gap-3 mb-4">

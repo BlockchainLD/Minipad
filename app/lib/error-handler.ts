@@ -34,6 +34,10 @@ export const handleError = (error: unknown, context: ErrorContext) => {
     toast.error("Cannot delete an idea that has been claimed or completed");
   } else if (msg === "Only the builder can edit their completed build") {
     toast.error("Only the builder can edit this build");
+  } else if (msg === "Only the builder can rename their completed build") {
+    toast.error("Only the builder can rename this build");
+  } else if (msg === "Title cannot be empty") {
+    toast.error("Title cannot be empty");
   } else if (msg === "Only the author can delete their remix") {
     toast.error("You can only delete your own remixes");
   } else if (msg === "Cannot upvote your own idea") {
