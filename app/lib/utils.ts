@@ -15,7 +15,7 @@ export const APP_METADATA = {
     embedImageUrl: `${APP_URL}/embed.png`,
     splash: {
         imageUrl: `${APP_URL}/splash.png`,
-        backgroundColor: '#7c3aed',
+        backgroundColor: '#6641e2',
     },
     screenshotUrls: [
         `${APP_URL}/screenshot1.png`,
