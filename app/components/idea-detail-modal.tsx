@@ -622,10 +622,9 @@ export const IdeaDetailModal = ({
               <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">{idea.description}</p>
             </div>
 
-            {/* Build Links */}
             {idea.status === "completed" && (idea.githubUrl || idea.deploymentUrl) && (
               <div className="mb-8">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Build Links</h3>
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Completed Build</h3>
                 <div className="space-y-3">
                   {idea.deploymentUrl && (
                     <div className="flex items-center gap-3 p-4 bg-gray-50 border border-gray-200 rounded-2xl">
