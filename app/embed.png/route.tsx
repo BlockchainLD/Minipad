@@ -29,22 +29,16 @@ export async function GET() {
           }}
         >
           <svg
-            width="80"
-            height="111"
-            viewBox="44 15 112 155"
+            width="100"
+            height="112"
+            viewBox="0 0 200 225"
             fill="none"
             xmlns="http://www.w3.org/2000/svg"
           >
-            <path
-              d="M100 28 C76 28 57 47 57 71 C57 86 64.5 99 76 107.5 L76 134 L124 134 L124 107.5 C135.5 99 143 86 143 71 C143 47 124 28 100 28 Z"
-              stroke="#7c3aed"
-              strokeWidth="7.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-            <line x1="80" y1="144" x2="120" y2="144" stroke="#7c3aed" strokeWidth="7.5" strokeLinecap="round" />
-            <line x1="86" y1="157" x2="114" y2="157" stroke="#7c3aed" strokeWidth="7.5" strokeLinecap="round" />
-            <line x1="100" y1="55" x2="100" y2="80" stroke="#7c3aed" strokeWidth="4" strokeLinecap="round" />
+            <path d="M100 8C68 8 17 38 17 88C17 126 40 158 68 170L68 182L132 182L132 170C160 158 183 126 183 88C183 38 132 8 100 8Z" stroke="#7c3aed" strokeWidth="10" strokeLinejoin="round"/>
+            <line x1="55" y1="196" x2="145" y2="196" stroke="#7c3aed" strokeWidth="10" strokeLinecap="round"/>
+            <line x1="65" y1="214" x2="135" y2="214" stroke="#7c3aed" strokeWidth="10" strokeLinecap="round"/>
+            <path d="M52 60L148 60L148 76L124 76L124 136C108 106 92 106 76 136L76 76L52 76Z" fill="#7c3aed"/>
           </svg>
         </div>
         <div

@@ -15,25 +15,16 @@ export async function GET() {
         }}
       >
         <svg
-          width="110"
-          height="152"
-          viewBox="44 15 112 155"
+          width="130"
+          height="146"
+          viewBox="0 0 200 225"
           fill="none"
           xmlns="http://www.w3.org/2000/svg"
         >
-          {/* Bulb body */}
-          <path
-            d="M100 28 C76 28 57 47 57 71 C57 86 64.5 99 76 107.5 L76 134 L124 134 L124 107.5 C135.5 99 143 86 143 71 C143 47 124 28 100 28 Z"
-            stroke="white"
-            strokeWidth="7.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-          {/* Base segments */}
-          <line x1="80" y1="144" x2="120" y2="144" stroke="white" strokeWidth="7.5" strokeLinecap="round" />
-          <line x1="86" y1="157" x2="114" y2="157" stroke="white" strokeWidth="7.5" strokeLinecap="round" />
-          {/* Filament */}
-          <line x1="100" y1="55" x2="100" y2="80" stroke="white" strokeWidth="4" strokeLinecap="round" />
+          <path d="M100 8C68 8 17 38 17 88C17 126 40 158 68 170L68 182L132 182L132 170C160 158 183 126 183 88C183 38 132 8 100 8Z" stroke="white" strokeWidth="10" strokeLinejoin="round"/>
+          <line x1="55" y1="196" x2="145" y2="196" stroke="white" strokeWidth="10" strokeLinecap="round"/>
+          <line x1="65" y1="214" x2="135" y2="214" stroke="white" strokeWidth="10" strokeLinecap="round"/>
+          <path d="M52 60L148 60L148 76L124 76L124 136C108 106 92 106 76 136L76 76L52 76Z" fill="white"/>
         </svg>
       </div>
     ),
