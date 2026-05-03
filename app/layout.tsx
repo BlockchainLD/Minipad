@@ -44,7 +44,7 @@ export const metadata: Metadata = {
   title: "Minipad",
   description: "Submit and build miniapp ideas",
   openGraph: {
-    images: [{ url: APP_METADATA.embedImageUrl, width: 1200, height: 800 }],
+    images: [{ url: APP_METADATA.embedImageUrl, width: 1200, height: 800, type: "image/png" }],
   },
   other: {
     "fc:miniapp": JSON.stringify(miniAppEmbed),

@@ -12,17 +12,8 @@ import { MINIPAD_TOKEN } from "../../lib/constants";
 const isSwapEnabled = MINIPAD_TOKEN.contractAddress !== null;
 
 const MinipadLogo = () => (
-  <div style={{
-    width: 32, height: 32, background: '#7c3aed', borderRadius: 8,
-    display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
-  }}>
-    <svg width="19" height="21" viewBox="0 0 200 225" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M100 8C68 8 17 38 17 88C17 126 40 158 68 170L68 182L132 182L132 170C160 158 183 126 183 88C183 38 132 8 100 8Z" stroke="white" strokeWidth="10" strokeLinejoin="round"/>
-      <line x1="55" y1="196" x2="145" y2="196" stroke="white" strokeWidth="10" strokeLinecap="round"/>
-      <line x1="65" y1="214" x2="135" y2="214" stroke="white" strokeWidth="10" strokeLinecap="round"/>
-      <path d="M52 60L148 60L148 76L124 76L124 136C108 106 92 106 76 136L76 76L52 76Z" fill="white"/>
-    </svg>
-  </div>
+  // eslint-disable-next-line @next/next/no-img-element
+  <img src="/icon.png" alt="Minipad" width={32} height={32} style={{ borderRadius: 8, flexShrink: 0 }} />
 );
 
 interface HeaderProps {
