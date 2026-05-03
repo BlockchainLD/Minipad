@@ -17,8 +17,6 @@ export type Idea = {
   claimedByAvatar?: string;
   claimedByDisplayName?: string;
   claimedByUsername?: string;
-  isRemix?: boolean;
-  originalIdeaId?: Id<"ideas">;
   attestationUid?: string;
   completionAttestationUid?: string;
   githubUrl?: string;
@@ -52,10 +50,8 @@ export interface FarcasterUser {
     bio?: { text?: string };
     location?: { description?: string };
     url?: string;
-    bannerImageUrl?: string;
   };
   followerCount?: number;
   followingCount?: number;
   pfp?: { url?: string; verified?: boolean };
-  connectedAccounts?: Array<{ platform: string; username: string }>;
 }

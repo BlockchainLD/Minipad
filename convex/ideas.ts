@@ -14,21 +14,19 @@ export const submitIdea = mutation({
     attestationUid: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    const doc: Record<string, unknown> = {
+    return await ctx.db.insert("ideas", {
       title: args.title,
       description: args.description,
       author: args.author,
+      authorFid: args.authorFid,
+      authorAvatar: args.authorAvatar,
+      authorDisplayName: args.authorDisplayName,
+      authorUsername: args.authorUsername,
+      attestationUid: args.attestationUid,
       timestamp: Date.now(),
       upvotes: 0,
-      status: "open" as const,
-    };
-    if (args.authorFid !== undefined) doc.authorFid = args.authorFid;
-    if (args.authorAvatar !== undefined) doc.authorAvatar = args.authorAvatar;
-    if (args.authorDisplayName !== undefined) doc.authorDisplayName = args.authorDisplayName;
-    if (args.authorUsername !== undefined) doc.authorUsername = args.authorUsername;
-    if (args.attestationUid !== undefined) doc.attestationUid = args.attestationUid;
-
-    return await ctx.db.insert("ideas", doc as any);
+      status: "open",
+    });
   },
 });
 
@@ -39,13 +37,11 @@ export const getIdeas = query({
   handler: async (ctx, args) => {
     const limit = args.limit ?? 50;
     const ideas = await ctx.db.query("ideas").order("desc").take(limit);
-    return ideas
-      .filter(idea => !idea.isRemix)
-      .map(({ _creationTime, ...idea }) => ({
-        ...idea,
-        upvotes: idea.upvotes ?? 0,
-        remixCount: idea.remixCount ?? 0,
-      }));
+    return ideas.map(({ _creationTime, ...idea }) => ({
+      ...idea,
+      upvotes: idea.upvotes ?? 0,
+      remixCount: idea.remixCount ?? 0,
+    }));
   },
 });
 

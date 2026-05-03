@@ -53,6 +53,7 @@ if [ $? -eq 0 ]; then
     echo "   NEXT_PUBLIC_REMIX_SCHEMA_UID=0x..."
     echo "   NEXT_PUBLIC_CLAIM_SCHEMA_UID=0x..."
     echo "   NEXT_PUBLIC_COMPLETION_SCHEMA_UID=0x..."
+    echo "   NEXT_PUBLIC_BUILD_ENDORSEMENT_SCHEMA_UID=0x..."
     echo ""
     echo "3. Restart your development server:"
     echo "   npm run dev"

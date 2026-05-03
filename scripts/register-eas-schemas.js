@@ -18,8 +18,7 @@
 const { SchemaRegistry } = require("@ethereum-attestation-service/eas-sdk");
 const { ethers } = require("ethers");
 
-// EAS Configuration for Base
-const EAS_CONTRACT_ADDRESS = "0x4200000000000000000000000000000000000021";
+// EAS SchemaRegistry on Base mainnet
 const SCHEMA_REGISTRY_ADDRESS = "0x4200000000000000000000000000000000000020";
 
 // Schema definitions

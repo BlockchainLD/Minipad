@@ -161,6 +161,17 @@ const RemixUpvoteButton = ({
     }
   }, [hasUpvotedQuery, optimisticUpvoted]);
 
+  // Fallback: never let optimistic state outlive the server round-trip indefinitely
+  useEffect(() => {
+    if (optimisticUpvoted !== null) {
+      const t = setTimeout(() => {
+        setOptimisticUpvoted(null);
+        setOptimisticCount(null);
+      }, 5000);
+      return () => clearTimeout(t);
+    }
+  }, [optimisticUpvoted]);
+
   const handleClick = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -795,6 +806,7 @@ export const IdeaDetailModal = ({
                   address={address}
                   optimisticUpvotes={optimisticUpvotes}
                   onOptimisticUpvoteChange={setOptimisticUpvotes}
+                  onConnectWallet={onConnectWallet}
                 />
               </>
             )}
