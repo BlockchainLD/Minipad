@@ -15,28 +15,26 @@ const splashConfig = {
 const miniAppEmbed = {
   version: "1",
   imageUrl: APP_METADATA.embedImageUrl,
-  aspectRatio: "3:2",
   button: {
     title: "Open Minipad",
     action: {
       type: "launch_miniapp",
-      name: APP_METADATA.title,
       url: appUrl,
+      name: APP_METADATA.title,
       ...splashConfig,
     },
   },
 };
 
 const frameEmbed = {
-  version: "next",
+  version: "1",
   imageUrl: APP_METADATA.embedImageUrl,
-  aspectRatio: "3:2",
   button: {
     title: "Open Minipad",
     action: {
       type: "launch_frame",
-      name: APP_METADATA.title,
       url: appUrl,
+      name: APP_METADATA.title,
       ...splashConfig,
     },
   },
@@ -45,6 +43,9 @@ const frameEmbed = {
 export const metadata: Metadata = {
   title: "Minipad",
   description: "Submit and build miniapp ideas",
+  openGraph: {
+    images: [{ url: APP_METADATA.embedImageUrl, width: 1200, height: 800 }],
+  },
   other: {
     "fc:miniapp": JSON.stringify(miniAppEmbed),
     "fc:frame": JSON.stringify(frameEmbed),

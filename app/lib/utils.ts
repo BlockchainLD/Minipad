@@ -11,10 +11,10 @@ const APP_URL = (process.env.SITE_URL || 'https://minipad.xyz').trim();
 export const APP_METADATA = {
     title: 'Minipad',
     description: 'Submit and build miniapp ideas',
-    iconUrl: `${APP_URL}/icon.png`,
+    iconUrl: `${APP_URL}/icon.png?v=2`,
     embedImageUrl: `${APP_URL}/embed.png?v=2`,
     splash: {
-        imageUrl: `${APP_URL}/splash.png`,
+        imageUrl: `${APP_URL}/splash.png?v=2`,
         backgroundColor: '#7c3aed',
     },
     url: (process.env.SITE_URL || (typeof window !== 'undefined' ? window.location.origin : 'https://minipad.xyz')).trim(),
