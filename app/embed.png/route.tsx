@@ -66,7 +66,7 @@ export async function GET() {
       width: 1200,
       height: 800,
       headers: {
-        'Cache-Control': 'public, max-age=0, must-revalidate',
+        'Cache-Control': 'public, immutable, no-transform, max-age=31536000',
       },
     }
   );
