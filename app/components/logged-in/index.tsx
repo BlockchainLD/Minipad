@@ -136,42 +136,9 @@ export const LoggedIn = () => {
     />
   );
 
-  if (isMobile) {
-    return (
-      <>
-        <div className="bg-slate-50 min-h-dvh flex flex-col">
-          <Header
-            avatarUrl={avatarUrl}
-            isConnected={isConnected}
-            isConnecting={isConnecting}
-            onLogoClick={handleLogoClick}
-            onAvatarClick={handleAvatarClick}
-            onTrophyClick={() => setShowLeaderboard(true)}
-            onConnectWallet={handleConnectWallet}
-          />
-          <div className="flex-1 px-6 pb-6 pt-3">
-            {activeTab === TABS.HOME && homeContent}
-            {activeTab === TABS.SETTINGS && settingsContent}
-          </div>
-        </div>
-        <LeaderboardModal
-          isOpen={showLeaderboard}
-          onClose={() => setShowLeaderboard(false)}
-          onProfileClick={(user) => { setShowLeaderboard(false); handleProfileClick(user); }}
-        />
-        <UserProfileModal
-          isOpen={!!profileModalUser}
-          onClose={() => setProfileModalUser(null)}
-          user={profileModalUser}
-          onIdeaClick={handleIdeaClick}
-        />
-      </>
-    );
-  }
-
   return (
     <>
-      <div className="bg-white rounded-3xl shadow-xl overflow-hidden border border-violet-100">
+      <div className={isMobile ? "bg-slate-50 min-h-dvh flex flex-col" : "bg-white rounded-3xl shadow-xl overflow-hidden border border-violet-100"}>
         <Header
           avatarUrl={avatarUrl}
           isConnected={isConnected}
@@ -181,7 +148,7 @@ export const LoggedIn = () => {
           onTrophyClick={() => setShowLeaderboard(true)}
           onConnectWallet={handleConnectWallet}
         />
-        <div className="p-6 pt-3">
+        <div className={isMobile ? "flex-1 px-6 pb-6 pt-3" : "p-6 pt-3"}>
           {activeTab === TABS.HOME && homeContent}
           {activeTab === TABS.SETTINGS && settingsContent}
         </div>

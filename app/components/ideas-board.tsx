@@ -14,7 +14,9 @@ import { handleError } from "../lib/error-handler";
 import { IdeaDetailModal } from "./idea-detail-modal";
 import { ErrorBoundary } from "./error-boundary";
 import { useFarcasterData } from "../hooks/use-farcaster-data";
-import { useEAS, createClaimAttestation, createBuildEndorsementAttestation, revokeAttestation, SCHEMAS } from "../lib/eas";
+import { useEndorseBuild } from "../hooks/use-endorse-build";
+import { useOptimisticUpvote } from "../hooks/use-optimistic-upvote";
+import { useEAS, createClaimAttestation, revokeAttestation, SCHEMAS } from "../lib/eas";
 import { type Idea } from "../lib/types";
 import { handleButtonClick } from "../lib/utils";
 
@@ -42,58 +44,23 @@ const CardUpvoteButton = ({
   address: string | undefined;
   onConnectWallet?: () => void;
 }) => {
-  const [optimisticUpvoted, setOptimisticUpvoted] = useState<boolean | null>(null);
-  const [optimisticCount, setOptimisticCount] = useState<number | null>(null);
-  const [isProcessing, setIsProcessing] = useState(false);
-
-  const hasUpvoted = useQuery(
+  const serverHasUpvoted = useQuery(
     api.upvotes.hasUserUpvoted,
     address ? { ideaId, voter: address } : "skip"
   );
-
-  const currentUpvotedState = optimisticUpvoted !== null ? optimisticUpvoted : hasUpvoted;
-
-  useEffect(() => {
-    if (hasUpvoted !== undefined && optimisticUpvoted !== null) {
-      setOptimisticUpvoted(null);
-      setOptimisticCount(null);
-    }
-  }, [hasUpvoted, optimisticUpvoted]);
-
-  const handleClick = async (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (!address) {
-      onConnectWallet?.();
-      return;
-    }
-    if (isProcessing) return;
-    setIsProcessing(true);
-    try {
-      if (currentUpvotedState === true) {
-        setOptimisticUpvoted(false);
-        setOptimisticCount((optimisticCount ?? upvotes) - 1);
-        await onRemoveUpvote(ideaId);
-      } else {
-        setOptimisticUpvoted(true);
-        setOptimisticCount((optimisticCount ?? upvotes) + 1);
-        await onUpvote(ideaId);
-      }
-    } catch (error) {
-      handleError(error, { operation: "upvote", component: "IdeasBoard" });
-      setOptimisticUpvoted(null);
-      setOptimisticCount(null);
-    } finally {
-      setIsProcessing(false);
-    }
-  };
-
-  const isUpvoted = currentUpvotedState === true;
-  const isLoading = (hasUpvoted === undefined && address !== undefined) || isProcessing;
+  const { isUpvoted, displayedCount, isLoading, click } = useOptimisticUpvote({
+    serverHasUpvoted,
+    serverCount: upvotes,
+    address,
+    upvote: () => Promise.resolve(onUpvote(ideaId)),
+    removeUpvote: () => Promise.resolve(onRemoveUpvote(ideaId)),
+    componentName: "IdeasBoard",
+    onConnectWallet,
+  });
 
   return (
     <button
-      onClick={handleClick}
+      onClick={click}
       disabled={isLoading}
       className={`relative flex items-center gap-2 transition-colors duration-150 disabled:opacity-50 disabled:cursor-not-allowed ${
         isUpvoted ? "text-red-500 hover:text-red-400" : "text-gray-400 hover:text-red-400"
@@ -107,7 +74,7 @@ const CardUpvoteButton = ({
         stroke="currentColor"
         className={isUpvoted ? "text-red-500" : "text-gray-500"}
       />
-      <span className="text-sm font-semibold">{optimisticCount ?? upvotes}</span>
+      <span className="text-sm font-semibold">{displayedCount}</span>
       {isLoading && <span className="text-xs text-gray-400">...</span>}
     </button>
   );
@@ -116,72 +83,20 @@ const CardUpvoteButton = ({
 const CardEndorsementButton = ({
   idea,
   address,
-  eas,
-  isEASConfigured,
-  farcasterData,
   onConnectWallet,
 }: {
   idea: Idea;
   address: string | undefined;
-  eas: ReturnType<typeof useEAS>["eas"];
-  isEASConfigured: boolean;
-  farcasterData: ReturnType<typeof useFarcasterData>;
   onConnectWallet?: () => void;
 }) => {
-  const [isEndorsing, setIsEndorsing] = useState(false);
-  const endorseBuildMutation = useMutation(api.endorsements.endorseBuild);
-  const removeEndorsementMutation = useMutation(api.endorsements.removeEndorsement);
+  const { hasEndorsed, count, isEndorsing, endorse } = useEndorseBuild(idea, "IdeasBoard");
 
-  const hasEndorsed = useQuery(
-    api.endorsements.hasUserEndorsedBuild,
-    address ? { ideaId: idea._id, endorser: address } : "skip"
-  );
-  const count = useQuery(api.endorsements.getEndorsementCount, { ideaId: idea._id });
-
-  const handleClick = async (e: React.MouseEvent) => {
+  const handleClick = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    if (!address) { onConnectWallet?.(); return; }
-    if (!eas || !isEASConfigured) { toast.error("Wallet not ready or EAS not configured"); return; }
-    if (isEndorsing) return;
-
     const visited = typeof window !== "undefined" && localStorage.getItem(`minipad_visited_${idea._id}`) === "true";
-    if (!visited && !hasEndorsed) {
-      toast.info("Try the app first to unlock endorsement");
-      return;
-    }
-
-    setIsEndorsing(true);
-    try {
-      if (hasEndorsed) {
-        const attestationUid = await removeEndorsementMutation({ ideaId: idea._id, endorser: address });
-        toast.success("Endorsement removed.");
-        if (attestationUid && eas) {
-          revokeAttestation(eas, attestationUid, SCHEMAS.BUILD_ENDORSEMENT).catch(() => {});
-        }
-      } else {
-        if (!idea.deploymentUrl) { toast.error("No deployment URL"); return; }
-        const attestationUid = await createBuildEndorsementAttestation(
-          eas,
-          idea._id.toString(),
-          idea.deploymentUrl,
-          address,
-          farcasterData?.fid?.toString(),
-          idea.claimedBy
-        );
-        await endorseBuildMutation({
-          ideaId: idea._id,
-          endorser: address,
-          endorserFid: farcasterData?.fid,
-          attestationUid,
-        });
-        toast.success("Build endorsed!");
-      }
-    } catch (error) {
-      handleError(error, { operation: "endorse build", component: "IdeasBoard" });
-    } finally {
-      setIsEndorsing(false);
-    }
+    if (!visited && !hasEndorsed) { toast.info("Try the app first to unlock endorsement"); return; }
+    endorse(onConnectWallet);
   };
 
   const isLoading = isEndorsing || (address !== undefined && hasEndorsed === undefined);
@@ -191,15 +106,9 @@ const CardEndorsementButton = ({
       onClick={handleClick}
       disabled={isLoading}
       className={`flex items-center gap-1 transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
-        hasEndorsed
-          ? "text-yellow-500"
-          : "text-gray-400 hover:text-yellow-500"
+        hasEndorsed ? "text-yellow-500" : "text-gray-400 hover:text-yellow-500"
       }`}
-      title={
-        !address ? "Connect wallet to endorse"
-          : hasEndorsed ? "Remove endorsement"
-          : "Endorse this build"
-      }
+      title={!address ? "Connect wallet to endorse" : hasEndorsed ? "Remove endorsement" : "Endorse this build"}
     >
       <Medal1stSolid width={15} height={15} />
       <span className="text-xs font-semibold">{count ?? 0}</span>
@@ -620,9 +529,6 @@ export const IdeasBoard = ({ onViewChange, onClaimSuccess, onProfileClick, openI
                   <CardEndorsementButton
                     idea={idea as Idea}
                     address={address}
-                    eas={eas}
-                    isEASConfigured={isEASConfigured}
-                    farcasterData={farcasterData}
                     onConnectWallet={onConnectWallet}
                   />
                   {idea.deploymentUrl && (
@@ -719,9 +625,6 @@ export const IdeasBoard = ({ onViewChange, onClaimSuccess, onProfileClick, openI
                 <CardEndorsementButton
                   idea={idea as Idea}
                   address={address}
-                  eas={eas}
-                  isEASConfigured={isEASConfigured}
-                  farcasterData={farcasterData}
                   onConnectWallet={onConnectWallet}
                 />
               )}
