@@ -129,32 +129,40 @@ async function sendAttestation(
   throw new Error("Attestation UID not found in receipt");
 }
 
+// Encodes the schema fields (auto-appending timestamp) and submits via sendAttestation.
+type Field = { name: string; value: string | bigint; type: string };
+async function buildAttestation<K extends keyof typeof SCHEMAS>(
+  eas: EASContext,
+  schemaKey: K,
+  recipient: string,
+  fields: Field[],
+  fee: bigint = 0n,
+): Promise<string> {
+  if (!SCHEMAS[schemaKey]) throw new Error(`${schemaKey} schema not configured.`);
+  const schemaEncoder = new SchemaEncoder(SCHEMA_DEFINITIONS[schemaKey]);
+  const encodedData = schemaEncoder.encodeData([
+    ...fields,
+    { name: "timestamp", value: BigInt(Math.floor(Date.now() / 1000)), type: "uint256" },
+  ]);
+  return sendAttestation(eas, SCHEMAS[schemaKey], encodedData, recipient, fee);
+}
+
 export async function createIdeaAttestation(
   eas: EASContext,
   title: string,
   description: string,
   author: string,
   authorFid?: string,
-  ideaId?: string
+  ideaId?: string,
 ): Promise<string> {
-  if (!title || !description || !author) {
-    throw new Error("Missing required fields for idea attestation");
-  }
-  if (!SCHEMAS.IDEA) {
-    throw new Error("Idea schema not configured.");
-  }
-
-  const schemaEncoder = new SchemaEncoder(SCHEMA_DEFINITIONS.IDEA);
-  const encodedData = schemaEncoder.encodeData([
+  if (!title || !description || !author) throw new Error("Missing required fields for idea attestation");
+  return buildAttestation(eas, "IDEA", author, [
     { name: "title", value: title, type: "string" },
     { name: "description", value: description, type: "string" },
     { name: "author", value: author, type: "string" },
     { name: "authorFid", value: authorFid || "", type: "string" },
     { name: "ideaId", value: ideaId || "", type: "string" },
-    { name: "timestamp", value: BigInt(Math.floor(Date.now() / 1000)), type: "uint256" },
-  ]);
-
-  return sendAttestation(eas, SCHEMAS.IDEA, encodedData, author, ATTESTATION_FEE);
+  ], ATTESTATION_FEE);
 }
 
 export async function createRemixAttestation(
@@ -164,56 +172,36 @@ export async function createRemixAttestation(
   remixer: string,
   originalIdeaId: string | { toString(): string },
   remixId: string | { toString(): string },
-  remixerFid?: string
+  remixerFid?: string,
 ): Promise<string> {
   const originalIdeaIdStr = typeof originalIdeaId === "string" ? originalIdeaId : originalIdeaId.toString();
   const remixIdStr = typeof remixId === "string" ? remixId : remixId.toString();
-
   if (!title || !description || !remixer || !originalIdeaIdStr || !remixIdStr) {
     throw new Error("Missing required fields for remix attestation");
   }
-  if (!SCHEMAS.REMIX) {
-    throw new Error("Remix schema not configured.");
-  }
-
-  const schemaEncoder = new SchemaEncoder(SCHEMA_DEFINITIONS.REMIX);
-  const encodedData = schemaEncoder.encodeData([
+  return buildAttestation(eas, "REMIX", remixer, [
     { name: "title", value: title, type: "string" },
     { name: "description", value: description, type: "string" },
     { name: "remixer", value: remixer, type: "string" },
     { name: "remixerFid", value: remixerFid || "", type: "string" },
     { name: "originalIdeaId", value: originalIdeaIdStr, type: "string" },
     { name: "remixId", value: remixIdStr, type: "string" },
-    { name: "timestamp", value: BigInt(Math.floor(Date.now() / 1000)), type: "uint256" },
   ]);
-
-  return sendAttestation(eas, SCHEMAS.REMIX, encodedData, remixer);
 }
 
 export async function createClaimAttestation(
   eas: EASContext,
   ideaId: string | { toString(): string },
   claimer: string,
-  claimerFid?: string
+  claimerFid?: string,
 ): Promise<string> {
   const ideaIdStr = typeof ideaId === "string" ? ideaId : ideaId.toString();
-
-  if (!ideaIdStr || !claimer) {
-    throw new Error("Missing required fields for claim attestation");
-  }
-  if (!SCHEMAS.CLAIM) {
-    throw new Error("Claim schema not configured.");
-  }
-
-  const schemaEncoder = new SchemaEncoder(SCHEMA_DEFINITIONS.CLAIM);
-  const encodedData = schemaEncoder.encodeData([
+  if (!ideaIdStr || !claimer) throw new Error("Missing required fields for claim attestation");
+  return buildAttestation(eas, "CLAIM", claimer, [
     { name: "ideaId", value: ideaIdStr, type: "string" },
     { name: "claimer", value: claimer, type: "string" },
     { name: "claimerFid", value: claimerFid || "", type: "string" },
-    { name: "timestamp", value: BigInt(Math.floor(Date.now() / 1000)), type: "uint256" },
-  ]);
-
-  return sendAttestation(eas, SCHEMAS.CLAIM, encodedData, claimer, ATTESTATION_FEE);
+  ], ATTESTATION_FEE);
 }
 
 export async function createCompletionAttestation(
@@ -221,32 +209,17 @@ export async function createCompletionAttestation(
   ideaId: string | { toString(): string },
   claimer: string,
   miniappUrl: string,
-  claimerFid?: string
+  claimerFid?: string,
 ): Promise<string> {
   const ideaIdStr = typeof ideaId === "string" ? ideaId : ideaId.toString();
-
-  if (!ideaIdStr || !claimer || !miniappUrl) {
-    throw new Error("Missing required fields for completion attestation");
-  }
-  try {
-    new URL(miniappUrl);
-  } catch {
-    throw new Error("Invalid miniapp URL format");
-  }
-  if (!SCHEMAS.COMPLETION) {
-    throw new Error("Completion schema not configured.");
-  }
-
-  const schemaEncoder = new SchemaEncoder(SCHEMA_DEFINITIONS.COMPLETION);
-  const encodedData = schemaEncoder.encodeData([
+  if (!ideaIdStr || !claimer || !miniappUrl) throw new Error("Missing required fields for completion attestation");
+  try { new URL(miniappUrl); } catch { throw new Error("Invalid miniapp URL format"); }
+  return buildAttestation(eas, "COMPLETION", claimer, [
     { name: "ideaId", value: ideaIdStr, type: "string" },
     { name: "claimer", value: claimer, type: "string" },
     { name: "miniappUrl", value: miniappUrl, type: "string" },
     { name: "claimerFid", value: claimerFid || "", type: "string" },
-    { name: "timestamp", value: BigInt(Math.floor(Date.now() / 1000)), type: "uint256" },
-  ]);
-
-  return sendAttestation(eas, SCHEMAS.COMPLETION, encodedData, claimer, ATTESTATION_FEE);
+  ], ATTESTATION_FEE);
 }
 
 export async function createBuildEndorsementAttestation(
@@ -255,26 +228,16 @@ export async function createBuildEndorsementAttestation(
   buildUrl: string,
   endorser: string,
   endorserFid?: string,
-  builderId?: string
+  builderId?: string,
 ): Promise<string> {
-  if (!ideaId || !endorser) {
-    throw new Error("Missing required fields for build endorsement attestation");
-  }
-  if (!SCHEMAS.BUILD_ENDORSEMENT) {
-    throw new Error("Build endorsement schema not configured.");
-  }
-
-  const schemaEncoder = new SchemaEncoder(SCHEMA_DEFINITIONS.BUILD_ENDORSEMENT);
-  const encodedData = schemaEncoder.encodeData([
+  if (!ideaId || !endorser) throw new Error("Missing required fields for build endorsement attestation");
+  return buildAttestation(eas, "BUILD_ENDORSEMENT", endorser, [
     { name: "ideaId", value: ideaId, type: "string" },
     { name: "buildUrl", value: buildUrl || "", type: "string" },
     { name: "endorser", value: endorser, type: "string" },
     { name: "endorserFid", value: endorserFid || "", type: "string" },
     { name: "builderId", value: builderId || "", type: "string" },
-    { name: "timestamp", value: BigInt(Math.floor(Date.now() / 1000)), type: "uint256" },
   ]);
-
-  return sendAttestation(eas, SCHEMAS.BUILD_ENDORSEMENT, encodedData, endorser);
 }
 
 export async function revokeAttestation(
