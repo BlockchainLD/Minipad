@@ -19,7 +19,13 @@ export async function GET() {
     ogImageUrl: APP_METADATA.embedImageUrl,
     primaryCategory: "productivity",
     tags: ["miniapp", "base", "ideas", "farcaster"],
+    screenshotUrls: APP_METADATA.screenshotUrls,
     requiredChains: ["eip155:8453"],
+    requiredCapabilities: [
+      "actions.ready",
+      "actions.viewProfile",
+      "wallet.getEthereumProvider",
+    ],
     canonicalDomain: "minipad.xyz",
   };
 
