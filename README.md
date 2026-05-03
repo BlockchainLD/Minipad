@@ -18,9 +18,9 @@ A **Farcaster mini app** for submitting, remixing, and building miniapp ideas �
 
 - **Frontend**: Next.js 15, React 19, TypeScript, Tailwind CSS 4
 - **Backend**: Convex (real-time database, serverless functions)
-- **Authentication**: Better Auth with SIWE (Sign-In with Ethereum)
+- **Auth**: Wallet-based (no session — every mutation auth-checks via wallet address arguments)
 - **Blockchain**: Base Network, EAS (Ethereum Attestation Service)
-- **Wallet**: Wagmi, Base Account UI
+- **Wallet**: Wagmi, Farcaster mini app connector
 - **Icons**: Iconoir React
 
 ## Quick Start
@@ -46,11 +46,9 @@ cp .env.example .env.local
 
 Required variables:
 ```bash
-BETTER_AUTH_SECRET=       # Generate with: bunx @better-auth/cli@latest secret
 SITE_URL=http://localhost:3000
 CONVEX_DEPLOYMENT=        # Your Convex deployment identifier
 NEXT_PUBLIC_CONVEX_URL=   # Your Convex cloud URL
-CONVEX_SITE_URL=          # Your Convex site URL (used by auth)
 ```
 
 ## Architecture
@@ -102,12 +100,10 @@ app/
 │   ├── convex-client-provider.tsx
 │   └── wagmi-provider.tsx
 └── api/
-    ├── auth/[...all]/route.ts    # Better Auth proxy (currently inert)
     └── farcaster/[fid]/route.ts  # Farcaster profile proxy
 
 convex/
 ├── schema.ts         # Database schema (7 tables)
-├── convex.config.ts  # App config (Better Auth component)
 ├── constants.ts      # Server-side constants (mirrors app/lib/constants.ts)
 ├── ideas.ts          # Idea queries and mutations
 ├── claims.ts         # Claim/unclaim/complete/edit mutations
@@ -116,16 +112,7 @@ convex/
 ├── userIdeas.ts      # Per-user idea queries
 ├── users.ts          # User profile (tagline)
 ├── endorsements.ts   # Build endorsements + leaderboard
-├── seed.ts           # Admin-only seed mutation
-├── types.ts          # Convex validator types (currently unused)
-├── auth.ts           # Better Auth server config (no provider active)
-├── auth.config.ts    # Auth provider config
-├── http.ts           # HTTP routes
-└── betterAuth/       # Better Auth component (auto-configured)
-    ├── adapter.ts
-    ├── auth.ts
-    ├── convex.config.ts
-    └── schema.ts
+└── seed.ts           # Admin-only seed mutation
 
 scripts/              # EAS setup, fee resolver deploy, seed (see EAS section)
 contracts/            # MinipadFeeResolver Solidity source
@@ -272,7 +259,6 @@ bunx tsc --noEmit    # Type check
 |---|---|
 | Wallet won't connect | Ensure you're on Base network. Try refreshing or reopening the mini app. |
 | Convex functions failing | Check `CONVEX_DEPLOYMENT` and `NEXT_PUBLIC_CONVEX_URL` are set correctly. Run `bunx convex dev` to verify. |
-| Auth not working | Verify `BETTER_AUTH_SECRET` and `CONVEX_SITE_URL` are set. Ensure Convex HTTP routes are deployed. |
 | EAS attestation fails | Check network connection, verify wallet has permissions, and ensure schema UIDs are configured. |
 
 ## Contributing
