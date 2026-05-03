@@ -14,6 +14,7 @@ import { toast } from "sonner";
 import { APP_METADATA } from "../lib/utils";
 import { ErrorBoundary } from "./error-boundary";
 import { RemixForm } from "./remix-form";
+import { useFarcaster } from "./auto-connect-wrapper";
 import { useFarcasterData } from "../hooks/use-farcaster-data";
 import { useEndorseBuild } from "../hooks/use-endorse-build";
 import { useOptimisticUpvote } from "../hooks/use-optimistic-upvote";
@@ -319,6 +320,7 @@ export const IdeaDetailModal = ({
   const deleteRemix = useMutation(api.remixes.deleteRemix);
   const updateRemixAttestation = useMutation(api.remixes.updateRemixAttestation);
   const farcasterData = useFarcasterData();
+  const { isInMiniApp } = useFarcaster();
   const { eas, isEASConfigured } = useEAS();
 
   const { hasEndorsed, count: endorsementCount, isEndorsing, endorse } = useEndorseBuild(idea, "IdeaDetailModal");
@@ -479,14 +481,16 @@ export const IdeaDetailModal = ({
             <StatusBadge status={idea.status} />
           </div>
           <div className="flex items-center gap-1">
-            <button
-              onClick={handleShare}
-              className="p-2 text-gray-400 hover:text-violet-600 hover:bg-violet-50 rounded-xl transition-colors cursor-pointer"
-              aria-label="Share to Farcaster"
-              title="Share to /someonebuild"
-            >
-              <ShareIos width={18} height={18} />
-            </button>
+            {isInMiniApp && (
+              <button
+                onClick={handleShare}
+                className="p-2 text-gray-400 hover:text-violet-600 hover:bg-violet-50 rounded-xl transition-colors cursor-pointer"
+                aria-label="Share to Farcaster"
+                title="Share to /someonebuild"
+              >
+                <ShareIos width={18} height={18} />
+              </button>
+            )}
             <button
               onClick={onClose}
               className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-xl transition-colors cursor-pointer"

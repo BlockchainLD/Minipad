@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { sdk } from "@farcaster/miniapp-sdk";
 import { useFarcaster } from "../components/auto-connect-wrapper";
 
@@ -19,7 +19,10 @@ export function useAddMiniApp() {
       .catch(() => setAdded(null));
   }, [isInMiniApp, isCheckingContext]);
 
-  const prompt = async (): Promise<boolean> => {
+  // Stable across renders so consumers can put it in useEffect deps without
+  // thrashing (relevant for the post-first-idea prompt's delayed timer).
+  // Only references setAdded (stable) and sdk.actions.* (stable).
+  const prompt = useCallback(async (): Promise<boolean> => {
     try {
       await sdk.actions.addMiniApp();
       setAdded(true);
@@ -28,7 +31,7 @@ export function useAddMiniApp() {
       // User declined, domain mismatch, or non-prod environment — silent.
       return false;
     }
-  };
+  }, []);
 
   return {
     canAdd: isInMiniApp && added === false,
