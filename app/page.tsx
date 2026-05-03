@@ -4,16 +4,9 @@ import { LoggedIn } from "./components/logged-in";
 import { AutoConnectWrapper, useFarcaster } from "./components/auto-connect-wrapper";
 import { useAccount } from "wagmi";
 
-// Inline lightbulb icon — renders immediately without a network request.
 const AppIcon = () => (
-  <svg width="80" height="80" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
-    <rect width="200" height="200" fill="#7c3aed" rx="40" />
-    <path d="M100 28 C76 28 57 47 57 71 C57 86 64.5 99 76 107.5 L76 134 L124 134 L124 107.5 C135.5 99 143 86 143 71 C143 47 124 28 100 28 Z"
-      fill="none" stroke="white" strokeWidth="7.5" strokeLinecap="round" strokeLinejoin="round" />
-    <line x1="80" y1="144" x2="120" y2="144" stroke="white" strokeWidth="7.5" strokeLinecap="round" />
-    <line x1="86" y1="157" x2="114" y2="157" stroke="white" strokeWidth="7.5" strokeLinecap="round" />
-    <line x1="100" y1="55" x2="100" y2="80" stroke="white" strokeWidth="4" strokeLinecap="round" />
-  </svg>
+  // eslint-disable-next-line @next/next/no-img-element
+  <img src="/icon.png" alt="Minipad" width={80} height={80} style={{ borderRadius: 16 }} />
 );
 
 function AppContent() {
