@@ -27,6 +27,7 @@ export async function GET() {
       "wallet.getEthereumProvider",
     ],
     canonicalDomain: "minipad.xyz",
+    noindex: false,
   };
 
   const manifest = {

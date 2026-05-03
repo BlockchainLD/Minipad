@@ -4,12 +4,14 @@ import React, { useState, useEffect } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { Id } from "../../convex/_generated/dataModel";
-import { Heart, Flash, Xmark, Trash, Plus, EditPencil, MessageText, Medal1stSolid, Tools } from "iconoir-react";
+import { Heart, Flash, Xmark, Trash, Plus, EditPencil, MessageText, Medal1stSolid, Tools, ShareIos } from "iconoir-react";
+import { sdk } from "@farcaster/miniapp-sdk";
 import { UserAvatar } from "./ui/user-avatar";
 import { StatusBadge } from "./ui/status-badge";
 import { ClaimButton, UnclaimButton, SubmitBuildButton } from "./ui/standard-button";
 import { handleError } from "../lib/error-handler";
 import { toast } from "sonner";
+import { APP_METADATA } from "../lib/utils";
 import { ErrorBoundary } from "./error-boundary";
 import { RemixForm } from "./remix-form";
 import { useFarcasterData } from "../hooks/use-farcaster-data";
@@ -405,6 +407,21 @@ export const IdeaDetailModal = ({
     window.open("https://neynar.com/app-studio", "_blank", "noopener,noreferrer");
   };
 
+  const handleShare = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    try {
+      const result = await sdk.actions.composeCast({
+        text: `${idea.title}\n\n${idea.description}\n\n@miniapp`,
+        embeds: [APP_METADATA.url],
+        channelKey: "someonebuild",
+      });
+      if (result?.cast) toast.success("Cast posted to /someonebuild!");
+    } catch (error) {
+      handleError(error, { operation: "share idea", component: "IdeaDetailModal" });
+    }
+  };
+
 
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
@@ -461,12 +478,23 @@ export const IdeaDetailModal = ({
           <div className="absolute left-1/2 -translate-x-1/2">
             <StatusBadge status={idea.status} />
           </div>
-          <button
-            onClick={onClose}
-            className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-xl transition-colors cursor-pointer"
-          >
-            <Xmark width={18} height={18} />
-          </button>
+          <div className="flex items-center gap-1">
+            <button
+              onClick={handleShare}
+              className="p-2 text-gray-400 hover:text-violet-600 hover:bg-violet-50 rounded-xl transition-colors cursor-pointer"
+              aria-label="Share to Farcaster"
+              title="Share to /someonebuild"
+            >
+              <ShareIos width={18} height={18} />
+            </button>
+            <button
+              onClick={onClose}
+              className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-xl transition-colors cursor-pointer"
+              aria-label="Close"
+            >
+              <Xmark width={18} height={18} />
+            </button>
+          </div>
         </div>
 
         {/* Scrollable Content */}
