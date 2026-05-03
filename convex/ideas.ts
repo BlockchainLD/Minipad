@@ -37,13 +37,11 @@ export const getIdeas = query({
   handler: async (ctx, args) => {
     const limit = args.limit ?? 50;
     const ideas = await ctx.db.query("ideas").order("desc").take(limit);
-    return ideas
-      .filter(idea => !idea.isRemix)
-      .map(({ _creationTime, ...idea }) => ({
-        ...idea,
-        upvotes: idea.upvotes ?? 0,
-        remixCount: idea.remixCount ?? 0,
-      }));
+    return ideas.map(({ _creationTime, ...idea }) => ({
+      ...idea,
+      upvotes: idea.upvotes ?? 0,
+      remixCount: idea.remixCount ?? 0,
+    }));
   },
 });
 

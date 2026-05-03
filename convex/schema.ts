@@ -26,17 +26,9 @@ const schema = defineSchema({
     deploymentUrl: v.optional(v.string()),
     completionAttestationUid: v.optional(v.string()), // EAS attestation UID for completion
     remixCount: v.optional(v.number()), // denormalized count of remixes for this idea
-    // Remix-specific fields
-    isRemix: v.optional(v.boolean()), // true if this is a remix
-    originalIdeaId: v.optional(v.id("ideas")), // ID of the original idea being remixed
-    remixAttestationUid: v.optional(v.string()), // EAS attestation UID for remix
   })
     .index("by_author", ["author"])
-    .index("by_claimed_by", ["claimedBy"])
-    .index("by_status", ["status"])
-    .index("by_timestamp", ["timestamp"])
-    .index("by_upvotes", ["upvotes"])
-    .index("by_original_idea", ["originalIdeaId"]),
+    .index("by_claimed_by", ["claimedBy"]),
 
   // Remixes / additions / edits / comments on ideas
   remixes: defineTable({
@@ -52,9 +44,7 @@ const schema = defineSchema({
     upvotes: v.number(),
     attestationUid: v.optional(v.string()), // EAS attestation UID for this community take
   })
-    .index("by_idea", ["ideaId"])
-    .index("by_author", ["author"])
-    .index("by_timestamp", ["timestamp"]),
+    .index("by_idea", ["ideaId"]),
 
   // Upvotes for remixes
   remixUpvotes: defineTable({
@@ -63,7 +53,6 @@ const schema = defineSchema({
     timestamp: v.number(),
   })
     .index("by_remix", ["remixId"])
-    .index("by_voter", ["voter"])
     .index("by_remix_voter", ["remixId", "voter"]),
 
   // Upvotes for ideas (no EAS attestations)
@@ -73,8 +62,6 @@ const schema = defineSchema({
     timestamp: v.number(),
   })
     .index("by_idea", ["ideaId"])
-    .index("by_voter", ["voter"])
-    .index("by_timestamp", ["timestamp"])
     .index("by_idea_voter", ["ideaId", "voter"]),
 
   // User profiles (tagline / public nickname)
@@ -93,9 +80,7 @@ const schema = defineSchema({
     completedAt: v.optional(v.number()),
     miniappUrl: v.optional(v.string()),
   })
-    .index("by_idea", ["ideaId"])
-    .index("by_claimer", ["claimer"])
-    .index("by_status", ["status"]),
+    .index("by_idea", ["ideaId"]),
 
   // Build endorsements — users attesting they've tried a completed build
   buildEndorsements: defineTable({
@@ -107,9 +92,7 @@ const schema = defineSchema({
     timestamp: v.number(),
   })
     .index("by_idea", ["ideaId"])
-    .index("by_endorser", ["endorser"])
-    .index("by_idea_endorser", ["ideaId", "endorser"])
-    .index("by_builder", ["builderId"]),
+    .index("by_idea_endorser", ["ideaId", "endorser"]),
 
 });
 

@@ -17,8 +17,6 @@ export type Idea = {
   claimedByAvatar?: string;
   claimedByDisplayName?: string;
   claimedByUsername?: string;
-  isRemix?: boolean;
-  originalIdeaId?: Id<"ideas">;
   attestationUid?: string;
   completionAttestationUid?: string;
   githubUrl?: string;

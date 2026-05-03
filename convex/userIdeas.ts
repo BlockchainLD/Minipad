@@ -9,7 +9,6 @@ export const getUserSubmittedIdeas = query({
     const ideas = await ctx.db
       .query("ideas")
       .withIndex("by_author", (q) => q.eq("author", args.author))
-      .filter((q) => q.neq(q.field("isRemix"), true))
       .order("desc")
       .collect();
     return ideas.map(({ _creationTime, ...idea }) => idea);

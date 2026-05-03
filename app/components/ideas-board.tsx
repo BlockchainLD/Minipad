@@ -378,7 +378,7 @@ export const IdeasBoard = ({ onViewChange, onClaimSuccess, onProfileClick, openI
 
   const handleClaimIdeaRandom = () => {
     if (!ideas) return;
-    const open = ideas.filter((i) => !i.isRemix && i.status === "open");
+    const open = ideas.filter((i) => i.status === "open");
     if (!open.length) { toast.error("No open ideas available"); return; }
     const withUpvotes = open.filter((i) => i.upvotes > 0);
     const pool = withUpvotes.length > 0
@@ -389,7 +389,7 @@ export const IdeasBoard = ({ onViewChange, onClaimSuccess, onProfileClick, openI
 
   const handleTestRandom = () => {
     if (!ideas) return;
-    const completed = ideas.filter((i) => !i.isRemix && i.status === "completed");
+    const completed = ideas.filter((i) => i.status === "completed");
     if (!completed.length) { toast.error("No completed miniapps yet"); return; }
     const top10 = [...completed].sort((a, b) => b.upvotes - a.upvotes).slice(0, 10);
     openModal(top10[Math.floor(Math.random() * top10.length)] as Idea);
@@ -397,7 +397,7 @@ export const IdeasBoard = ({ onViewChange, onClaimSuccess, onProfileClick, openI
 
   const filteredAndSortedIdeas = React.useMemo(() => {
     if (!ideas) return [];
-    let filtered = ideas.filter((idea) => !idea.isRemix);
+    let filtered = [...ideas];
     if (!isAllFeed) {
       if (currentSection === "ideasboard") filtered = filtered.filter((i) => i.status === "open");
       else if (currentSection === "buildboard") filtered = filtered.filter((i) => i.status === "claimed");
