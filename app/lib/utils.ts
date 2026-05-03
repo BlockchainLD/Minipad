@@ -17,5 +17,10 @@ export const APP_METADATA = {
         imageUrl: `${APP_URL}/splash.png`,
         backgroundColor: '#7c3aed',
     },
+    screenshotUrls: [
+        `${APP_URL}/screenshot1.png`,
+        `${APP_URL}/screenshot2.png`,
+        `${APP_URL}/screenshot3.png`,
+    ],
     url: (process.env.SITE_URL || (typeof window !== 'undefined' ? window.location.origin : 'https://minipad.xyz')).trim(),
 };

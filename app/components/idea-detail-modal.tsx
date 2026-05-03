@@ -634,14 +634,6 @@ export const IdeaDetailModal = ({
                       </div>
                       <div className="flex-1">
                         <p className="font-medium text-gray-900">Live App</p>
-                        <a
-                          href={idea.deploymentUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-gray-600 hover:text-gray-700 text-sm break-all"
-                        >
-                          {idea.deploymentUrl}
-                        </a>
                       </div>
                       <a
                         href={idea.deploymentUrl}
@@ -663,14 +655,6 @@ export const IdeaDetailModal = ({
                       </div>
                       <div className="flex-1">
                         <p className="font-medium text-green-900">Source Code</p>
-                        <a
-                          href={idea.githubUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-green-600 hover:text-green-700 text-sm break-all"
-                        >
-                          {idea.githubUrl}
-                        </a>
                       </div>
                       <a
                         href={idea.githubUrl}
