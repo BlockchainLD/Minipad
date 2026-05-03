@@ -12,23 +12,8 @@ const splashConfig = {
   splashBackgroundColor: APP_METADATA.splash.backgroundColor,
 };
 
-const miniAppEmbed = {
-  version: "1",
-  imageUrl: APP_METADATA.embedImageUrl,
-  aspectRatio: "3:2",
-  button: {
-    title: "Open Minipad",
-    action: {
-      type: "launch_miniapp",
-      name: APP_METADATA.title,
-      url: appUrl,
-      ...splashConfig,
-    },
-  },
-};
-
 const frameEmbed = {
-  version: "next",
+  version: "1",
   imageUrl: APP_METADATA.embedImageUrl,
   aspectRatio: "3:2",
   button: {
@@ -46,7 +31,6 @@ export const metadata: Metadata = {
   title: "Minipad",
   description: "Submit and build miniapp ideas",
   other: {
-    "fc:miniapp": JSON.stringify(miniAppEmbed),
     "fc:frame": JSON.stringify(frameEmbed),
   },
 };

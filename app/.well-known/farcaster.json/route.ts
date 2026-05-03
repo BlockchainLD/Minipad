@@ -12,8 +12,6 @@ export async function GET() {
     buttonTitle: "Open Minipad",
     splashImageUrl: APP_METADATA.splash.imageUrl,
     splashBackgroundColor: APP_METADATA.splash.backgroundColor,
-    heroImageUrl: APP_METADATA.embedImageUrl,
-    ogImageUrl: APP_METADATA.embedImageUrl,
     primaryCategory: "productivity",
     tags: ["miniapp", "base", "ideas", "farcaster"],
     requiredChains: ["eip155:8453"],
