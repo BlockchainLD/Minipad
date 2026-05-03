@@ -8,8 +8,8 @@ interface Args {
   serverHasUpvoted: boolean | undefined;
   serverCount: number;
   address: string | undefined;
-  upvote: () => Promise<void>;
-  removeUpvote: () => Promise<void>;
+  upvote: () => Promise<unknown>;
+  removeUpvote: () => Promise<unknown>;
   componentName: string;
   // When provided, the optimistic count is parent-controlled (used by the
   // modal where two UpvoteButtons share state across re-renders). When
