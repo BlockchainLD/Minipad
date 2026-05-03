@@ -10,6 +10,20 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+
+  /* Brand-aligned violet scale anchored on the lightbulb logo (#6641e2 at 600).
+     Overrides Tailwind's default violet-* tokens so every existing class adopts the brand hue. */
+  --color-violet-50:  #f5f4fb;
+  --color-violet-100: #e7e2f9;
+  --color-violet-200: #ccbff7;
+  --color-violet-300: #a68ef6;
+  --color-violet-400: #8666f0;
+  --color-violet-500: #7553ea;
+  --color-violet-600: #6641e2;
+  --color-violet-700: #4e25d4;
+  --color-violet-800: #3f20a7;
+  --color-violet-900: #2e1976;
+  --color-violet-950: #1f1249;
 }
 
 @media (prefers-color-scheme: dark) {
