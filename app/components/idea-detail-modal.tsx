@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { Id } from "../../convex/_generated/dataModel";
-import { Heart, Flash, Xmark, Trash, Plus, EditPencil, MessageText, Medal1stSolid, Tools, ShareIos } from "iconoir-react";
+import { Heart, Flash, Xmark, Trash, Plus, EditPencil, MessageText, Medal1stSolid, Tools, ShareIos, Check } from "iconoir-react";
 import { sdk } from "@farcaster/miniapp-sdk";
 import { UserAvatar } from "./ui/user-avatar";
 import { StatusBadge } from "./ui/status-badge";
@@ -535,32 +535,40 @@ export const IdeaDetailModal = ({
                   value={editTitleInput}
                   onChange={(e) => setEditTitleInput(e.target.value)}
                   onKeyDown={(e) => { if (e.key === "Enter") handleSaveTitle(); }}
-                  className="flex-1 text-2xl font-bold text-slate-900 border border-violet-300 rounded-xl px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent"
+                  className="flex-1 min-w-0 text-2xl font-bold text-slate-900 bg-transparent border-b-2 border-violet-500 px-0 py-1 focus:outline-none focus:border-violet-700 transition-colors"
                 />
                 <button
                   onClick={handleSaveTitle}
-                  disabled={isSavingTitle}
-                  className="text-sm font-medium px-3 py-1.5 bg-violet-600 text-white rounded-xl hover:bg-violet-700 transition-colors disabled:opacity-50 cursor-pointer"
+                  disabled={isSavingTitle || !editTitleInput.trim()}
+                  aria-label="Save"
+                  title="Save"
+                  className="flex-shrink-0 p-2 text-white bg-violet-600 hover:bg-violet-700 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                 >
-                  {isSavingTitle ? "..." : "Save"}
+                  {isSavingTitle ? (
+                    <div className="w-[18px] h-[18px] border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  ) : (
+                    <Check width={18} height={18} />
+                  )}
                 </button>
                 <button
                   onClick={() => setIsEditingTitle(false)}
                   disabled={isSavingTitle}
-                  className="text-sm font-medium px-3 py-1.5 bg-gray-100 text-gray-600 rounded-xl hover:bg-gray-200 transition-colors disabled:opacity-50 cursor-pointer"
+                  aria-label="Cancel"
+                  title="Cancel"
+                  className="flex-shrink-0 p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors disabled:opacity-50 cursor-pointer"
                 >
-                  Cancel
+                  <Xmark width={18} height={18} />
                 </button>
               </div>
             ) : (
               <div className="flex items-center gap-2 mb-4">
-                <h1 className="text-2xl font-bold text-slate-900">{idea.title}</h1>
+                <h1 className="text-2xl font-bold text-slate-900 min-w-0 break-words">{idea.title}</h1>
                 {isBuiltByMe && (
                   <button
                     onClick={() => { setEditTitleInput(idea.title); setIsEditingTitle(true); }}
-                    className="p-1.5 text-gray-400 hover:text-violet-600 hover:bg-violet-50 rounded-lg transition-colors cursor-pointer"
-                    aria-label="Rename build"
-                    title="Rename build"
+                    className="flex-shrink-0 p-1.5 text-gray-400 hover:text-violet-600 hover:bg-violet-50 rounded-lg transition-colors cursor-pointer"
+                    aria-label="Rename"
+                    title="Rename"
                   >
                     <EditPencil width={16} height={16} />
                   </button>
