@@ -52,10 +52,8 @@ export interface FarcasterUser {
     bio?: { text?: string };
     location?: { description?: string };
     url?: string;
-    bannerImageUrl?: string;
   };
   followerCount?: number;
   followingCount?: number;
   pfp?: { url?: string; verified?: boolean };
-  connectedAccounts?: Array<{ platform: string; username: string }>;
 }

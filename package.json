@@ -16,7 +16,8 @@
     "register-schemas": "node scripts/register-eas-schemas.js",
     "deploy-resolver": "node scripts/deploy-resolver.js",
     "setup-eas": "./scripts/setup-eas-schemas.sh",
-    "test-eas": "node scripts/test-eas-connection.js"
+    "test-eas": "node scripts/test-eas-connection.js",
+    "seed-ideas": "node scripts/seed-ideas.js"
   },
   "dependencies": {
     "@convex-dev/better-auth": "^0.8.6",

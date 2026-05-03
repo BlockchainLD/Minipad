@@ -7,7 +7,6 @@ import { useAccount } from "wagmi";
 import { toast } from "sonner";
 import { Id } from "../../convex/_generated/dataModel";
 import { Heart, Flash, Hammer, LightBulb, OpenNewWindow, Medal1stSolid } from "iconoir-react";
-import { SectionOption } from "./idea-filter";
 import { CompletionForm } from "./completion-form";
 import { UserAvatar } from "./ui/user-avatar";
 import { StandardButton, ClaimButton, SubmitBuildButton } from "./ui/standard-button";
@@ -18,6 +17,8 @@ import { useFarcasterData } from "../hooks/use-farcaster-data";
 import { useEAS, createClaimAttestation, createBuildEndorsementAttestation, revokeAttestation, SCHEMAS } from "../lib/eas";
 import { type Idea } from "../lib/types";
 import { handleButtonClick } from "../lib/utils";
+
+type SectionOption = "ideasboard" | "buildboard" | "miniapps";
 
 const TABS: { value: SectionOption; label: string }[] = [
   { value: "ideasboard", label: "Ideasboard" },
@@ -207,7 +208,7 @@ const CardEndorsementButton = ({
 };
 
 interface IdeasBoardProps {
-  onViewChange?: (view: "board" | "submit" | "complete" | "confirmation") => void;
+  onViewChange?: (view: "submit") => void;
   onClaimSuccess?: () => void;
   onProfileClick?: (user: { address: string; avatarUrl?: string; displayName?: string; username?: string; fid?: number }) => void;
   openIdeaId?: string | null;

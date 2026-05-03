@@ -16,20 +16,18 @@ export const createRemix = mutation({
     const idea = await ctx.db.get(args.ideaId);
     if (!idea) throw new ConvexError("Idea not found");
 
-    const doc: Record<string, unknown> = {
+    const remixId = await ctx.db.insert("remixes", {
       ideaId: args.ideaId,
       author: args.author,
+      authorFid: args.authorFid,
+      authorAvatar: args.authorAvatar,
+      authorDisplayName: args.authorDisplayName,
+      authorUsername: args.authorUsername,
       content: args.content,
       type: args.type,
       timestamp: Date.now(),
       upvotes: 0,
-    };
-    if (args.authorFid !== undefined) doc.authorFid = args.authorFid;
-    if (args.authorAvatar !== undefined) doc.authorAvatar = args.authorAvatar;
-    if (args.authorDisplayName !== undefined) doc.authorDisplayName = args.authorDisplayName;
-    if (args.authorUsername !== undefined) doc.authorUsername = args.authorUsername;
-
-    const remixId = await ctx.db.insert("remixes", doc as any);
+    });
     await ctx.db.patch(args.ideaId, { remixCount: (idea.remixCount ?? 0) + 1 });
     return remixId;
   },

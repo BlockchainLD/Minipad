@@ -58,20 +58,19 @@ CONVEX_SITE_URL=          # Your Convex site URL (used by auth)
 ### Project Structure
 ```
 app/
-├── page.tsx                    # Entry point — sign-in or main app
+├── page.tsx                    # Entry point — auto-connect wrapper + main app
 ├── layout.tsx                  # Root layout with providers
+├── icon.png                    # Favicon (Next.js convention)
+├── globals.css                 # Tailwind + brand color tokens
 ├── .well-known/
 │   └── farcaster.json/route.ts # Farcaster manifest
-├── icon.png/route.tsx          # Dynamic app icon generation
-├── splash.png/route.tsx        # Dynamic splash image generation
 ├── components/
 │   ├── auto-connect-wrapper.tsx  # Farcaster mini app auto-connect
-│   ├── sign-in-form.tsx          # Base wallet sign-in
 │   ├── ideas-board.tsx           # Main ideas list with filters
-│   ├── idea-detail-modal.tsx     # Idea detail view + remixes
+│   ├── idea-detail-modal.tsx     # Idea detail view + remixes + endorsements
 │   ├── idea-submission-form.tsx  # New idea form
 │   ├── idea-submission-confirmation.tsx
-│   ├── idea-filter.tsx           # Filter/sort controls
+│   ├── claim-confirmation.tsx    # Post-claim CTA screen
 │   ├── completion-form.tsx       # Mark idea as complete
 │   ├── remix-form.tsx            # Create remix/comment
 │   ├── leaderboard-modal.tsx     # Top contributors
@@ -79,6 +78,7 @@ app/
 │   ├── farcaster-profile.tsx     # Farcaster profile display
 │   ├── error-boundary.tsx        # React error boundary
 │   ├── ui/                       # Reusable UI primitives
+│   │   ├── idea-tile.tsx
 │   │   ├── standard-button.tsx
 │   │   ├── status-badge.tsx
 │   │   └── user-avatar.tsx
@@ -86,7 +86,6 @@ app/
 │       ├── index.tsx             # Tab routing (home/settings)
 │       ├── header.tsx
 │       ├── settings-content.tsx
-│       ├── copy-notification.tsx
 │       └── use-logged-in.tsx     # Shared state hook
 ├── hooks/
 │   ├── use-farcaster-data.tsx    # Farcaster user data hook
@@ -94,6 +93,7 @@ app/
 ├── lib/
 │   ├── constants.ts              # App-wide constants
 │   ├── eas.ts                    # EAS hook and attestation functions
+│   ├── empty.ts                  # Stub for browser-incompatible packages
 │   ├── error-handler.ts          # Centralized error handling
 │   ├── status-utils.ts           # Idea status display config
 │   ├── types.ts                  # Shared TypeScript types
@@ -102,21 +102,23 @@ app/
 │   ├── convex-client-provider.tsx
 │   └── wagmi-provider.tsx
 └── api/
-    ├── auth/[...all]/route.ts    # Better Auth API routes
-    ├── farcaster/[fid]/route.ts  # Farcaster profile proxy
-    └── icon/route.tsx            # OG icon generation
+    ├── auth/[...all]/route.ts    # Better Auth proxy (currently inert)
+    └── farcaster/[fid]/route.ts  # Farcaster profile proxy
 
 convex/
-├── schema.ts         # Database schema (6 tables)
+├── schema.ts         # Database schema (7 tables)
 ├── convex.config.ts  # App config (Better Auth component)
+├── constants.ts      # Server-side constants (mirrors app/lib/constants.ts)
 ├── ideas.ts          # Idea queries and mutations
-├── claims.ts         # Claim/unclaim/complete mutations
-├── remixes.ts        # Remix CRUD
+├── claims.ts         # Claim/unclaim/complete/edit mutations
+├── remixes.ts        # Remix CRUD + upvotes
 ├── upvotes.ts        # Idea upvoting
 ├── userIdeas.ts      # Per-user idea queries
 ├── users.ts          # User profile (tagline)
-├── types.ts          # Convex validator types
-├── auth.ts           # Better Auth server config
+├── endorsements.ts   # Build endorsements + leaderboard
+├── seed.ts           # Admin-only seed mutation
+├── types.ts          # Convex validator types (currently unused)
+├── auth.ts           # Better Auth server config (no provider active)
 ├── auth.config.ts    # Auth provider config
 ├── http.ts           # HTTP routes
 └── betterAuth/       # Better Auth component (auto-configured)
@@ -125,35 +127,40 @@ convex/
     ├── convex.config.ts
     └── schema.ts
 
-scripts/                          # EAS setup scripts (see EAS section)
+scripts/              # EAS setup, fee resolver deploy, seed (see EAS section)
+contracts/            # MinipadFeeResolver Solidity source
 ```
 
 ### Database Schema
 
-Six tables in Convex:
+Seven tables in Convex:
 
 | Table | Purpose |
 |---|---|
-| `ideas` | Ideas and remix-ideas with status tracking, author info, and claim data |
+| `ideas` | Ideas with status tracking, author info, and claim data |
 | `remixes` | Comments, additions, and edits attached to ideas |
 | `upvotes` | Idea upvotes (one per voter per idea) |
 | `remixUpvotes` | Remix upvotes (one per voter per remix) |
 | `users` | User profiles with wallet address and optional tagline |
 | `claims` | Builder claims linking a claimer to an idea |
+| `buildEndorsements` | Endorsements of completed builds (powers the leaderboard) |
 
 ### Convex API Reference
 
 | Function | Type | Description |
 |---|---|---|
 | `ideas.submitIdea` | mutation | Submit a new idea |
-| `ideas.getIdeas` | query | List ideas with optional filters |
-| `ideas.deleteIdea` | mutation | Delete own idea |
+| `ideas.getIdeas` | query | List ideas (most-recent, capped) |
+| `ideas.deleteIdea` | mutation | Delete own idea (only while open) |
 | `ideas.updateIdeaAttestation` | mutation | Store EAS attestation UID on an idea |
+| `ideas.adminDeleteAllIdeas` | mutation | Wipe all ideas (admin only) |
 | `claims.claimIdea` | mutation | Claim an idea to build |
 | `claims.unclaimIdea` | mutation | Release a claim |
 | `claims.completeIdea` | mutation | Mark idea complete with URLs |
+| `claims.updateBuild` | mutation | Edit a completed build's URLs |
 | `remixes.createRemix` | mutation | Add a remix/comment to an idea |
 | `remixes.deleteRemix` | mutation | Delete own remix |
+| `remixes.updateRemixAttestation` | mutation | Store EAS attestation UID on a remix |
 | `remixes.getRemixesForIdea` | query | List remixes for an idea |
 | `remixes.upvoteRemix` | mutation | Upvote a remix |
 | `remixes.removeRemixUpvote` | mutation | Remove upvote from a remix |
@@ -165,6 +172,11 @@ Six tables in Convex:
 | `users.setTagline` | mutation | Set user's tagline |
 | `userIdeas.getUserSubmittedIdeas` | query | Get ideas by author |
 | `userIdeas.getUserClaimedIdeas` | query | Get ideas claimed by user |
+| `endorsements.endorseBuild` | mutation | Endorse a completed build |
+| `endorsements.removeEndorsement` | mutation | Remove a build endorsement |
+| `endorsements.hasUserEndorsedBuild` | query | Check if user endorsed a build |
+| `endorsements.getEndorsementCount` | query | Get endorsement count for a build |
+| `endorsements.getLeaderboard` | query | Top builders by endorsement count |
 
 ## EAS Integration
 
@@ -178,10 +190,11 @@ The app uses Ethereum Attestation Service (EAS) on Base mainnet for blockchain a
 
 ### Schema Definitions
 ```
-IDEA:       "string title, string description, string author, string authorFid, string ideaId, uint256 timestamp"
-REMIX:      "string title, string description, string remixer, string remixerFid, string originalIdeaId, string remixId, uint256 timestamp"
-CLAIM:      "string ideaId, string claimer, string claimerFid, uint256 timestamp"
-COMPLETION: "string ideaId, string claimer, string miniappUrl, string claimerFid, uint256 timestamp"
+IDEA:              "string title, string description, string author, string authorFid, string ideaId, uint256 timestamp"
+REMIX:             "string title, string description, string remixer, string remixerFid, string originalIdeaId, string remixId, uint256 timestamp"
+CLAIM:             "string ideaId, string claimer, string claimerFid, uint256 timestamp"
+COMPLETION:        "string ideaId, string claimer, string miniappUrl, string claimerFid, uint256 timestamp"
+BUILD_ENDORSEMENT: "string ideaId, string buildUrl, string endorser, string endorserFid, string builderId, uint256 timestamp"
 ```
 
 ### EAS Setup
@@ -196,6 +209,7 @@ NEXT_PUBLIC_IDEA_SCHEMA_UID=
 NEXT_PUBLIC_REMIX_SCHEMA_UID=
 NEXT_PUBLIC_CLAIM_SCHEMA_UID=
 NEXT_PUBLIC_COMPLETION_SCHEMA_UID=
+NEXT_PUBLIC_BUILD_ENDORSEMENT_SCHEMA_UID=
 ```
 
 ### EAS Functions
@@ -204,6 +218,7 @@ NEXT_PUBLIC_COMPLETION_SCHEMA_UID=
 - `createRemixAttestation()` — create remix attestation
 - `createClaimAttestation()` — create claim attestation
 - `createCompletionAttestation()` — create completion attestation
+- `createBuildEndorsementAttestation()` — create build endorsement attestation
 - `revokeAttestation()` — revoke any attestation by UID
 
 ## Deployment

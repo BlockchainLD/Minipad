@@ -42,8 +42,11 @@ const EAS_ABI = [
   },
 ] as const;
 
-// Schema definitions for different types of attestations
-export const SCHEMA_DEFINITIONS = {
+// Schema definitions for different types of attestations.
+// Mirror in scripts/register-eas-schemas.js — both must match exactly,
+// otherwise the schema UIDs computed during registration won't equal the UIDs
+// queried by the front-end.
+const SCHEMA_DEFINITIONS = {
   IDEA: "string title,string description,string author,string authorFid,string ideaId,uint256 timestamp",
   REMIX: "string title,string description,string remixer,string remixerFid,string originalIdeaId,string remixId,uint256 timestamp",
   CLAIM: "string ideaId,string claimer,string claimerFid,uint256 timestamp",
@@ -63,7 +66,7 @@ export const SCHEMAS = {
 // Fee (in wei) required by MinipadFeeResolver for IDEA, CLAIM, and COMPLETION attestations.
 // REMIX and BUILD_ENDORSEMENT use a zero resolver and remain free.
 // Default: 3300000000000 wei ≈ $0.01 at $3,000/ETH. Adjust NEXT_PUBLIC_MIN_FEE_WEI as needed.
-export const ATTESTATION_FEE = BigInt(process.env.NEXT_PUBLIC_MIN_FEE_WEI || "3300000000000");
+const ATTESTATION_FEE = BigInt(process.env.NEXT_PUBLIC_MIN_FEE_WEI || "3300000000000");
 
 export type EASContext = { walletClient: WalletClient<Transport, Chain>; publicClient: PublicClient };
 

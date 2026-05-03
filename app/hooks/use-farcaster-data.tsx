@@ -27,12 +27,10 @@ export function useFarcasterData(): FarcasterUser | null {
                 bio: { text: u.profile?.bio?.text || "" },
                 location: u.profile?.location || undefined,
                 url: u.profile?.url || undefined,
-                bannerImageUrl: u.profile?.bannerImageUrl || undefined,
               } : { bio: { text: "" } },
               followerCount: typeof u.followerCount === "number" ? u.followerCount : 0,
               followingCount: typeof u.followingCount === "number" ? u.followingCount : 0,
               pfp: { url: u.pfp?.url || "", verified: !!u.pfp?.verified },
-              connectedAccounts: Array.isArray(u.connectedAccounts) ? u.connectedAccounts : undefined,
             });
             return;
           }

@@ -99,7 +99,6 @@ export const UserProfileModal = ({ isOpen, onClose, user, onIdeaClick }: UserPro
   if (!isOpen || !user) return null;
 
   const displayName = user.displayName || user.username || "Anonymous";
-  const username = user.username;
 
   const handleAvatarClick = () => {
     if (user.fid) {
