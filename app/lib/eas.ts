@@ -131,6 +131,13 @@ async function sendAttestation(
 
 // Encodes the schema fields (auto-appending timestamp) and submits via sendAttestation.
 type Field = { name: string; value: string | bigint; type: string };
+const SCHEMA_FRIENDLY_NAME: Record<keyof typeof SCHEMAS, string> = {
+  IDEA: "Idea",
+  REMIX: "Remix",
+  CLAIM: "Claim",
+  COMPLETION: "Completion",
+  BUILD_ENDORSEMENT: "Build endorsement",
+};
 async function buildAttestation<K extends keyof typeof SCHEMAS>(
   eas: EASContext,
   schemaKey: K,
@@ -138,7 +145,7 @@ async function buildAttestation<K extends keyof typeof SCHEMAS>(
   fields: Field[],
   fee: bigint = 0n,
 ): Promise<string> {
-  if (!SCHEMAS[schemaKey]) throw new Error(`${schemaKey} schema not configured.`);
+  if (!SCHEMAS[schemaKey]) throw new Error(`${SCHEMA_FRIENDLY_NAME[schemaKey]} schema not configured.`);
   const schemaEncoder = new SchemaEncoder(SCHEMA_DEFINITIONS[schemaKey]);
   const encodedData = schemaEncoder.encodeData([
     ...fields,

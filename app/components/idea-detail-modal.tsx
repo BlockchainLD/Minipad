@@ -113,7 +113,7 @@ const RemixUpvoteButton = ({
     api.remixes.hasUserUpvotedRemix,
     address ? { remixId: remix._id, voter: address } : "skip"
   );
-  const { isUpvoted, displayedCount, isLoading, click } = useOptimisticUpvote({
+  const { isUpvoted, displayedCount, isProcessing, click } = useOptimisticUpvote({
     serverHasUpvoted,
     serverCount: remix.upvotes,
     address,
@@ -126,7 +126,7 @@ const RemixUpvoteButton = ({
   return (
     <button
       onClick={click}
-      disabled={isLoading}
+      disabled={isProcessing}
       className={`flex items-center gap-1 px-2 py-1 rounded-lg text-xs transition-colors duration-150 disabled:opacity-50 disabled:cursor-not-allowed ${
         isUpvoted ? "text-red-500 hover:text-red-600" : "text-gray-400 hover:text-gray-600"
       }`}
@@ -134,7 +134,7 @@ const RemixUpvoteButton = ({
     >
       <Heart width={12} height={12} fill={isUpvoted ? "currentColor" : "none"} stroke="currentColor" />
       {displayedCount > 0 && <span>{displayedCount}</span>}
-      {isLoading && <span className="text-gray-300">...</span>}
+      {isProcessing && <span className="text-gray-300">...</span>}
     </button>
   );
 };

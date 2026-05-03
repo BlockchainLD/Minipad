@@ -95,5 +95,5 @@ export function useOptimisticUpvote({
     }
   };
 
-  return { isUpvoted, displayedCount, isLoading, click };
+  return { isUpvoted, displayedCount, isLoading, isProcessing, click };
 }
