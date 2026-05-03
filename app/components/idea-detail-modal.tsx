@@ -418,7 +418,10 @@ export const IdeaDetailModal = ({
         embeds: [APP_METADATA.url],
         channelKey: "someonebuild",
       });
-      if (result?.cast) toast.success("Cast posted to /someonebuild!");
+      if (result?.cast) {
+        const ch = (result.cast as { channelKey?: string }).channelKey;
+        toast.success(ch ? `Cast posted to /${ch}!` : "Cast posted!");
+      }
     } catch (error) {
       handleError(error, { operation: "share idea", component: "IdeaDetailModal" });
     }
