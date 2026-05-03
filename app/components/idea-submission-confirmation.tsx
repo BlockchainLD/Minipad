@@ -2,6 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { StandardButton } from "./ui/standard-button";
+import { useAddMiniApp } from "../hooks/use-add-miniapp";
+
+const POST_IDEA_PROMPT_KEY = "minipad_post_idea_add_prompted";
 
 interface IdeaSubmissionConfirmationProps {
   onReturnHome: () => void;
@@ -9,11 +12,23 @@ interface IdeaSubmissionConfirmationProps {
 
 export const IdeaSubmissionConfirmation = ({ onReturnHome }: IdeaSubmissionConfirmationProps) => {
   const [showAnimation, setShowAnimation] = useState(false);
+  const { canAdd, prompt } = useAddMiniApp();
 
   useEffect(() => {
     const timer = setTimeout(() => setShowAnimation(true), 100);
     return () => clearTimeout(timer);
   }, []);
+
+  // After the first idea, nudge the user to save Minipad — once per device.
+  useEffect(() => {
+    if (!canAdd) return;
+    if (localStorage.getItem(POST_IDEA_PROMPT_KEY) === "true") return;
+    const t = setTimeout(() => {
+      localStorage.setItem(POST_IDEA_PROMPT_KEY, "true");
+      prompt();
+    }, 1800);
+    return () => clearTimeout(t);
+  }, [canAdd, prompt]);
 
   return (
     <div className="w-full max-w-2xl mx-auto p-6">

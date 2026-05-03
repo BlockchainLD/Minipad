@@ -1,11 +1,12 @@
 "use client";
-import { Copy, LogOut, CheckCircle, Wallet } from "iconoir-react";
+import { Copy, LogOut, CheckCircle, Wallet, Bookmark } from "iconoir-react";
 import { FarcasterProfile } from "../farcaster-profile";
 import { ErrorBoundary } from "../error-boundary";
 import { useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { useAccount } from "wagmi";
 import { IdeaTile } from "../ui/idea-tile";
+import { useAddMiniApp } from "../../hooks/use-add-miniapp";
 
 interface SettingsContentProps {
   walletAddress: string;
@@ -108,6 +109,8 @@ export const SettingsContent = ({
   onToggleFeed,
   onAdminDeleteAll,
 }: SettingsContentProps) => {
+  const { canAdd, prompt: addMinipad } = useAddMiniApp();
+
   return (
     <div className="space-y-6">
       <ErrorBoundary>
@@ -125,7 +128,16 @@ export const SettingsContent = ({
 
       <div className="space-y-3">
         <p className="font-semibold text-black">Settings</p>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
+          {canAdd && (
+            <button
+              onClick={() => addMinipad()}
+              className="text-xs font-semibold px-2.5 py-1 rounded-full bg-violet-100 text-violet-700 hover:bg-violet-200 transition-colors cursor-pointer flex items-center gap-1"
+            >
+              <Bookmark width={12} height={12} />
+              Save Minipad
+            </button>
+          )}
           <button
             onClick={onToggleFeed}
             className={`text-xs font-semibold px-2.5 py-1 rounded-full cursor-pointer ${
