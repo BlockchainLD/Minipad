@@ -13,7 +13,7 @@ const isSwapEnabled = MINIPAD_TOKEN.contractAddress !== null;
 
 const MinipadLogo = () => (
   // eslint-disable-next-line @next/next/no-img-element
-  <img src="/icon.jpg" alt="Minipad" width={32} height={32} style={{ borderRadius: 8, flexShrink: 0 }} />
+  <img src="/icon.png" alt="Minipad" width={32} height={32} style={{ borderRadius: 8, flexShrink: 0 }} />
 );
 
 interface HeaderProps {
