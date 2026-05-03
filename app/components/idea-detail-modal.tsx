@@ -13,7 +13,9 @@ import { toast } from "sonner";
 import { ErrorBoundary } from "./error-boundary";
 import { RemixForm } from "./remix-form";
 import { useFarcasterData } from "../hooks/use-farcaster-data";
-import { useEAS, createBuildEndorsementAttestation, createRemixAttestation, revokeAttestation, SCHEMAS } from "../lib/eas";
+import { useEndorseBuild } from "../hooks/use-endorse-build";
+import { useOptimisticUpvote } from "../hooks/use-optimistic-upvote";
+import { useEAS, createRemixAttestation, revokeAttestation, SCHEMAS } from "../lib/eas";
 import { type Idea, type Remix } from "../lib/types";
 import { handleButtonClick } from "../lib/utils";
 
@@ -55,60 +57,25 @@ const UpvoteButton = ({
   onOptimisticUpvoteChange?: (count: number | null) => void;
   onConnectWallet?: () => void;
 }) => {
-  const [optimisticUpvoted, setOptimisticUpvoted] = useState<boolean | null>(null);
-  const [isProcessing, setIsProcessing] = useState(false);
-
-  const hasUpvoted = useQuery(
+  const serverHasUpvoted = useQuery(
     api.upvotes.hasUserUpvoted,
     address ? { ideaId, voter: address } : "skip"
   );
-
-  const currentUpvotedState = optimisticUpvoted !== null ? optimisticUpvoted : hasUpvoted;
-
-  useEffect(() => {
-    if (hasUpvoted !== undefined && optimisticUpvoted !== null) {
-      setOptimisticUpvoted(null);
-    }
-  }, [hasUpvoted, optimisticUpvoted]);
-
-  useEffect(() => {
-    if (optimisticUpvoted !== null) {
-      const t = setTimeout(() => setOptimisticUpvoted(null), 5000);
-      return () => clearTimeout(t);
-    }
-  }, [optimisticUpvoted]);
-
-  const handleClick = async (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (!address) { onConnectWallet?.(); return; }
-    if (isProcessing) return;
-    setIsProcessing(true);
-    try {
-      if (currentUpvotedState === true) {
-        setOptimisticUpvoted(false);
-        onOptimisticUpvoteChange?.((optimisticUpvotes ?? upvotes) - 1);
-        await onRemoveUpvote(ideaId);
-      } else {
-        setOptimisticUpvoted(true);
-        onOptimisticUpvoteChange?.((optimisticUpvotes ?? upvotes) + 1);
-        await onUpvote(ideaId);
-      }
-    } catch (error) {
-      handleError(error, { operation: "upvote", component: "IdeaDetailModal" });
-      setOptimisticUpvoted(null);
-      onOptimisticUpvoteChange?.(upvotes);
-    } finally {
-      setIsProcessing(false);
-    }
-  };
-
-  const isUpvoted = currentUpvotedState === true;
-  const isLoading = (hasUpvoted === undefined && address !== undefined) || isProcessing;
+  const { isUpvoted, displayedCount, isLoading, click } = useOptimisticUpvote({
+    serverHasUpvoted,
+    serverCount: upvotes,
+    address,
+    upvote: () => Promise.resolve(onUpvote(ideaId)),
+    removeUpvote: () => Promise.resolve(onRemoveUpvote(ideaId)),
+    componentName: "IdeaDetailModal",
+    controlledCount: optimisticUpvotes,
+    onControlledCountChange: onOptimisticUpvoteChange,
+    onConnectWallet,
+  });
 
   return (
     <button
-      onClick={handleClick}
+      onClick={click}
       disabled={isLoading}
       className={`relative flex items-center gap-2 px-3 py-2 rounded-xl transition-colors duration-150 disabled:opacity-50 disabled:cursor-not-allowed ${
         isUpvoted
@@ -124,7 +91,7 @@ const UpvoteButton = ({
         stroke="currentColor"
         className={isUpvoted ? "text-red-500" : "text-gray-500"}
       />
-      <span className="text-sm font-semibold">{optimisticUpvotes ?? upvotes}</span>
+      <span className="text-sm font-semibold">{displayedCount}</span>
       {isLoading && <span className="text-xs text-gray-400">...</span>}
     </button>
   );
@@ -140,78 +107,34 @@ const RemixUpvoteButton = ({
   address: string | undefined;
   onConnectWallet?: () => void;
 }) => {
-  const [optimisticUpvoted, setOptimisticUpvoted] = useState<boolean | null>(null);
-  const [optimisticCount, setOptimisticCount] = useState<number | null>(null);
-  const [isProcessing, setIsProcessing] = useState(false);
-
   const upvoteRemix = useMutation(api.remixes.upvoteRemix);
   const removeRemixUpvote = useMutation(api.remixes.removeRemixUpvote);
-
-  const hasUpvotedQuery = useQuery(
+  const serverHasUpvoted = useQuery(
     api.remixes.hasUserUpvotedRemix,
     address ? { remixId: remix._id, voter: address } : "skip"
   );
-
-  const currentUpvotedState = optimisticUpvoted !== null ? optimisticUpvoted : (hasUpvotedQuery ?? false);
-
-  useEffect(() => {
-    if (hasUpvotedQuery !== undefined && optimisticUpvoted !== null) {
-      setOptimisticUpvoted(null);
-      setOptimisticCount(null);
-    }
-  }, [hasUpvotedQuery, optimisticUpvoted]);
-
-  // Fallback: never let optimistic state outlive the server round-trip indefinitely
-  useEffect(() => {
-    if (optimisticUpvoted !== null) {
-      const t = setTimeout(() => {
-        setOptimisticUpvoted(null);
-        setOptimisticCount(null);
-      }, 5000);
-      return () => clearTimeout(t);
-    }
-  }, [optimisticUpvoted]);
-
-  const handleClick = async (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (!address) { onConnectWallet?.(); return; }
-    if (isProcessing) return;
-    setIsProcessing(true);
-    try {
-      if (currentUpvotedState) {
-        setOptimisticUpvoted(false);
-        setOptimisticCount((optimisticCount ?? remix.upvotes) - 1);
-        await removeRemixUpvote({ remixId: remix._id, voter: address });
-      } else {
-        setOptimisticUpvoted(true);
-        setOptimisticCount((optimisticCount ?? remix.upvotes) + 1);
-        await upvoteRemix({ remixId: remix._id, voter: address });
-      }
-    } catch (error) {
-      handleError(error, { operation: "upvote remix", component: "IdeaDetailModal" });
-      setOptimisticUpvoted(null);
-      setOptimisticCount(null);
-    } finally {
-      setIsProcessing(false);
-    }
-  };
-
-  const isUpvoted = currentUpvotedState === true;
-  const count = optimisticCount ?? remix.upvotes;
+  const { isUpvoted, displayedCount, isLoading, click } = useOptimisticUpvote({
+    serverHasUpvoted,
+    serverCount: remix.upvotes,
+    address,
+    upvote: () => upvoteRemix({ remixId: remix._id, voter: address! }),
+    removeUpvote: () => removeRemixUpvote({ remixId: remix._id, voter: address! }),
+    componentName: "IdeaDetailModal",
+    onConnectWallet,
+  });
 
   return (
     <button
-      onClick={handleClick}
-      disabled={isProcessing}
+      onClick={click}
+      disabled={isLoading}
       className={`flex items-center gap-1 px-2 py-1 rounded-lg text-xs transition-colors duration-150 disabled:opacity-50 disabled:cursor-not-allowed ${
         isUpvoted ? "text-red-500 hover:text-red-600" : "text-gray-400 hover:text-gray-600"
       }`}
       title={!address ? "Connect wallet to upvote" : isUpvoted ? "Remove upvote" : "Upvote"}
     >
       <Heart width={12} height={12} fill={isUpvoted ? "currentColor" : "none"} stroke="currentColor" />
-      {count > 0 && <span>{count}</span>}
-      {isProcessing && <span className="text-gray-300">...</span>}
+      {displayedCount > 0 && <span>{displayedCount}</span>}
+      {isLoading && <span className="text-gray-300">...</span>}
     </button>
   );
 };
@@ -389,24 +312,14 @@ export const IdeaDetailModal = ({
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [showUnclaimConfirm, setShowUnclaimConfirm] = useState(false);
   const [hasVisited, setHasVisited] = useState(false);
-  const [isEndorsing, setIsEndorsing] = useState(false);
 
   const createRemix = useMutation(api.remixes.createRemix);
   const deleteRemix = useMutation(api.remixes.deleteRemix);
   const updateRemixAttestation = useMutation(api.remixes.updateRemixAttestation);
-  const endorseBuildMutation = useMutation(api.endorsements.endorseBuild);
-  const removeEndorsementMutation = useMutation(api.endorsements.removeEndorsement);
   const farcasterData = useFarcasterData();
   const { eas, isEASConfigured } = useEAS();
 
-  const hasEndorsed = useQuery(
-    api.endorsements.hasUserEndorsedBuild,
-    address && idea?.status === "completed" ? { ideaId: idea._id, endorser: address } : "skip"
-  );
-  const endorsementCount = useQuery(
-    api.endorsements.getEndorsementCount,
-    idea?.status === "completed" ? { ideaId: idea._id } : "skip"
-  );
+  const { hasEndorsed, count: endorsementCount, isEndorsing, endorse } = useEndorseBuild(idea, "IdeaDetailModal");
 
   // Reset all transient UI state when the idea changes
   useEffect(() => {
@@ -492,49 +405,6 @@ export const IdeaDetailModal = ({
     window.open("https://neynar.com/app-studio", "_blank", "noopener,noreferrer");
   };
 
-  const handleEndorse = async () => {
-    if (!address) { onConnectWallet?.(); return; }
-    if (!eas || !isEASConfigured) { toast.error("Wallet not ready or EAS not configured"); return; }
-    if (isEndorsing) return;
-    setIsEndorsing(true);
-    try {
-      if (hasEndorsed) {
-        // Revoke: remove from Convex first, then best-effort EAS revocation
-        const attestationUid = await removeEndorsementMutation({ ideaId: idea._id, endorser: address });
-        toast.success("Endorsement removed.");
-        if (attestationUid && eas) {
-          revokeAttestation(eas, attestationUid, SCHEMAS.BUILD_ENDORSEMENT).catch(() => {
-            toast.warning("Removed, but failed to revoke on-chain attestation.");
-          });
-        }
-      } else {
-        // Endorse: EAS first (required/blocking), then Convex
-        if (!idea.deploymentUrl) {
-          toast.error("This build has no deployment URL");
-          return;
-        }
-        const attestationUid = await createBuildEndorsementAttestation(
-          eas,
-          idea._id.toString(),
-          idea.deploymentUrl,
-          address,
-          farcasterData?.fid?.toString(),
-          idea.claimedBy
-        );
-        await endorseBuildMutation({
-          ideaId: idea._id,
-          endorser: address,
-          endorserFid: farcasterData?.fid,
-          attestationUid,
-        });
-        toast.success("Build endorsed!");
-      }
-    } catch (error) {
-      handleError(error, { operation: "endorse build", component: "IdeaDetailModal" });
-    } finally {
-      setIsEndorsing(false);
-    }
-  };
 
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
@@ -717,7 +587,7 @@ export const IdeaDetailModal = ({
               </button>
             ) : (
               <button
-                onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleEndorse(); }}
+                onClick={(e) => { e.preventDefault(); e.stopPropagation(); endorse(onConnectWallet); }}
                 disabled={isEndorsing || !hasVisited}
                 className={`flex items-center gap-1.5 px-3 py-2 rounded-xl transition-all duration-200 font-medium cursor-pointer active:scale-95 text-sm disabled:opacity-50 disabled:cursor-not-allowed ${
                   hasEndorsed
