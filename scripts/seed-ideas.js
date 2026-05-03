@@ -10,56 +10,50 @@ const VERBOSE = process.argv.includes("--verbose");
 // ─── Add new ideas here ──────────────────────────────────────────────────────
 // Each entry needs: title, description, and the creator's Farcaster username.
 // The script resolves the username to a FID + custody address automatically.
+//
+// NOTE: The seedIdeas mutation just inserts — it does NOT dedupe. Anything
+// listed here is ADDED to prod when the script runs. Comment out (or remove)
+// entries that have already been seeded before running again.
 const SEED_IDEAS = [
   {
-    title: "Tip Investor",
-    description: "Automatically invest tokens received as tips into long-term holdings. Set your preferred assets — ETH, BTC, or others — and let the app handle the swaps.",
-    username: "hellno.eth",
+    title: "Operation",
+    description: "Classic Operation game in your Farcaster client. Carefully extract pieces without touching the sides — haptic feedback brings the buzz to life on mobile.",
+    username: "linda",
   },
   {
-    title: "Karaoke",
-    description: "A karaoke mini app for Farcaster. Browse songs, follow along with scrolling lyrics, and sing directly in the app.",
-    username: "dummie.eth",
+    title: "Backgammon",
+    description: "Play backgammon on Farcaster. Match with friends or random opponents, complete daily challenges, and track your stats over time.",
+    username: "northchop",
   },
   {
-    title: "Top Cast",
-    description: "See which of your casts got the most engagement — likes, recasts, and replies — ranked and displayed in a clean feed.",
-    username: "bombaymalayali",
+    title: "Tower Defense",
+    description: "A tower defense strategy game as a Farcaster mini app. Place towers, upgrade your arsenal, and survive escalating waves of enemies.",
+    username: "stevedv.eth",
   },
   {
-    title: "Mini App Quiz",
-    description: "A quiz that tests how many Farcaster mini apps you can recognize. A fun way to discover the ecosystem.",
-    username: "patriciaxlee.eth",
+    title: "Meditations",
+    description: "Short guided meditations available right inside Farcaster. Daily sessions for focus, sleep, and stress relief — no separate app required.",
+    username: "eriks",
   },
   {
-    title: "Sudoku",
-    description: "Classic Sudoku puzzles as a Farcaster mini app. Daily challenges with multiple difficulty levels.",
-    username: "kimmy",
-  },
-  {
-    title: "Onchain Notify",
-    description: "Subscribe to any smart contract event and receive a Farcaster notification the moment it fires. No more manually monitoring transactions.",
+    title: "Fishing",
+    description: "A casual fishing minigame for Farcaster. Cast your line, build a collection of rare catches, and climb the leaderboard.",
     username: "horsefacts.eth",
   },
   {
-    title: "Farcaster Passport",
-    description: "Visualize your Farcaster journey as an interactive world map. Your activity, connections, and milestones become destinations you've visited.",
-    username: "elvi",
+    title: "Fario Party",
+    description: "Multiplayer party-style minigames played directly inside Farcaster casts. Compete with friends in dozens of quick, chaotic challenges.",
+    username: "ccarella.eth",
   },
   {
-    title: "Space Cards",
-    description: "A deck-building card game set in space, inspired by Magic: The Gathering. Collect cards, build your deck, and battle other Farcaster users.",
-    username: "dwr.eth",
+    title: "LP Watch",
+    description: "Watch your liquidity positions on Aerodrome (and other Base DEXes) and get a Farcaster notification the moment any position falls out of range.",
+    username: "svvvg3.eth",
   },
   {
-    title: "FarCiv",
-    description: "A Civilization-style strategy game as a Farcaster mini app. Build cities, research technologies, and compete with others in a turn-based world.",
-    username: "dwr.eth",
-  },
-  {
-    title: "Subcast",
-    description: "Discover and manage Farcaster subcasts — topic-focused communities within channels. Subscribe, browse, and engage with the ones that match your interests.",
-    username: "esteez.eth",
+    title: "MealGuesser",
+    description: "Like FarGuesser, but for food. See a photo of a dish and guess what cuisine or country it comes from — daily challenges and a global leaderboard.",
+    username: "dylsteck.eth",
   },
 ];
 // ─────────────────────────────────────────────────────────────────────────────
