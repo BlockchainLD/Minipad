@@ -3,7 +3,7 @@ import { Medal1stSolid } from "iconoir-react";
 
 const MinipadLogo = () => (
   // eslint-disable-next-line @next/next/no-img-element
-  <img src="/logo-mark.png" alt="Minipad" width={32} height={32} style={{ flexShrink: 0 }} />
+  <img src="/icon.png" alt="Minipad" width={32} height={32} style={{ borderRadius: 8, flexShrink: 0 }} />
 );
 
 interface HeaderProps {
