@@ -56,6 +56,9 @@ export function useEndorseBuild(idea: Idea, componentName: string) {
           ideaId: idea._id,
           endorser: address,
           endorserFid: farcasterData?.fid,
+          endorserAvatar: farcasterData?.pfp?.url,
+          endorserDisplayName: farcasterData?.displayName,
+          endorserUsername: farcasterData?.username,
           attestationUid,
         });
         toast.success("Build endorsed!");

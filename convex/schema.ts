@@ -94,6 +94,39 @@ const schema = defineSchema({
     .index("by_idea", ["ideaId"])
     .index("by_idea_endorser", ["ideaId", "endorser"]),
 
+  // Per-user activity notifications (claim, build, like, remix, endorsement)
+  notifications: defineTable({
+    recipient: v.string(), // wallet address, lowercased
+    type: v.union(
+      v.literal("idea_claimed"),
+      v.literal("build_submitted"),
+      v.literal("like"),
+      v.literal("remix"),
+      v.literal("endorsement"),
+    ),
+    ideaId: v.optional(v.id("ideas")),
+    ideaTitle: v.optional(v.string()), // denormalized for display
+    actor: v.string(), // wallet address that triggered the event
+    actorFid: v.optional(v.number()),
+    actorAvatar: v.optional(v.string()),
+    actorDisplayName: v.optional(v.string()),
+    actorUsername: v.optional(v.string()),
+    read: v.boolean(),
+    timestamp: v.number(),
+  })
+    .index("by_recipient", ["recipient"]),
+
+  // Per-user notification preferences (master + per-type toggles)
+  notificationPrefs: defineTable({
+    address: v.string(), // wallet address, lowercased
+    enabled: v.boolean(),
+    ideaClaimed: v.boolean(),
+    buildSubmitted: v.boolean(),
+    like: v.boolean(),
+    remix: v.boolean(),
+    endorsement: v.boolean(),
+  }).index("by_address", ["address"]),
+
 });
 
 export default schema;

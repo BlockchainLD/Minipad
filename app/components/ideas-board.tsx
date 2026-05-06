@@ -176,7 +176,14 @@ export const IdeasBoard = ({ onViewChange, onClaimSuccess, onProfileClick, openI
   const handleUpvote = async (ideaId: Id<"ideas">) => {
     if (!address) { onConnectWallet?.(); return; }
     try {
-      await upvoteIdea({ ideaId, voter: address });
+      await upvoteIdea({
+        ideaId,
+        voter: address,
+        voterFid: farcasterData?.fid,
+        voterAvatar: farcasterData?.pfp?.url,
+        voterDisplayName: farcasterData?.displayName,
+        voterUsername: farcasterData?.username,
+      });
     } catch (error) {
       handleError(error, { operation: "upvote idea", component: "IdeasBoard" });
     }

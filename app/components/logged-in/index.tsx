@@ -11,8 +11,9 @@ import { ClaimConfirmation } from "../claim-confirmation";
 import { Header } from "./header";
 import { LeaderboardModal } from "../leaderboard-modal";
 import { UserProfileModal, type UserProfile } from "../user-profile-modal";
+import { NotificationsModal } from "../notifications-modal";
 import { TABS, VIEWS, ADMIN_ADDRESS } from "../../lib/constants";
-import { useMutation } from "convex/react";
+import { useMutation, useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { toast } from "sonner";
 
@@ -45,6 +46,7 @@ export const LoggedIn = () => {
   );
   const [pendingOpenIdeaId, setPendingOpenIdeaId] = useState<string | null>(null);
   const [showLeaderboard, setShowLeaderboard] = useState(false);
+  const [showNotifications, setShowNotifications] = useState(false);
   const [profileModalUser, setProfileModalUser] = useState<UserProfile | null>(null);
   const [isGridView, setIsGridView] = useState(false);
   const [isAllFeed, setIsAllFeed] = useState(false);
@@ -78,6 +80,11 @@ export const LoggedIn = () => {
   const handleAvatarClick = () => {
     setActiveTab(TABS.SETTINGS);
   };
+
+  const unreadCount = useQuery(
+    api.notifications.unreadCountForUser,
+    isConnected && walletAddress ? { recipient: walletAddress } : "skip",
+  );
 
   const handleIdeaClick = (ideaId: string) => {
     setPendingOpenIdeaId(ideaId);
@@ -147,6 +154,8 @@ export const LoggedIn = () => {
           onAvatarClick={handleAvatarClick}
           onTrophyClick={() => setShowLeaderboard(true)}
           onConnectWallet={handleConnectWallet}
+          onBellClick={() => setShowNotifications(true)}
+          unreadCount={unreadCount ?? 0}
         />
         <div className={isMobile ? "flex-1 px-6 pb-6 pt-3" : "p-6 pt-3"}>
           {activeTab === TABS.HOME && homeContent}
@@ -162,6 +171,12 @@ export const LoggedIn = () => {
         isOpen={!!profileModalUser}
         onClose={() => setProfileModalUser(null)}
         user={profileModalUser}
+        onIdeaClick={handleIdeaClick}
+      />
+      <NotificationsModal
+        isOpen={showNotifications}
+        onClose={() => setShowNotifications(false)}
+        walletAddress={walletAddress}
         onIdeaClick={handleIdeaClick}
       />
     </>

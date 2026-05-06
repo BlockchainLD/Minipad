@@ -1,5 +1,6 @@
 import { mutation } from "./_generated/server";
 import { ConvexError, v } from "convex/values";
+import { createNotification } from "./notifyHelpers";
 
 export const claimIdea = mutation({
   args: {
@@ -32,6 +33,20 @@ export const claimIdea = mutation({
       claimedByDisplayName: args.claimerDisplayName,
       claimedByUsername: args.claimerUsername,
       claimedAt: Date.now(),
+    });
+
+    await createNotification(ctx, {
+      recipient: idea.author,
+      type: "idea_claimed",
+      ideaId: args.ideaId,
+      ideaTitle: idea.title,
+      actor: {
+        address: args.claimer,
+        fid: args.claimerFid,
+        avatar: args.claimerAvatar,
+        displayName: args.claimerDisplayName,
+        username: args.claimerUsername,
+      },
     });
   },
 });
@@ -74,6 +89,20 @@ export const completeIdea = mutation({
         miniappUrl: args.deploymentUrl,
       });
     }
+
+    await createNotification(ctx, {
+      recipient: idea.author,
+      type: "build_submitted",
+      ideaId: args.ideaId,
+      ideaTitle: idea.title,
+      actor: {
+        address: args.claimer,
+        fid: idea.claimedByFid,
+        avatar: idea.claimedByAvatar,
+        displayName: idea.claimedByDisplayName,
+        username: idea.claimedByUsername,
+      },
+    });
   },
 });
 

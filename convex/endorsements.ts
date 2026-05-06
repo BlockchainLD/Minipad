@@ -1,11 +1,15 @@
 import { mutation, query } from "./_generated/server";
 import { ConvexError, v } from "convex/values";
+import { createNotification } from "./notifyHelpers";
 
 export const endorseBuild = mutation({
   args: {
     ideaId: v.id("ideas"),
     endorser: v.string(),
     endorserFid: v.optional(v.number()),
+    endorserAvatar: v.optional(v.string()),
+    endorserDisplayName: v.optional(v.string()),
+    endorserUsername: v.optional(v.string()),
     attestationUid: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
@@ -30,6 +34,22 @@ export const endorseBuild = mutation({
       attestationUid: args.attestationUid,
       timestamp: Date.now(),
     });
+
+    if (idea.claimedBy) {
+      await createNotification(ctx, {
+        recipient: idea.claimedBy,
+        type: "endorsement",
+        ideaId: args.ideaId,
+        ideaTitle: idea.title,
+        actor: {
+          address: args.endorser,
+          fid: args.endorserFid,
+          avatar: args.endorserAvatar,
+          displayName: args.endorserDisplayName,
+          username: args.endorserUsername,
+        },
+      });
+    }
   },
 });
 

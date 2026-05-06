@@ -1,5 +1,6 @@
 import { mutation, query } from "./_generated/server";
 import { ConvexError, v } from "convex/values";
+import { createNotification } from "./notifyHelpers";
 
 export const createRemix = mutation({
   args: {
@@ -29,6 +30,21 @@ export const createRemix = mutation({
       upvotes: 0,
     });
     await ctx.db.patch(args.ideaId, { remixCount: (idea.remixCount ?? 0) + 1 });
+
+    await createNotification(ctx, {
+      recipient: idea.author,
+      type: "remix",
+      ideaId: args.ideaId,
+      ideaTitle: idea.title,
+      actor: {
+        address: args.author,
+        fid: args.authorFid,
+        avatar: args.authorAvatar,
+        displayName: args.authorDisplayName,
+        username: args.authorUsername,
+      },
+    });
+
     return remixId;
   },
 });
@@ -92,6 +108,10 @@ export const upvoteRemix = mutation({
   args: {
     remixId: v.id("remixes"),
     voter: v.string(),
+    voterFid: v.optional(v.number()),
+    voterAvatar: v.optional(v.string()),
+    voterDisplayName: v.optional(v.string()),
+    voterUsername: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     const existing = await ctx.db
@@ -106,7 +126,23 @@ export const upvoteRemix = mutation({
       timestamp: Date.now(),
     });
     const remix = await ctx.db.get(args.remixId);
-    if (remix) await ctx.db.patch(args.remixId, { upvotes: (remix.upvotes ?? 0) + 1 });
+    if (remix) {
+      await ctx.db.patch(args.remixId, { upvotes: (remix.upvotes ?? 0) + 1 });
+      const idea = await ctx.db.get(remix.ideaId);
+      await createNotification(ctx, {
+        recipient: remix.author,
+        type: "like",
+        ideaId: remix.ideaId,
+        ideaTitle: idea?.title,
+        actor: {
+          address: args.voter,
+          fid: args.voterFid,
+          avatar: args.voterAvatar,
+          displayName: args.voterDisplayName,
+          username: args.voterUsername,
+        },
+      });
+    }
   },
 });
 

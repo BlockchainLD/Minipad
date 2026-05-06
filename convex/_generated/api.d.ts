@@ -12,6 +12,8 @@ import type * as claims from "../claims.js";
 import type * as constants from "../constants.js";
 import type * as endorsements from "../endorsements.js";
 import type * as ideas from "../ideas.js";
+import type * as notifications from "../notifications.js";
+import type * as notifyHelpers from "../notifyHelpers.js";
 import type * as remixes from "../remixes.js";
 import type * as seed from "../seed.js";
 import type * as upvotes from "../upvotes.js";
@@ -37,6 +39,8 @@ declare const fullApi: ApiFromModules<{
   constants: typeof constants;
   endorsements: typeof endorsements;
   ideas: typeof ideas;
+  notifications: typeof notifications;
+  notifyHelpers: typeof notifyHelpers;
   remixes: typeof remixes;
   seed: typeof seed;
   upvotes: typeof upvotes;
