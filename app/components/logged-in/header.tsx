@@ -1,5 +1,6 @@
 "use client";
-import { Medal1stSolid, Bell } from "iconoir-react";
+import { Medal1stSolid } from "iconoir-react";
+import type { ReactNode } from "react";
 
 const MinipadLogo = () => (
   // eslint-disable-next-line @next/next/no-img-element
@@ -14,8 +15,7 @@ interface HeaderProps {
   onAvatarClick: () => void;
   onTrophyClick: () => void;
   onConnectWallet: () => void;
-  onBellClick?: () => void;
-  unreadCount?: number;
+  bellSlot?: ReactNode;
 }
 
 export const Header = ({
@@ -26,8 +26,7 @@ export const Header = ({
   onAvatarClick,
   onTrophyClick,
   onConnectWallet,
-  onBellClick,
-  unreadCount = 0,
+  bellSlot,
 }: HeaderProps) => (
   <div className="flex items-center justify-center px-6 py-4 border-b border-violet-100 bg-white">
     <div className="flex items-center gap-3 w-full justify-between">
@@ -51,24 +50,7 @@ export const Header = ({
           <Medal1stSolid width={22} height={22} className="text-yellow-500" />
         </button>
 
-        {isConnected && onBellClick && (
-          <button
-            onClick={onBellClick}
-            className="relative p-1.5 rounded-lg hover:bg-violet-50 transition-colors"
-            aria-label="Notifications"
-            title="Notifications"
-          >
-            <Bell width={22} height={22} className="text-violet-500" />
-            {unreadCount > 0 && (
-              <span
-                className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center leading-none"
-                aria-label={`${unreadCount} unread notifications`}
-              >
-                {unreadCount >= 10 ? "10+" : unreadCount}
-              </span>
-            )}
-          </button>
-        )}
+        {bellSlot}
 
         {isConnected && avatarUrl ? (
           <button

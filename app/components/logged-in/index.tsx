@@ -12,8 +12,10 @@ import { Header } from "./header";
 import { LeaderboardModal } from "../leaderboard-modal";
 import { UserProfileModal, type UserProfile } from "../user-profile-modal";
 import { NotificationsModal } from "../notifications-modal";
+import { NotificationBell } from "../notification-bell";
+import { ErrorBoundary } from "../error-boundary";
 import { TABS, VIEWS, ADMIN_ADDRESS } from "../../lib/constants";
-import { useMutation, useQuery } from "convex/react";
+import { useMutation } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { toast } from "sonner";
 
@@ -80,11 +82,6 @@ export const LoggedIn = () => {
   const handleAvatarClick = () => {
     setActiveTab(TABS.SETTINGS);
   };
-
-  const unreadCount = useQuery(
-    api.notifications.unreadCountForUser,
-    isConnected && walletAddress ? { recipient: walletAddress } : "skip",
-  );
 
   const handleIdeaClick = (ideaId: string) => {
     setPendingOpenIdeaId(ideaId);
@@ -154,8 +151,16 @@ export const LoggedIn = () => {
           onAvatarClick={handleAvatarClick}
           onTrophyClick={() => setShowLeaderboard(true)}
           onConnectWallet={handleConnectWallet}
-          onBellClick={() => setShowNotifications(true)}
-          unreadCount={unreadCount ?? 0}
+          bellSlot={
+            isConnected && walletAddress ? (
+              <ErrorBoundary fallback={null}>
+                <NotificationBell
+                  walletAddress={walletAddress}
+                  onClick={() => setShowNotifications(true)}
+                />
+              </ErrorBoundary>
+            ) : null
+          }
         />
         <div className={isMobile ? "flex-1 px-6 pb-6 pt-3" : "p-6 pt-3"}>
           {activeTab === TABS.HOME && homeContent}
@@ -173,12 +178,14 @@ export const LoggedIn = () => {
         user={profileModalUser}
         onIdeaClick={handleIdeaClick}
       />
-      <NotificationsModal
-        isOpen={showNotifications}
-        onClose={() => setShowNotifications(false)}
-        walletAddress={walletAddress}
-        onIdeaClick={handleIdeaClick}
-      />
+      <ErrorBoundary fallback={null}>
+        <NotificationsModal
+          isOpen={showNotifications}
+          onClose={() => setShowNotifications(false)}
+          walletAddress={walletAddress}
+          onIdeaClick={handleIdeaClick}
+        />
+      </ErrorBoundary>
     </>
   );
 };
