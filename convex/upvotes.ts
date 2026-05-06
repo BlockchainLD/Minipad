@@ -1,10 +1,15 @@
 import { mutation, query } from "./_generated/server";
 import { ConvexError, v } from "convex/values";
+import { createNotification } from "./notifyHelpers";
 
 export const upvoteIdea = mutation({
   args: {
     ideaId: v.id("ideas"),
     voter: v.string(),
+    voterFid: v.optional(v.number()),
+    voterAvatar: v.optional(v.string()),
+    voterDisplayName: v.optional(v.string()),
+    voterUsername: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     const idea = await ctx.db.get(args.ideaId);
@@ -24,6 +29,20 @@ export const upvoteIdea = mutation({
     });
 
     await ctx.db.patch(args.ideaId, { upvotes: (idea.upvotes ?? 0) + 1 });
+
+    await createNotification(ctx, {
+      recipient: idea.author,
+      type: "like",
+      ideaId: args.ideaId,
+      ideaTitle: idea.title,
+      actor: {
+        address: args.voter,
+        fid: args.voterFid,
+        avatar: args.voterAvatar,
+        displayName: args.voterDisplayName,
+        username: args.voterUsername,
+      },
+    });
   },
 });
 

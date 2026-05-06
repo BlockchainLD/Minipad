@@ -112,6 +112,7 @@ const RemixUpvoteButton = ({
 }) => {
   const upvoteRemix = useMutation(api.remixes.upvoteRemix);
   const removeRemixUpvote = useMutation(api.remixes.removeRemixUpvote);
+  const farcasterData = useFarcasterData();
   const serverHasUpvoted = useQuery(
     api.remixes.hasUserUpvotedRemix,
     address ? { remixId: remix._id, voter: address } : "skip"
@@ -120,7 +121,14 @@ const RemixUpvoteButton = ({
     serverHasUpvoted,
     serverCount: remix.upvotes,
     address,
-    upvote: () => upvoteRemix({ remixId: remix._id, voter: address! }),
+    upvote: () => upvoteRemix({
+      remixId: remix._id,
+      voter: address!,
+      voterFid: farcasterData?.fid,
+      voterAvatar: farcasterData?.pfp?.url,
+      voterDisplayName: farcasterData?.displayName,
+      voterUsername: farcasterData?.username,
+    }),
     removeUpvote: () => removeRemixUpvote({ remixId: remix._id, voter: address! }),
     componentName: "IdeaDetailModal",
     onConnectWallet,

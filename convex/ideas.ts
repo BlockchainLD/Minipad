@@ -116,6 +116,14 @@ export const deleteIdea = mutation({
       await ctx.db.delete(remix._id);
     }
 
+    const notifs = await ctx.db
+      .query("notifications")
+      .withIndex("by_idea", (q) => q.eq("ideaId", args.ideaId))
+      .collect();
+    for (const n of notifs) {
+      await ctx.db.delete(n._id);
+    }
+
     await ctx.db.delete(args.ideaId);
   },
 });
@@ -131,6 +139,7 @@ export const adminDeleteAllIdeas = mutation({
     for (const r of await ctx.db.query("remixes").collect()) await ctx.db.delete(r._id);
     for (const c of await ctx.db.query("claims").collect()) await ctx.db.delete(c._id);
     for (const e of await ctx.db.query("buildEndorsements").collect()) await ctx.db.delete(e._id);
+    for (const n of await ctx.db.query("notifications").collect()) await ctx.db.delete(n._id);
     for (const i of await ctx.db.query("ideas").collect()) await ctx.db.delete(i._id);
   },
 });
