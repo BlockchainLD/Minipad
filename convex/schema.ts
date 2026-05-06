@@ -114,7 +114,9 @@ const schema = defineSchema({
     read: v.boolean(),
     timestamp: v.number(),
   })
-    .index("by_recipient", ["recipient"]),
+    .index("by_recipient", ["recipient"])
+    .index("by_recipient_read", ["recipient", "read"])
+    .index("by_idea", ["ideaId"]),
 
   // Per-user notification preferences (master + per-type toggles)
   notificationPrefs: defineTable({

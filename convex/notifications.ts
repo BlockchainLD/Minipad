@@ -71,10 +71,12 @@ export const unreadCountForUser = query({
   args: { recipient: v.string() },
   handler: async (ctx, args) => {
     const recipient = norm(args.recipient);
-    const [notifs, prefsRow] = await Promise.all([
+    const [unread, prefsRow] = await Promise.all([
       ctx.db
         .query("notifications")
-        .withIndex("by_recipient", (q) => q.eq("recipient", recipient))
+        .withIndex("by_recipient_read", (q) =>
+          q.eq("recipient", recipient).eq("read", false)
+        )
         .collect(),
       ctx.db
         .query("notificationPrefs")
@@ -91,7 +93,7 @@ export const unreadCountForUser = query({
           endorsement: prefsRow.endorsement,
         }
       : DEFAULT_PREFS;
-    return filterByPrefs(notifs.filter((n) => !n.read), prefs).length;
+    return filterByPrefs(unread, prefs).length;
   },
 });
 
@@ -101,8 +103,9 @@ export const markAllRead = mutation({
     const recipient = norm(args.recipient);
     const unread = await ctx.db
       .query("notifications")
-      .withIndex("by_recipient", (q) => q.eq("recipient", recipient))
-      .filter((q) => q.eq(q.field("read"), false))
+      .withIndex("by_recipient_read", (q) =>
+        q.eq("recipient", recipient).eq("read", false)
+      )
       .collect();
     for (const n of unread) {
       await ctx.db.patch(n._id, { read: true });
