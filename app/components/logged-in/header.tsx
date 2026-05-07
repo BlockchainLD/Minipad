@@ -40,19 +40,17 @@ export const Header = ({
         </button>
       </div>
 
-      <div className="flex items-center gap-3">
-        <div className="flex items-center gap-1">
-          <button
-            onClick={onTrophyClick}
-            className="p-1.5 rounded-lg hover:bg-yellow-50 transition-colors"
-            aria-label="Leaderboard"
-            title="Leaderboard"
-          >
-            <Medal1stSolid width={22} height={22} className="text-yellow-500" />
-          </button>
+      <div className="flex items-center gap-1">
+        <button
+          onClick={onTrophyClick}
+          className="p-1.5 rounded-lg hover:bg-yellow-50 transition-colors"
+          aria-label="Leaderboard"
+          title="Leaderboard"
+        >
+          <Medal1stSolid width={22} height={22} className="text-yellow-500" />
+        </button>
 
-          {bellSlot}
-        </div>
+        {bellSlot}
 
         {isConnected && avatarUrl ? (
           <button

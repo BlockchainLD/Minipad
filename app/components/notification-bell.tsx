@@ -21,11 +21,11 @@ export const NotificationBell = ({ walletAddress, onClick }: Props) => {
   return (
     <button
       onClick={onClick}
-      className="relative p-1.5 rounded-lg hover:bg-violet-50 transition-colors"
+      className="relative p-1.5 rounded-lg hover:bg-yellow-50 transition-colors"
       aria-label="Notifications"
       title="Notifications"
     >
-      <Bell width={20} height={20} className="text-violet-500" />
+      <Bell width={20} height={20} className="text-yellow-500" />
       {count > 0 && (
         <span
           className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center leading-none"

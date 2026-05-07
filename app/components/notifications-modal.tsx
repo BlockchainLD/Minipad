@@ -137,7 +137,7 @@ export const NotificationsModal = ({ isOpen, onClose, walletAddress, onIdeaClick
                 <NavArrowLeft width={20} height={20} />
               </button>
             ) : (
-              <Bell width={22} height={22} className="text-violet-500" />
+              <Bell width={22} height={22} className="text-yellow-500" />
             )}
             <h2 className="text-xl font-bold text-gray-900">
               {showSettings ? "Notification settings" : "Notifications"}
@@ -203,7 +203,7 @@ const NotifList = ({
   if (notifs.length === 0) {
     return (
       <div className="text-center py-16 px-6 text-gray-400">
-        <Bell width={40} height={40} className="text-violet-300 mx-auto mb-3" />
+        <Bell width={40} height={40} className="text-yellow-300 mx-auto mb-3" />
         <p className="text-sm">No notifications yet.</p>
         <p className="text-xs mt-1">When someone interacts with your work, it shows up here.</p>
       </div>
