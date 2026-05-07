@@ -43,7 +43,7 @@ export const Header = ({
       <div className="flex items-center gap-1">
         <button
           onClick={onTrophyClick}
-          className="p-1.5 rounded-lg hover:bg-yellow-50 transition-colors"
+          className="cursor-pointer transition-opacity hover:opacity-70"
           aria-label="Leaderboard"
           title="Leaderboard"
         >

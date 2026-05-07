@@ -21,7 +21,7 @@ export const NotificationBell = ({ walletAddress, onClick }: Props) => {
   return (
     <button
       onClick={onClick}
-      className="relative p-1.5 rounded-lg hover:bg-yellow-50 transition-colors"
+      className="relative cursor-pointer transition-opacity hover:opacity-70"
       aria-label="Notifications"
       title="Notifications"
     >
