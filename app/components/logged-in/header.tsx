@@ -40,22 +40,24 @@ export const Header = ({
         </button>
       </div>
 
-      <div className="flex items-center gap-1">
-        <button
-          onClick={onTrophyClick}
-          className="cursor-pointer transition-opacity hover:opacity-70"
-          aria-label="Leaderboard"
-          title="Leaderboard"
-        >
-          <Medal1stSolid width={22} height={22} className="text-yellow-500" />
-        </button>
+      <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1">
+          <button
+            onClick={onTrophyClick}
+            className="cursor-pointer transition-opacity hover:opacity-70"
+            aria-label="Leaderboard"
+            title="Leaderboard"
+          >
+            <Medal1stSolid width={22} height={22} className="text-yellow-500" />
+          </button>
 
-        {bellSlot}
+          {bellSlot}
+        </div>
 
         {isConnected && avatarUrl ? (
           <button
             onClick={onAvatarClick}
-            className="rounded-full focus:outline-none focus:ring-2 focus:ring-violet-300 hover:ring-2 hover:ring-violet-300 transition-all"
+            className="w-7 h-7 rounded-full bg-violet-100 overflow-hidden focus:outline-none focus:ring-2 focus:ring-violet-300 hover:ring-2 hover:ring-violet-300 transition-all"
             aria-label="Open settings"
             title="Settings"
           >
