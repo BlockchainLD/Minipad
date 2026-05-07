@@ -48,7 +48,7 @@ export const Header = ({
             aria-label="Leaderboard"
             title="Leaderboard"
           >
-            <Medal1stSolid width={24} height={24} className="text-yellow-500" />
+            <Medal1stSolid width={20} height={20} className="text-yellow-500" />
           </button>
 
           {bellSlot}
