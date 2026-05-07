@@ -40,22 +40,24 @@ export const Header = ({
         </button>
       </div>
 
-      <div className="flex items-center gap-1">
-        <button
-          onClick={onTrophyClick}
-          className="cursor-pointer transition-opacity hover:opacity-70"
-          aria-label="Leaderboard"
-          title="Leaderboard"
-        >
-          <Medal1stSolid width={22} height={22} className="text-yellow-500" />
-        </button>
+      <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1">
+          <button
+            onClick={onTrophyClick}
+            className="cursor-pointer transition-opacity hover:opacity-70"
+            aria-label="Leaderboard"
+            title="Leaderboard"
+          >
+            <Medal1stSolid width={24} height={24} className="text-yellow-500" />
+          </button>
 
-        {bellSlot}
+          {bellSlot}
+        </div>
 
         {isConnected && avatarUrl ? (
           <button
             onClick={onAvatarClick}
-            className="rounded-full focus:outline-none focus:ring-2 focus:ring-violet-300 hover:ring-2 hover:ring-violet-300 transition-all"
+            className="w-6 h-6 rounded-full bg-violet-100 overflow-hidden focus:outline-none focus:ring-2 focus:ring-violet-300 hover:ring-2 hover:ring-violet-300 transition-all"
             aria-label="Open settings"
             title="Settings"
           >
@@ -63,20 +65,20 @@ export const Header = ({
             <img
               src={avatarUrl}
               alt="Profile"
-              width={28}
-              height={28}
-              className="w-7 h-7 rounded-full object-cover"
+              width={24}
+              height={24}
+              className="w-6 h-6 rounded-full object-cover"
               onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
             />
           </button>
         ) : isConnected ? (
           <button
             onClick={onAvatarClick}
-            className="w-7 h-7 rounded-full bg-violet-100 flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-violet-300 hover:ring-2 hover:ring-violet-300 transition-all"
+            className="w-6 h-6 rounded-full bg-violet-100 flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-violet-300 hover:ring-2 hover:ring-violet-300 transition-all"
             aria-label="Open settings"
             title="Settings"
           >
-            <span className="text-xs text-violet-600 font-medium">•••</span>
+            <span className="text-[10px] text-violet-600 font-medium leading-none">•••</span>
           </button>
         ) : (
           <button

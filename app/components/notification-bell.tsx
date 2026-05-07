@@ -25,7 +25,7 @@ export const NotificationBell = ({ walletAddress, onClick }: Props) => {
       aria-label="Notifications"
       title="Notifications"
     >
-      <Bell width={20} height={20} className="text-yellow-500" />
+      <Bell width={24} height={24} className="text-yellow-500" />
       {count > 0 && (
         <span
           className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center leading-none"
